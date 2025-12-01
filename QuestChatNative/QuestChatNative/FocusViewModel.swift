@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import SwiftUI
 import UserNotifications
+import UIKit
 
 /// Represents available timer modes.
 enum FocusTimerMode: String, CaseIterable, Identifiable {
@@ -270,13 +271,14 @@ final class FocusViewModel: ObservableObject {
     var progress: Double {
         let total = Double(selectedMode.duration)
         guard total > 0 else { return 0 }
-        return 1 - (Double(secondsRemaining) / total)
+        let value = 1 - (Double(secondsRemaining) / total)
+        return min(max(value, 0), 1)
     }
 
     /// Starts or pauses the timer depending on the current state.
     func startOrPause() {
         if isRunning {
-            stopTimer()
+            stopTimer(triggerHaptic: true)
         } else {
             if secondsRemaining == 0 {
                 secondsRemaining = selectedMode.duration
@@ -295,6 +297,7 @@ final class FocusViewModel: ObservableObject {
 
     private func startTimer() {
         isRunning = true
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         scheduleCompletionNotification()
         timerCancellable = Timer
             .publish(every: 1, on: .main, in: .common)
@@ -309,7 +312,10 @@ final class FocusViewModel: ObservableObject {
             }
     }
 
-    private func stopTimer() {
+    private func stopTimer(triggerHaptic: Bool = false) {
+        if triggerHaptic {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        }
         isRunning = false
         cancelCompletionNotifications()
         timerCancellable?.cancel()
@@ -320,6 +326,7 @@ final class FocusViewModel: ObservableObject {
         stopTimer()
         hasFinishedOnce = true
         let xpGained = statsStore.recordSession(mode: selectedMode, duration: selectedMode.duration)
+        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         withAnimation(.easeInOut(duration: 0.25)) {
             lastCompletedSession = SessionSummary(
                 mode: selectedMode,
