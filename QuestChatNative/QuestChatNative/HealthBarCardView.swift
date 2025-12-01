@@ -35,19 +35,17 @@ struct HealthBarCardView: View {
             }
 
             if let summary = dailySummary {
-                Divider().opacity(0.1)
-
-                HStack(alignment: .top, spacing: 12) {
+                HStack(alignment: .top) {
                     summaryItem(title: summary.questsTitle, value: summary.questsValue, alignment: .leading)
+                    Spacer()
                     summaryItem(title: summary.todayTitle, value: summary.todayValue, alignment: .center)
+                    Spacer()
                     summaryItem(title: summary.streakTitle, value: summary.streakValue, alignment: .trailing)
                 }
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.secondary)
-                .padding(.top, 4)
+                .padding(.top, 8)
             }
-
-            Divider().opacity(0.1)
 
             HStack(spacing: 12) {
                 Button("Drank water") {
@@ -72,25 +70,6 @@ struct HealthBarCardView: View {
                 .stroke(Color.white.opacity(0.06), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-    }
-
-    private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text("HealthBar IRL")
-                .font(.headline.weight(.semibold))
-            Spacer()
-            Text("\(viewModel.hp) / 100 HP")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private var statRow: some View {
-        HStack(spacing: 8) {
-            StatPill(icon: "drop.fill", label: "Hydration", value: "\(viewModel.inputs.hydrationCount)x")
-            StatPill(icon: "figure.mind.and.body", label: "Self-care", value: "\(viewModel.inputs.selfCareSessions)")
-            StatPill(icon: "bolt.fill", label: "Focus", value: "\(viewModel.inputs.focusSprints)")
-        }
     }
 
     private func summaryItem(title: String, value: String, alignment: HorizontalAlignment) -> some View {
