@@ -1,5 +1,7 @@
 import Foundation
+import Combine
 
+@MainActor
 final class SettingsViewModel: ObservableObject {
     private let resetter: GameDataResetter
 
@@ -11,3 +13,4 @@ final class SettingsViewModel: ObservableObject {
         resetter.reset(window)
     }
 }
+
