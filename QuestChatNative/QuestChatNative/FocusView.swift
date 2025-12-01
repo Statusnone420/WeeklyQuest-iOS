@@ -41,15 +41,22 @@ struct FocusView: View {
         }
     }
 
-    private var levelProgressPercentage: Int {
-        let progress = Double(viewModel.statsStore.xpIntoCurrentLevel) / Double(viewModel.statsStore.xpForNextLevel)
-        guard progress.isFinite else { return 0 }
-        return Int(progress * 100)
-    }
-
     private var focusMinutesToday: Int { viewModel.statsStore.focusSecondsToday / 60 }
     private var selfCareMinutesToday: Int { viewModel.statsStore.selfCareSecondsToday / 60 }
     private var dailyFocusTarget: Int { viewModel.statsStore.dailyMinutesGoal ?? 40 }
+
+    private var questSummaryText: String {
+        "\(questsViewModel.completedQuestsCount) / \(questsViewModel.totalQuestsCount) quests done"
+    }
+
+    private var minutesSummaryText: String {
+        "\(focusMinutesToday + selfCareMinutesToday) / \(dailyFocusTarget) min"
+    }
+
+    private var streakSummaryText: String {
+        let days = viewModel.statsStore.currentStreakDays
+        return days > 0 ? "\(days)-day streak" : "Start your streak"
+    }
 
     private var momentumStatusText: String {
         let value = viewModel.statsStore.currentMomentum
@@ -70,6 +77,7 @@ struct FocusView: View {
             NavigationStack {
                 ScrollView {
                     VStack(spacing: 20) {
+                        compactStatusHeader
                         todayQuestBanner
 
                         ForEach(viewModel.categories) { category in
@@ -143,6 +151,37 @@ struct FocusView: View {
     }
 
     @ViewBuilder
+    private var compactStatusHeader: some View {
+        HStack(spacing: 12) {
+            headerItem(title: "Quests", value: questSummaryText, icon: "checkmark.circle.fill", tint: .mint)
+            headerItem(title: "Today", value: minutesSummaryText, icon: "timer", tint: .cyan)
+            headerItem(title: "Streak", value: streakSummaryText, icon: "flame.fill", tint: .orange)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(Color(uiColor: .secondarySystemBackground).opacity(0.1))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.white.opacity(0.06), lineWidth: 1)
+        )
+    }
+
+    private func headerItem(title: String, value: String, icon: String, tint: Color) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label(title, systemImage: icon)
+                .font(.caption.bold())
+                .foregroundStyle(tint)
+            Text(value)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    @ViewBuilder
     private var todayQuestBanner: some View {
         if let quest = questsViewModel.dailyQuests.first {
             Button {
@@ -187,32 +226,6 @@ struct FocusView: View {
         }
     }
 
-    private var xpStrip: some View {
-        HStack(spacing: 12) {
-            Image(systemName: "sparkles")
-                .foregroundStyle(.mint)
-                .imageScale(.large)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("XP: \(viewModel.statsStore.xp)")
-                    .font(.title2.bold())
-                Text("Level \(viewModel.statsStore.level) • \(levelProgressPercentage)% to next level")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                Text("Focus: \(minutes(from: viewModel.statsStore.focusSeconds)) min • Self care: \(minutes(from: viewModel.statsStore.selfCareSeconds)) min")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-            }
-            Spacer()
-        }
-        .padding()
-        .background(.ultraThinMaterial.opacity(0.15))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
-        )
-        .cornerRadius(16)
-    }
-
     private var momentumStrip: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -236,6 +249,7 @@ struct FocusView: View {
                 .stroke(Color.gray.opacity(0.25), lineWidth: 1)
         )
         .cornerRadius(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var dailyGoalCard: some View {
@@ -270,6 +284,7 @@ struct FocusView: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.gray.opacity(0.25), lineWidth: 1)
         )
+        .frame(maxWidth: .infinity)
     }
 
     private func expandedCard(for category: TimerCategory) -> some View {
@@ -285,12 +300,12 @@ struct FocusView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                VStack(spacing: 6) {
+                VStack(spacing: 8) {
                     Text("\(category.durationMinutes) min")
                         .font(.headline)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Color.mint.opacity(0.12))
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(Color.mint.opacity(0.16))
                         .clipShape(Capsule())
 
                     durationControl(for: category)
@@ -311,28 +326,29 @@ struct FocusView: View {
 
             controlPanel
 
-            dailyGoalCard
-
-            xpStrip
-
-            momentumStrip
-
-            TodaySummaryView(
-                completedQuests: questsViewModel.completedQuestsCount,
-                totalQuests: questsViewModel.totalQuestsCount,
-                focusMinutes: focusMinutesToday,
-                selfCareMinutes: selfCareMinutesToday,
-                dailyFocusTarget: dailyFocusTarget,
-                currentStreakDays: viewModel.statsStore.currentStreakDays
-            )
+            HStack(spacing: 12) {
+                dailyGoalCard
+                momentumStrip
+            }
         }
-        .padding()
+        .padding(22)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(uiColor: .secondarySystemBackground).opacity(0.15))
-        .cornerRadius(24)
+        .background(
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .fill(Color(uiColor: .secondarySystemBackground).opacity(0.22))
+        )
         .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(Color.gray.opacity(0.25), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [Color.mint.opacity(0.4), Color.cyan.opacity(0.25), Color.purple.opacity(0.18)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.4
+                )
+                .shadow(color: Color.black.opacity(0.35), radius: 18, x: 0, y: 10)
+                .shadow(color: Color.mint.opacity(0.2), radius: 12, x: 0, y: 6)
         )
         .overlay(alignment: .top) {
             if let nudge = viewModel.activeHydrationNudge {
@@ -365,12 +381,13 @@ struct FocusView: View {
             }
             .padding()
             .frame(maxWidth: .infinity)
-            .background(Color(uiColor: .secondarySystemBackground).opacity(0.12))
-            .cornerRadius(18)
+            .background(Color(uiColor: .secondarySystemBackground).opacity(0.1))
+            .cornerRadius(16)
             .overlay(
-                RoundedRectangle(cornerRadius: 18)
-                    .stroke(Color.gray.opacity(0.25), lineWidth: 1)
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.white.opacity(0.06), lineWidth: 1)
             )
+            .shadow(color: Color.black.opacity(0.22), radius: 12, x: 0, y: 8)
         }
         .buttonStyle(.plain)
     }
