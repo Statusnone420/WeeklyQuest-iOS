@@ -96,17 +96,6 @@ struct FocusView: View {
                 .toolbarColorScheme(.dark, for: .navigationBar)
             }
 
-            if let pendingLevel = statsStore.pendingLevelUp {
-                levelUpOverlay(level: pendingLevel)
-                    .transition(
-                        .asymmetric(
-                            insertion: .opacity.combined(with: .scale(scale: 1.05)),
-                            removal: .opacity.combined(with: .scale(scale: 0.96))
-                        )
-                    )
-                    .zIndex(1)
-            }
-
             if let session = viewModel.lastCompletedSession {
                 sessionCompleteOverlay(summary: session)
                     .transition(
@@ -118,7 +107,6 @@ struct FocusView: View {
                     .zIndex(2)
             }
         }
-        .animation(.easeInOut(duration: 0.25), value: statsStore.pendingLevelUp)
         .animation(.easeInOut(duration: 0.25), value: viewModel.lastCompletedSession?.timestamp)
         .animation(.easeInOut(duration: 0.35), value: viewModel.activeHydrationNudge?.id)
         .animation(.spring(response: 0.4, dampingFraction: 0.85), value: viewModel.selectedCategory)
@@ -154,15 +142,6 @@ struct FocusView: View {
         }
         .onAppear {
             statsStore.refreshDailySetupIfNeeded()
-        }
-        .alert(item: $viewModel.lastLevelUp) { result in
-            Alert(
-                title: Text("Level \(result.newLevel) reached!"),
-                message: Text("You're one step closer to Level 100 QuestChat Master."),
-                dismissButton: .default(Text("Nice!")) {
-                    viewModel.lastLevelUp = nil
-                }
-            )
         }
     }
 
@@ -623,44 +602,6 @@ struct FocusView: View {
 
     private func minutes(from seconds: Int) -> Int {
         seconds / 60
-    }
-
-    private func levelUpOverlay(level: Int) -> some View {
-        ZStack {
-            Color.black.opacity(0.75)
-                .ignoresSafeArea()
-
-            VStack(spacing: 16) {
-                Text("\(QuestChatStrings.FocusView.levelUpTitlePrefix) \(level)")
-                    .font(.system(size: 40, weight: .black, design: .rounded))
-                    .foregroundStyle(.mint)
-
-                Text(QuestChatStrings.FocusView.levelUpSubtitle)
-                    .multilineTextAlignment(.center)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-
-                Button {
-                    withAnimation {
-                        statsStore.pendingLevelUp = nil
-                    }
-                } label: {
-                    Text(QuestChatStrings.FocusView.levelUpButtonTitle)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(.mint)
-            }
-            .padding(24)
-            .frame(maxWidth: 320)
-            .background(Color(uiColor: .secondarySystemBackground).opacity(0.95))
-            .cornerRadius(24)
-            .overlay(
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(Color.gray.opacity(0.25), lineWidth: 1)
-            )
-        }
     }
 
     private func sessionCompleteOverlay(summary: FocusViewModel.SessionSummary) -> some View {
