@@ -35,6 +35,54 @@ enum FocusTimerMode: String, CaseIterable, Identifiable {
 
 }
 
+enum SleepQuality: Int, CaseIterable, Identifiable {
+    case awful
+    case okay
+    case great
+
+    var id: Int { rawValue }
+
+    var label: String {
+        switch self {
+        case .awful:
+            return "Awful"
+        case .okay:
+            return "Okay"
+        case .great:
+            return "Great"
+        }
+    }
+
+    var hpModifier: Int {
+        switch self {
+        case .awful:
+            return -15
+        case .okay:
+            return 0
+        case .great:
+            return 10
+        }
+    }
+
+    var buffLabel: String? {
+        switch self {
+        case .great:
+            return "Well-rested"
+        case .okay, .awful:
+            return nil
+        }
+    }
+
+    var debuffLabel: String? {
+        switch self {
+        case .awful:
+            return "Running on fumes"
+        case .okay, .great:
+            return nil
+        }
+    }
+}
+
 struct TimerCategory: Identifiable, Equatable {
     enum Kind: String, Codable {
         case deepFocus
@@ -852,6 +900,16 @@ final class FocusViewModel: ObservableObject {
         let timestamp: Date
     }
 
+    struct StatusEffect: Identifiable {
+        enum Kind { case buff, debuff }
+
+        let id = UUID()
+        let title: String
+        let reason: String
+        let icon: String
+        let kind: Kind
+    }
+
     struct HydrationNudge: Identifiable {
         let id = UUID()
         let level: HydrationNudgeLevel
@@ -898,6 +956,7 @@ final class FocusViewModel: ObservableObject {
     @Published var lastCompletedSession: SessionSummary?
     @Published var activeHydrationNudge: HydrationNudge?
     @Published var lastLevelUp: SessionStatsStore.LevelUpResult?
+    @Published var sleepQuality: SleepQuality = .okay
 
     var onSessionComplete: (() -> Void)?
 
@@ -995,6 +1054,80 @@ final class FocusViewModel: ObservableObject {
 
     var hasEarnedComboForSelectedCategory: Bool {
         statsStore.hasEarnedComboBonus(for: selectedCategory)
+    }
+
+    private let baseHP = 100
+    private let maxHP = 100
+
+    private var gutStatus: GutStatus {
+        healthBarViewModel?.inputs.gutStatus ?? .none
+    }
+
+    private var moodStatus: MoodStatus {
+        healthBarViewModel?.inputs.moodStatus ?? .none
+    }
+
+    var currentHP: Int {
+        let gutModifier: Int = {
+            switch gutStatus {
+            case .none:
+                return 0
+            case .great:
+                return 12
+            case .meh:
+                return 4
+            case .rough:
+                return -14
+            }
+        }()
+
+        let moodModifier: Int = {
+            switch moodStatus {
+            case .none:
+                return 0
+            case .good:
+                return 8
+            case .neutral:
+                return 0
+            case .bad:
+                return -10
+            }
+        }()
+
+        let total = baseHP + sleepQuality.hpModifier + gutModifier + moodModifier
+        return max(0, min(total, maxHP))
+    }
+
+    var activeEffects: [StatusEffect] {
+        var effects: [StatusEffect] = []
+
+        switch gutStatus {
+        case .rough:
+            effects.append(StatusEffect(title: "Full of 💩", reason: "Gut status is rough", icon: "💩", kind: .debuff))
+        case .great:
+            effects.append(StatusEffect(title: "Gut of steel", reason: "Digestion feels great", icon: "🛡️", kind: .buff))
+        case .meh, .none:
+            break
+        }
+
+        switch moodStatus {
+        case .good:
+            effects.append(StatusEffect(title: "Ray of sunshine", reason: "Mood is bright", icon: "🌞", kind: .buff))
+        case .bad:
+            effects.append(StatusEffect(title: "Stormy mood", reason: "Feeling off", icon: "🌩️", kind: .debuff))
+        case .neutral, .none:
+            break
+        }
+
+        if sleepQuality == .awful, let debuffLabel = sleepQuality.debuffLabel {
+            effects.append(StatusEffect(title: debuffLabel, reason: "Barely slept", icon: "🥱", kind: .debuff))
+        }
+
+        if sleepQuality == .great, let buffLabel = sleepQuality.buffLabel {
+            effects.append(StatusEffect(title: buffLabel, reason: "Slept like a champ", icon: "😴", kind: .buff))
+        }
+
+        return effects
     }
 
     private var currentDuration: Int {
