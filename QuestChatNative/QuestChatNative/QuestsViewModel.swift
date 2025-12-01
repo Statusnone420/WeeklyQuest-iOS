@@ -81,6 +81,24 @@ final class QuestsViewModel: ObservableObject {
         dailyQuests.count
     }
 
+    var totalDailyXP: Int {
+        dailyQuests.reduce(0) { $0 + $1.xpReward }
+    }
+
+    var remainingQuestsUntilChest: Int {
+        max(dailyQuests.filter { !$0.isCompleted }.count, 0)
+    }
+
+    var allQuestsComplete: Bool {
+        dailyQuests.allSatisfy { $0.isCompleted }
+    }
+
+    var incompleteQuests: [Quest] {
+        dailyQuests.filter { !$0.isCompleted }
+    }
+
+    var canRerollToday: Bool { !hasUsedRerollToday }
+
     func toggleQuest(_ quest: Quest) {
         guard let index = dailyQuests.firstIndex(where: { $0.id == quest.id }) else { return }
 
