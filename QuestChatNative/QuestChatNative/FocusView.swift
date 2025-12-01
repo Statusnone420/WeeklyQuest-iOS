@@ -314,6 +314,7 @@ struct FocusView: View {
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .matchedGeometryEffect(id: "subtitle-\(category.id)", in: categoryAnimation)
+                        comboPill(for: category)
                     }
                     Spacer()
                     VStack(spacing: 8) {
@@ -609,6 +610,27 @@ struct FocusView: View {
         .padding()
         .background(Color(uiColor: .secondarySystemBackground).opacity(0.16))
         .cornerRadius(14)
+    }
+
+    private func comboPill(for category: TimerCategory) -> some View {
+        let comboCount = viewModel.statsStore.comboCount(for: category.id)
+        let comboComplete = viewModel.statsStore.hasEarnedComboBonus(for: category.id)
+
+        return Group {
+            if comboComplete {
+                Label("Combo complete today!", systemImage: "sparkles")
+                    .labelStyle(.titleAndIcon)
+            } else {
+                Label("Combo: \(comboCount) / 3", systemImage: "repeat")
+                    .labelStyle(.titleAndIcon)
+            }
+        }
+        .font(.caption.bold())
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color.mint.opacity(0.12))
+        .foregroundStyle(.mint)
+        .clipShape(Capsule())
     }
 
     private func animateButtonPress(scale: Binding<CGFloat>) {
