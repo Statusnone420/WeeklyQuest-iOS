@@ -7,6 +7,7 @@ enum MainTab: Hashable {
 struct ContentView: View {
     @State private var selectedTab: MainTab = .focus
     @StateObject private var statsStore = DependencyContainer.shared.makeStatsStore()
+    @StateObject private var healthStatsViewModel = DependencyContainer.shared.makeHealthStatsViewModel()
     @StateObject private var questsViewModel = DependencyContainer.shared.makeQuestsViewModel()
     private let appCoordinator = AppCoordinator()
 
@@ -24,6 +25,7 @@ struct ContentView: View {
 
                 StatsView(
                     store: statsStore,
+                    viewModel: healthStatsViewModel,
                     questsViewModel: questsViewModel
                 )
                     .tabItem { Label("Stats", systemImage: "chart.bar.xaxis") }

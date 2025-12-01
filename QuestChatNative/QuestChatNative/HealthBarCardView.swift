@@ -36,9 +36,17 @@ struct HealthBarCardView: View {
                     .foregroundStyle(.secondary)
             }
 
-            ProgressView(value: Double(viewModel.hp), total: 100)
-                .tint(.teal)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.gray.opacity(0.25))
+                    Capsule()
+                        .fill(viewModel.healthBarColor)
+                        .frame(width: geometry.size.width * viewModel.hpPercentage)
+                        .animation(.easeInOut(duration: 0.25), value: viewModel.hpPercentage)
+                }
+            }
+            .frame(height: 14)
 
             HStack(spacing: 8) {
                 StatPill(icon: "drop.fill", label: "Hydration", value: "\(viewModel.inputs.hydrationCount)x")
@@ -167,22 +175,38 @@ struct PillPicker<Option: Hashable>: View {
                 Button {
                     onSelect(option)
                 } label: {
-                    Text(labelProvider(option))
-                        .font(.caption.weight(.semibold))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .frame(maxWidth: .infinity)
-                        .background(isSelected ? highlightColor.opacity(0.25) : Color.clear)
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(isSelected ? highlightColor : Color.gray.opacity(0.3), lineWidth: isSelected ? 1.5 : 1)
-                        )
-                        .foregroundStyle(isSelected ? highlightColor : .primary)
-                        .clipShape(Capsule())
+                    StatusChip(
+                        title: labelProvider(option),
+                        isSelected: isSelected,
+                        highlightColor: highlightColor
+                    )
                 }
                 .buttonStyle(.plain)
             }
         }
+    }
+}
+
+struct StatusChip: View {
+    let title: String
+    let isSelected: Bool
+    let highlightColor: Color
+
+    var body: some View {
+        Text(title)
+            .font(.caption.weight(.semibold))
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .frame(maxWidth: .infinity)
+            .background(isSelected ? highlightColor.opacity(0.25) : Color.clear)
+            .overlay(
+                Capsule()
+                    .strokeBorder(isSelected ? highlightColor : Color.gray.opacity(0.35), lineWidth: isSelected ? 1.5 : 1)
+            )
+            .foregroundStyle(isSelected ? highlightColor : .primary)
+            .clipShape(Capsule())
     }
 }
 

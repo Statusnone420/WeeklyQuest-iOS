@@ -2,6 +2,7 @@ import SwiftUI
 
 struct StatsView: View {
     @ObservedObject var store: SessionStatsStore
+    @ObservedObject var viewModel: StatsViewModel
     @ObservedObject var questsViewModel: QuestsViewModel
     @State private var showPlayerCard = false
 
@@ -51,6 +52,27 @@ struct StatsView: View {
         store.weeklyGoalProgress
     }
 
+    private var healthBarWeeklySummary: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("HealthBar IRL – Last 7 Days")
+                .font(.headline)
+
+            if viewModel.last7Days.isEmpty {
+                Text("No recent HealthBar data yet.")
+                    .foregroundStyle(.secondary)
+            } else {
+                VStack(spacing: 10) {
+                    ForEach(viewModel.last7Days) { day in
+                        healthDayRow(day)
+                    }
+                }
+                .padding()
+                .background(Color(uiColor: .secondarySystemBackground).opacity(0.15))
+                .cornerRadius(16)
+            }
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -66,6 +88,7 @@ struct StatsView: View {
 
                     dailyGoalCard
                     weeklyPathCard
+                    healthBarWeeklySummary
 
                     header
                     summaryTiles
@@ -84,6 +107,53 @@ struct StatsView: View {
             .onAppear {
                 store.refreshMomentumIfNeeded()
             }
+        }
+    }
+
+    private func healthDayRow(_ day: HealthDaySummary) -> some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(viewModel.label(for: day.date))
+                    .font(.subheadline.bold())
+                Text("Avg \(Int(day.averageHP.rounded())) / 100 HP")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("💧 \(day.hydrationCount)")
+                Text("✨ \(day.selfCareCount)")
+                Text("⚡️ \(day.focusCount)")
+            }
+            .font(.caption)
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 6) {
+                Text("Gut: \(gutLabel(for: day.lastGut))")
+                Text("Mood: \(moodLabel(for: day.lastMood))")
+            }
+            .font(.caption)
+        }
+    }
+
+    private func gutLabel(for status: GutStatus) -> String {
+        switch status {
+        case .great: return "Great"
+        case .meh: return "Meh"
+        case .rough: return "Rough"
+        case .none: return "—"
+        }
+    }
+
+    private func moodLabel(for status: MoodStatus) -> String {
+        switch status {
+        case .good: return "Good"
+        case .neutral: return "Neutral"
+        case .bad: return "Bad"
+        case .none: return "—"
         }
     }
 
@@ -335,5 +405,10 @@ struct StatsView: View {
 
 #Preview {
     let store = SessionStatsStore()
-    StatsView(store: store, questsViewModel: QuestsViewModel(statsStore: store))
+    let healthStats = HealthBarIRLStatsStore()
+    StatsView(
+        store: store,
+        viewModel: StatsViewModel(healthStore: healthStats),
+        questsViewModel: QuestsViewModel(statsStore: store)
+    )
 }

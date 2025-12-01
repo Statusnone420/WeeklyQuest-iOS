@@ -1,9 +1,12 @@
 import Foundation
 import Combine
+import SwiftUI
 
 final class HealthBarViewModel: ObservableObject {
     @Published private(set) var inputs: DailyHealthInputs
     @Published private(set) var hp: Int = 40
+
+    private let maxHP: Double = 100
 
     private let storage: HealthBarStorageProtocol
 
@@ -41,6 +44,22 @@ final class HealthBarViewModel: ObservableObject {
         inputs.moodStatus = status
         recalculate()
         save()
+    }
+
+    var hpPercentage: Double {
+        let clamped = max(0, min(Double(hp), maxHP))
+        return clamped / maxHP
+    }
+
+    var healthBarColor: Color {
+        switch hpPercentage {
+        case ..<0.34:
+            return .red
+        case ..<0.67:
+            return .yellow
+        default:
+            return .green
+        }
     }
 }
 
