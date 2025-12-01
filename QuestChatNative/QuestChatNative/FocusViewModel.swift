@@ -912,7 +912,9 @@ final class FocusViewModel: ObservableObject {
 
     @Published private(set) var notificationAuthorized: Bool = false
     let statsStore: SessionStatsStore
+    let healthStatsStore: HealthBarIRLStatsStore
     private var cancellables = Set<AnyCancellable>()
+    private var healthBarViewModel: HealthBarViewModel?
 
     private var timer: Timer?
     @AppStorage("hydrateNudgesEnabled") private var hydrateNudgesEnabled: Bool = true
@@ -924,10 +926,14 @@ final class FocusViewModel: ObservableObject {
 
     init(
         statsStore: SessionStatsStore = SessionStatsStore(),
+        healthStatsStore: HealthBarIRLStatsStore = HealthBarIRLStatsStore(),
+        healthBarViewModel: HealthBarViewModel? = nil,
         initialMode: FocusTimerMode = .focus
     ) {
         // Assign non-dependent stored properties first
         self.statsStore = statsStore
+        self.healthStatsStore = healthStatsStore
+        self.healthBarViewModel = healthBarViewModel
 
         let seeded = FocusViewModel.seededCategories()
         let loadedCategories: [TimerCategory] = seeded.map { base in
@@ -952,6 +958,10 @@ final class FocusViewModel: ObservableObject {
             .receive(on: RunLoop.main)
             .sink { [weak self] in self?.lastLevelUp = $0 }
             .store(in: &cancellables)
+
+        if let healthBarViewModel {
+            bindHealthBarViewModel(healthBarViewModel)
+        }
     }
 
     var timerStatusText: String {
@@ -1220,6 +1230,27 @@ final class FocusViewModel: ObservableObject {
                 self?.activeHydrationNudge = nil
             }
         }
+    }
+
+    private func recordHealthBarSnapshot(inputs: DailyHealthInputs, hp: Int) {
+        healthStatsStore.recordSnapshot(
+            hp: hp,
+            hydrationCount: inputs.hydrationCount,
+            selfCareCount: inputs.selfCareSessions,
+            focusCount: inputs.focusSprints,
+            gutStatus: inputs.gutStatus,
+            moodStatus: inputs.moodStatus
+        )
+    }
+
+    private func bindHealthBarViewModel(_ healthBarViewModel: HealthBarViewModel) {
+        Publishers.CombineLatest(healthBarViewModel.$inputs, healthBarViewModel.$hp)
+            .debounce(for: .milliseconds(50), scheduler: RunLoop.main)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] inputs, hp in
+                self?.recordHealthBarSnapshot(inputs: inputs, hp: hp)
+            }
+            .store(in: &cancellables)
     }
 
     private func hasTriggeredNudge(for level: HydrationNudgeLevel) -> Bool {

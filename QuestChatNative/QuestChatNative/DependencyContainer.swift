@@ -7,18 +7,32 @@ final class DependencyContainer {
     private init() {}
 
     private let statsStore = SessionStatsStore()
+    private let healthBarStatsStore = HealthBarIRLStatsStore()
+    private lazy var healthBarViewModel = HealthBarViewModel()
     private lazy var questsViewModel = QuestsViewModel(statsStore: statsStore)
 
     func makeFocusViewModel() -> FocusViewModel {
-        FocusViewModel(statsStore: statsStore)
+        FocusViewModel(
+            statsStore: statsStore,
+            healthStatsStore: healthBarStatsStore,
+            healthBarViewModel: healthBarViewModel
+        )
     }
 
     func makeHealthBarViewModel() -> HealthBarViewModel {
-        HealthBarViewModel()
+        healthBarViewModel
     }
 
     func makeStatsStore() -> SessionStatsStore {
         statsStore
+    }
+
+    func makeHealthBarStatsStore() -> HealthBarIRLStatsStore {
+        healthBarStatsStore
+    }
+
+    func makeHealthStatsViewModel() -> StatsViewModel {
+        StatsViewModel(healthStore: healthBarStatsStore)
     }
 
     func makeQuestsViewModel() -> QuestsViewModel {
