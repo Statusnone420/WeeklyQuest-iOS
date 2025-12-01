@@ -6,7 +6,7 @@ final class DependencyContainer {
     static let shared = DependencyContainer()
     private init() {}
 
-    func makeFocusViewModel() -> FocusTimerViewModel {
-        FocusTimerViewModel()
+    func makeFocusViewModel() -> FocusViewModel {
+        FocusViewModel()
     }
 }
