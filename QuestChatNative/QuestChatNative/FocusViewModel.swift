@@ -5,7 +5,7 @@ import UserNotifications
 import UIKit
 
 /// Represents available timer modes.
-enum FocusTimerMode: String, CaseIterable, Identifiable {
+enum FocusTimerMode: String, CaseIterable, Identifiable, Codable {
     case focus
     case selfCare
 
