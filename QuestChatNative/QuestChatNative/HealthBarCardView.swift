@@ -1,28 +1,29 @@
 import SwiftUI
 
+struct DailyProgressSummary {
+    let questsTitle: String
+    let questsValue: String
+    let todayTitle: String
+    let todayValue: String
+    let streakTitle: String
+    let streakValue: String
+}
+
 struct HealthBarCardView: View {
     @ObservedObject var viewModel: HealthBarViewModel
+    var dailySummary: DailyProgressSummary?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("HealthBar IRL")
-                    .font(.headline.weight(.semibold))
-                Spacer()
-                Text("\(viewModel.hp) / 100 HP")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-            }
+        VStack(alignment: .leading, spacing: 14) {
+            header
 
             ProgressView(value: Double(viewModel.hp), total: 100)
                 .tint(.teal)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
-            HStack(spacing: 8) {
-                StatPill(icon: "drop.fill", label: "Hydration", value: "\(viewModel.inputs.hydrationCount)x")
-                StatPill(icon: "figure.mind.and.body", label: "Self-care", value: "\(viewModel.inputs.selfCareSessions)")
-                StatPill(icon: "bolt.fill", label: "Focus", value: "\(viewModel.inputs.focusSprints)")
-            }
+            statRow
+
+            Divider().opacity(0.1)
 
             HStack(alignment: .top, spacing: 12) {
                 GutStatusPicker(selected: viewModel.inputs.gutStatus) { status in
@@ -32,6 +33,21 @@ struct HealthBarCardView: View {
                     viewModel.setMoodStatus(status)
                 }
             }
+
+            if let summary = dailySummary {
+                Divider().opacity(0.1)
+
+                HStack(alignment: .top, spacing: 12) {
+                    summaryItem(title: summary.questsTitle, value: summary.questsValue, alignment: .leading)
+                    summaryItem(title: summary.todayTitle, value: summary.todayValue, alignment: .center)
+                    summaryItem(title: summary.streakTitle, value: summary.streakValue, alignment: .trailing)
+                }
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .padding(.top, 4)
+            }
+
+            Divider().opacity(0.1)
 
             HStack(spacing: 12) {
                 Button("Drank water") {
@@ -48,9 +64,44 @@ struct HealthBarCardView: View {
             }
             .font(.subheadline.weight(.semibold))
         }
-        .padding(14)
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(uiColor: .secondarySystemBackground).opacity(0.65))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(Color.white.opacity(0.06), lineWidth: 1)
+        )
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private var header: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text("HealthBar IRL")
+                .font(.headline.weight(.semibold))
+            Spacer()
+            Text("\(viewModel.hp) / 100 HP")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private var statRow: some View {
+        HStack(spacing: 8) {
+            StatPill(icon: "drop.fill", label: "Hydration", value: "\(viewModel.inputs.hydrationCount)x")
+            StatPill(icon: "figure.mind.and.body", label: "Self-care", value: "\(viewModel.inputs.selfCareSessions)")
+            StatPill(icon: "bolt.fill", label: "Focus", value: "\(viewModel.inputs.focusSprints)")
+        }
+    }
+
+    private func summaryItem(title: String, value: String, alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 4) {
+            Text(title)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .fontWeight(.semibold)
+                .foregroundStyle(.primary)
+        }
+        .frame(maxWidth: .infinity, alignment: Alignment(horizontal: alignment, vertical: .center))
     }
 }
 
@@ -146,10 +197,13 @@ struct PillPicker<Option: Hashable>: View {
                     onSelect(option)
                 } label: {
                     Text(labelProvider(option))
-                        .font(.caption.weight(.semibold))
+                        .font(.system(size: 12, weight: .medium))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.7)
+                        .frame(minWidth: 56)
                         .padding(.horizontal, 10)
-                        .padding(.vertical, 7)
-                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                        .fixedSize(horizontal: true, vertical: false)
                         .background(isSelected ? highlightColor.opacity(0.25) : Color.clear)
                         .overlay(
                             Capsule()
@@ -176,7 +230,16 @@ struct HealthBarCardView_Previews: PreviewProvider {
 
         let viewModel = HealthBarViewModel(storage: PreviewHealthBarStorage(inputs: sampleInputs))
 
-        return HealthBarCardView(viewModel: viewModel)
+        let summary = DailyProgressSummary(
+            questsTitle: "Quests",
+            questsValue: "4 / 4",
+            todayTitle: "Today",
+            todayValue: "31 / 20 min",
+            streakTitle: "Streak",
+            streakValue: "1 day"
+        )
+
+        return HealthBarCardView(viewModel: viewModel, dailySummary: summary)
             .padding()
             .background(Color.black)
             .previewLayout(.sizeThatFits)
