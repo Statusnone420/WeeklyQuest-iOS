@@ -113,19 +113,23 @@ final class SessionStatsStore: ObservableObject {
         pendingLevelUp = nil
     }
 
-    func recordSession(mode: FocusTimerMode, duration: Int) {
+    @discardableResult
+    func recordSession(mode: FocusTimerMode, duration: Int) -> Int {
+        let xpAwarded: Int
         switch mode {
         case .focus:
             focusSeconds += duration
-            xp += 15
+            xpAwarded = 15
         case .selfCare:
             selfCareSeconds += duration
-            xp += 8
+            xpAwarded = 8
         }
+        xp += xpAwarded
         sessionsCompleted += 1
         recordSessionHistory(mode: mode, duration: duration)
         handleLevelChange()
         persist()
+        return xpAwarded
     }
 
     func recordSessionHistory(mode: FocusTimerMode, duration: Int) {
@@ -232,12 +236,20 @@ final class SessionStatsStore: ObservableObject {
 
 /// Manages the state for the Focus timer screen.
 final class FocusViewModel: ObservableObject {
+    struct SessionSummary {
+        let mode: FocusTimerMode
+        let duration: Int
+        let xpGained: Int
+        let timestamp: Date
+    }
+
     @Published var isRunning: Bool = false
     @Published var secondsRemaining: Int
     @Published var hasFinishedOnce: Bool = false
     @Published var selectedMode: FocusTimerMode = .focus {
         didSet { resetForModeChange() }
     }
+    @Published var lastCompletedSession: SessionSummary?
 
     @Published private(set) var notificationAuthorized: Bool = false
     let statsStore: SessionStatsStore
@@ -307,7 +319,15 @@ final class FocusViewModel: ObservableObject {
     private func finishSession() {
         stopTimer()
         hasFinishedOnce = true
-        statsStore.recordSession(mode: selectedMode, duration: selectedMode.duration)
+        let xpGained = statsStore.recordSession(mode: selectedMode, duration: selectedMode.duration)
+        withAnimation(.easeInOut(duration: 0.25)) {
+            lastCompletedSession = SessionSummary(
+                mode: selectedMode,
+                duration: selectedMode.duration,
+                xpGained: xpGained,
+                timestamp: Date()
+            )
+        }
         secondsRemaining = 0
         sendImmediateHydrationReminder()
     }

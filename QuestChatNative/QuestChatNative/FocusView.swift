@@ -73,8 +73,20 @@ struct FocusView: View {
                     )
                     .zIndex(1)
             }
+
+            if let session = viewModel.lastCompletedSession {
+                sessionCompleteOverlay(summary: session)
+                    .transition(
+                        .asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 1.05)),
+                            removal: .opacity.combined(with: .scale(scale: 0.95))
+                        )
+                    )
+                    .zIndex(2)
+            }
         }
         .animation(.easeInOut(duration: 0.25), value: viewModel.statsStore.pendingLevelUp)
+        .animation(.easeInOut(duration: 0.25), value: viewModel.lastCompletedSession?.timestamp)
     }
 
     private var xpStrip: some View {
@@ -246,6 +258,47 @@ struct FocusView: View {
                     }
                 } label: {
                     Text("Nice!")
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.mint)
+            }
+            .padding(24)
+            .frame(maxWidth: 320)
+            .background(Color(uiColor: .secondarySystemBackground).opacity(0.95))
+            .cornerRadius(24)
+            .overlay(
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(Color.gray.opacity(0.25), lineWidth: 1)
+            )
+        }
+    }
+
+    private func sessionCompleteOverlay(summary: FocusViewModel.SessionSummary) -> some View {
+        ZStack {
+            Color.black.opacity(0.75)
+                .ignoresSafeArea()
+
+            VStack(spacing: 16) {
+                Text("Session complete")
+                    .font(.system(size: 34, weight: .black, design: .rounded))
+
+                VStack(spacing: 6) {
+                    Text("\(summary.mode.title) • \(minutes(from: summary.duration)) min")
+                        .font(.headline)
+                    Text("+\(summary.xpGained) XP")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.mint)
+                }
+                .multilineTextAlignment(.center)
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        viewModel.lastCompletedSession = nil
+                    }
+                } label: {
+                    Text("Nice, back to it")
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                 }
