@@ -58,6 +58,10 @@ struct FocusView: View {
         _healthBarViewModel = ObservedObject(wrappedValue: healthBarViewModel)
         _selectedTab = selectedTab
         _statsStore = ObservedObject(wrappedValue: viewModel.statsStore)
+
+        viewModel.onSessionComplete = { [weak healthBarViewModel] in
+            healthBarViewModel?.logFocusSprint()
+        }
     }
 
     var body: some View {

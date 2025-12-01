@@ -899,6 +899,8 @@ final class FocusViewModel: ObservableObject {
     @Published var activeHydrationNudge: HydrationNudge?
     @Published var lastLevelUp: SessionStatsStore.LevelUpResult?
 
+    var onSessionComplete: (() -> Void)?
+
     enum TimerState {
         case idle
         case running
@@ -1116,6 +1118,7 @@ final class FocusViewModel: ObservableObject {
         secondsRemaining = 0
         handleHydrationThresholds(previousTotal: previousFocusTotal, newTotal: statsStore.totalFocusSecondsToday)
         sendImmediateHydrationReminder()
+        onSessionComplete?()
     }
 
     private func resetForModeChange() {
