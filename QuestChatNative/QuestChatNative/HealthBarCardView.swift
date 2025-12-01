@@ -88,7 +88,7 @@ struct GutStatusPicker: View {
                 .foregroundStyle(color)
 
             HStack(spacing: 8) {
-                ForEach(cases, id: \._self) { status in
+                ForEach(cases, id: \.self) { status in
                     Button(action: { onSelect(status) }) {
                         Text(statusLabel(status))
                             .font(.caption.bold())
@@ -124,7 +124,7 @@ struct MoodStatusPicker: View {
                 .foregroundStyle(.purple)
 
             HStack(spacing: 8) {
-                ForEach(MoodStatus.allCases, id: \._self) { status in
+                ForEach(MoodStatus.allCases, id: \.self) { status in
                     Button(action: { onSelect(status) }) {
                         Text(statusLabel(status))
                             .font(.caption.bold())
