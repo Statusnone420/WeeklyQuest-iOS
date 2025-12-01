@@ -79,6 +79,21 @@ final class SessionStatsStore: ObservableObject {
         100
     }
 
+    var playerTitle: String {
+        switch level {
+        case 1...4:
+            return "Focus Rookie"
+        case 5...9:
+            return "Deep Worker"
+        case 10...19:
+            return "Quest Knight"
+        case 20...29:
+            return "Flow Master"
+        default:
+            return "Time Sage"
+        }
+    }
+
     var focusSecondsToday: Int {
         todaySessions
             .filter { $0.modeRawValue == FocusTimerMode.focus.rawValue }
@@ -89,6 +104,14 @@ final class SessionStatsStore: ObservableObject {
         todaySessions
             .filter { $0.modeRawValue == FocusTimerMode.selfCare.rawValue }
             .reduce(0) { $0 + $1.durationSeconds }
+    }
+
+    var statusLine: String {
+        if currentStreakDays > 0 {
+            return "On a \(currentStreakDays)-day streak. Keep it going!"
+        }
+
+        return "\(xp) XP earned so far."
     }
 
     init(userDefaults: UserDefaults = .standard) {

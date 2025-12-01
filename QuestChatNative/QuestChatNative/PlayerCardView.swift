@@ -3,15 +3,16 @@ import SwiftUI
 struct PlayerCardView: View {
     @ObservedObject var store: SessionStatsStore
 
-    private let nickname = "Player One"
-    private let title = "Adventurer"
+    @AppStorage("playerDisplayName") private var playerDisplayName: String = "Player One"
 
     var body: some View {
         VStack(spacing: 20) {
             VStack(spacing: 4) {
-                Text(nickname)
+                TextField("Player name", text: $playerDisplayName)
                     .font(.title.bold())
-                Text(title)
+                    .multilineTextAlignment(.center)
+                    .textFieldStyle(.plain)
+                Text(store.playerTitle)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -29,6 +30,13 @@ struct PlayerCardView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color(uiColor: .secondarySystemBackground).opacity(0.16))
             .cornerRadius(16)
+
+            HStack {
+                Text(store.statusLine)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Spacer()
+            }
 
             Spacer()
         }
