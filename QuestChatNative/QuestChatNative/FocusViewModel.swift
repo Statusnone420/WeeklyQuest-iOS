@@ -112,18 +112,28 @@ final class SessionStatsStore: ObservableObject {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         let storedDate = userDefaults.object(forKey: Keys.totalFocusDate) as? Date
+
+        let initialTotalFocusSecondsToday: Int
+        let needsDateReset: Bool
         if let storedDate, calendar.isDate(storedDate, inSameDayAs: today) {
-            totalFocusSecondsToday = userDefaults.integer(forKey: Keys.totalFocusSecondsToday)
+            initialTotalFocusSecondsToday = userDefaults.integer(forKey: Keys.totalFocusSecondsToday)
+            needsDateReset = false
         } else {
-            totalFocusSecondsToday = 0
-            userDefaults.set(today, forKey: Keys.totalFocusDate)
-            userDefaults.set(totalFocusSecondsToday, forKey: Keys.totalFocusSecondsToday)
+            initialTotalFocusSecondsToday = 0
+            needsDateReset = true
         }
+        totalFocusSecondsToday = initialTotalFocusSecondsToday
 
         let storedLevel = userDefaults.integer(forKey: Keys.lastKnownLevel)
         let initialLevel = (storedXP / 100) + 1
         lastKnownLevel = storedLevel > 0 ? storedLevel : initialLevel
         pendingLevelUp = nil
+
+        // Now that all stored properties are initialized, persist any needed resets.
+        if needsDateReset {
+            userDefaults.set(today, forKey: Keys.totalFocusDate)
+            userDefaults.set(totalFocusSecondsToday, forKey: Keys.totalFocusSecondsToday)
+        }
     }
 
     @discardableResult
