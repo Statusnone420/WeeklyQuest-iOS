@@ -73,7 +73,7 @@ struct FocusView: View {
             NavigationStack {
                 ScrollView {
                     VStack(spacing: 20) {
-                        HealthBarCardView(viewModel: healthBarViewModel)
+                        healthBarCard
                         compactStatusHeader
                         todayQuestBanner
 
@@ -189,6 +189,149 @@ struct FocusView: View {
                 .foregroundStyle(.primary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var hpPercentage: Double {
+        Double(viewModel.currentHP) / 100
+    }
+
+    private func healthBarColor(for percentage: Double) -> Color {
+        switch percentage {
+        case ..<0.34:
+            return .red
+        case ..<0.67:
+            return .yellow
+        default:
+            return .green
+        }
+    }
+
+    private var sleepQualityBinding: Binding<Double> {
+        Binding<Double>(
+            get: { Double(viewModel.sleepQuality.rawValue) },
+            set: { newValue in
+                if let quality = SleepQuality(rawValue: Int(newValue)) {
+                    viewModel.sleepQuality = quality
+                }
+            }
+        )
+    }
+
+    private func statusChip(for effect: FocusViewModel.StatusEffect) -> some View {
+        let isBuff = effect.kind == .buff
+        let tint: Color = isBuff ? .green : .red
+
+        return HStack(spacing: 6) {
+            Text(effect.icon)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(effect.title)
+                    .font(.subheadline.weight(.semibold))
+                Text(effect.reason)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.vertical, 8)
+        .padding(.horizontal, 10)
+        .background(tint.opacity(0.12))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(tint.opacity(0.65), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private var healthBarCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("HealthBar IRL")
+                    .font(.headline.weight(.semibold))
+                Spacer()
+                Text("\(viewModel.currentHP) / 100 HP")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.gray.opacity(0.25))
+                    Capsule()
+                        .fill(healthBarColor(for: hpPercentage))
+                        .frame(width: geometry.size.width * CGFloat(hpPercentage))
+                        .animation(.easeInOut(duration: 0.25), value: hpPercentage)
+                }
+            }
+            .frame(height: 14)
+
+            if !viewModel.activeEffects.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(viewModel.activeEffects) { effect in
+                            statusChip(for: effect)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+
+            HStack(spacing: 8) {
+                StatPill(icon: "drop.fill", label: "Hydration", value: "\(healthBarViewModel.inputs.hydrationCount)x")
+                StatPill(icon: "figure.mind.and.body", label: "Comfort bev.", value: "\(healthBarViewModel.inputs.selfCareSessions)")
+                StatPill(icon: "bolt.fill", label: "Focus", value: "\(healthBarViewModel.inputs.focusSprints)")
+            }
+
+            HStack(alignment: .top, spacing: 12) {
+                GutStatusPicker(selected: healthBarViewModel.inputs.gutStatus) { status in
+                    healthBarViewModel.setGutStatus(status)
+                }
+                MoodStatusPicker(selected: healthBarViewModel.inputs.moodStatus) { status in
+                    healthBarViewModel.setMoodStatus(status)
+                }
+            }
+
+            HStack(spacing: 12) {
+                Label("Sleep", systemImage: "bed.double.fill")
+                    .font(.caption)
+                    .foregroundStyle(.indigo)
+                    .frame(width: 70, alignment: .leading)
+
+                Slider(value: sleepQualityBinding, in: 0...2, step: 1)
+
+                Text(viewModel.sleepQuality.label)
+                    .font(.subheadline.weight(.semibold))
+                    .frame(minWidth: 70, alignment: .trailing)
+            }
+
+            HStack(spacing: 12) {
+                Button {
+                    healthBarViewModel.logHydration()
+                } label: {
+                    Label {
+                        Text("Drank water")
+                    } icon: {
+                        Image(systemName: "cross.case.fill")
+                            .foregroundStyle(.red)
+                    }
+                }
+                .buttonStyle(HealthPotionButtonStyle(color: Color.cyan))
+
+                Button {
+                    healthBarViewModel.logSelfCareSession()
+                } label: {
+                    Label {
+                        Text("Comfort beverage")
+                    } icon: {
+                        Image(systemName: "cup.and.saucer.fill")
+                            .foregroundStyle(.yellow)
+                    }
+                }
+                .buttonStyle(HealthPotionButtonStyle(color: Color.cyan))
+            }
+        }
+        .padding(14)
+        .background(Color(uiColor: .secondarySystemBackground).opacity(0.65))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     @ViewBuilder
