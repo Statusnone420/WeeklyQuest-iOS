@@ -8,6 +8,10 @@ struct FocusView: View {
 
     @State private var primaryButtonScale: CGFloat = 1
     @State private var resetButtonScale: CGFloat = 1
+    @State private var heroCardScale: CGFloat = 0.98
+    @State private var heroCardOpacity: Double = 0.92
+
+    @Namespace private var categoryAnimation
 
     private var formattedTime: String {
         let minutes = viewModel.secondsRemaining / 60
@@ -128,6 +132,14 @@ struct FocusView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.85), value: viewModel.selectedCategoryID)
         .onAppear {
             viewModel.statsStore.refreshMomentumIfNeeded()
+        }
+        .onChange(of: viewModel.selectedCategoryID) { _ in
+            heroCardScale = 0.98
+            heroCardOpacity = 0.92
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) {
+                heroCardScale = 1
+                heroCardOpacity = 1
+            }
         }
         .sheet(
             isPresented: Binding(
@@ -288,29 +300,33 @@ struct FocusView: View {
     }
 
     private func expandedCard(for category: TimerCategory) -> some View {
-        VStack(spacing: 18) {
-            HStack(spacing: 12) {
-                Text(category.emoji)
-                    .font(.largeTitle)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(category.name)
-                        .font(.title2.bold())
-                    Text(category.description)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
-                VStack(spacing: 8) {
-                    Text("\(category.durationMinutes) min")
-                        .font(.headline)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.mint.opacity(0.16))
-                        .clipShape(Capsule())
+            VStack(spacing: 18) {
+                HStack(spacing: 12) {
+                    Text(category.emoji)
+                        .font(.largeTitle)
+                        .matchedGeometryEffect(id: "emoji-\(category.id)", in: categoryAnimation)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(category.name)
+                            .font(.title2.bold())
+                            .matchedGeometryEffect(id: "title-\(category.id)", in: categoryAnimation)
+                        Text(category.description)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .matchedGeometryEffect(id: "subtitle-\(category.id)", in: categoryAnimation)
+                    }
+                    Spacer()
+                    VStack(spacing: 8) {
+                        Text("\(category.durationMinutes) min")
+                            .font(.headline)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color.mint.opacity(0.16))
+                            .clipShape(Capsule())
+                            .matchedGeometryEffect(id: "duration-\(category.id)", in: categoryAnimation)
 
-                    durationControl(for: category)
+                        durationControl(for: category)
+                    }
                 }
-            }
 
             Picker("Session type", selection: $viewModel.isFocusBlockEnabled) {
                 Text("Single session").tag(false)
@@ -347,9 +363,18 @@ struct FocusView: View {
                     ),
                     lineWidth: 1.4
                 )
-                .shadow(color: Color.black.opacity(0.35), radius: 18, x: 0, y: 10)
-                .shadow(color: Color.mint.opacity(0.2), radius: 12, x: 0, y: 6)
         )
+        .shadow(color: Color.black.opacity(0.35), radius: 18, x: 0, y: 10)
+        .shadow(color: Color.mint.opacity(0.2), radius: 12, x: 0, y: 6)
+        .shadow(color: Color.white.opacity(0.08), radius: 6, x: 0, y: 0)
+        .scaleEffect(heroCardScale)
+        .opacity(heroCardOpacity)
+        .onAppear {
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) {
+                heroCardScale = 1
+                heroCardOpacity = 1
+            }
+        }
         .overlay(alignment: .top) {
             if let nudge = viewModel.activeHydrationNudge {
                 hydrationBanner(nudge: nudge)
@@ -361,23 +386,29 @@ struct FocusView: View {
 
     private func collapsedCard(for category: TimerCategory) -> some View {
         Button {
-            withAnimation { viewModel.selectCategory(category) }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                viewModel.selectCategory(category)
+            }
         } label: {
             HStack(spacing: 12) {
                 Text(category.emoji)
                     .font(.title2)
+                    .matchedGeometryEffect(id: "emoji-\(category.id)", in: categoryAnimation)
                 VStack(alignment: .leading, spacing: 4) {
                     Text(category.name)
                         .font(.headline)
                         .foregroundStyle(.primary)
+                        .matchedGeometryEffect(id: "title-\(category.id)", in: categoryAnimation)
                     Text(category.description)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .matchedGeometryEffect(id: "subtitle-\(category.id)", in: categoryAnimation)
                 }
                 Spacer()
                 Text("\(category.durationMinutes) min")
                     .font(.subheadline.bold())
                     .foregroundStyle(.secondary)
+                    .matchedGeometryEffect(id: "duration-\(category.id)", in: categoryAnimation)
             }
             .padding()
             .frame(maxWidth: .infinity)
@@ -388,8 +419,9 @@ struct FocusView: View {
                     .stroke(Color.white.opacity(0.06), lineWidth: 1)
             )
             .shadow(color: Color.black.opacity(0.22), radius: 12, x: 0, y: 8)
+            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressableCardStyle())
     }
 
     private func durationControl(for category: TimerCategory) -> some View {
@@ -428,7 +460,7 @@ struct FocusView: View {
                 .rotationEffect(.degrees(-90))
                 .scaleEffect(1 + (0.06 * warningFraction))
                 .animation(
-                    .easeInOut(duration: 0.3),
+                    .easeInOut(duration: 0.2),
                     value: viewModel.progress
                 )
                 .animation(
@@ -439,6 +471,16 @@ struct FocusView: View {
                     .easeInOut(duration: 0.3),
                     value: warningFraction
                 )
+                .overlay {
+                    Circle()
+                        .stroke(Color.white.opacity(0.22), lineWidth: 6)
+                        .scaleEffect(viewModel.secondsRemaining <= 10 && viewModel.secondsRemaining > 0 ? 1.05 : 1)
+                        .opacity(viewModel.secondsRemaining <= 10 && viewModel.secondsRemaining > 0 ? 0.9 : 0)
+                        .animation(
+                            .easeInOut(duration: 0.75).repeatForever(autoreverses: true),
+                            value: viewModel.secondsRemaining <= 10 && viewModel.secondsRemaining > 0
+                        )
+                }
 
             VStack(spacing: 8) {
                 Text(formattedTime)
@@ -679,6 +721,14 @@ struct FocusView: View {
                     .stroke(Color.gray.opacity(0.25), lineWidth: 1)
             )
         }
+    }
+}
+
+private struct PressableCardStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.98 : 1)
+            .animation(.spring(response: 0.25, dampingFraction: 0.8), value: configuration.isPressed)
     }
 }
 
