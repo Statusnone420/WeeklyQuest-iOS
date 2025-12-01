@@ -1,14 +1,32 @@
 import SwiftUI
+import UIKit
 
 struct FocusView: View {
     @StateObject var viewModel: FocusViewModel
     @EnvironmentObject var questsViewModel: QuestsViewModel
     @Binding var selectedTab: MainTab
 
+    @State private var primaryButtonScale: CGFloat = 1
+    @State private var resetButtonScale: CGFloat = 1
+
     private var formattedTime: String {
         let minutes = viewModel.secondsRemaining / 60
         let seconds = viewModel.secondsRemaining % 60
         return String(format: "%02d:%02d", minutes, seconds)
+    }
+
+    private var warningFraction: Double {
+        guard viewModel.secondsRemaining <= 10 else { return 0 }
+        let fraction = 1 - (Double(viewModel.secondsRemaining) / 10)
+        return min(max(fraction, 0), 1)
+    }
+
+    private var ringColors: [Color] {
+        let base = [Color.mint, Color.cyan, Color.mint]
+        let warning = [Color.orange, Color.red, Color.orange]
+        return zip(base, warning).map { baseColor, warningColor in
+            baseColor.blended(withFraction: warningFraction, of: warningColor)
+        }
     }
 
     private var accessoryText: String {
@@ -178,9 +196,21 @@ struct FocusView: View {
                     .stroke(Color.gray.opacity(0.35), lineWidth: 18)
                 Circle()
                     .trim(from: 0, to: viewModel.progress)
-                    .stroke(AngularGradient(colors: [.mint, .cyan, .mint], center: .center), style: StrokeStyle(lineWidth: 18, lineCap: .round))
+                    .stroke(AngularGradient(colors: ringColors, center: .center), style: StrokeStyle(lineWidth: 18, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                    .animation(.easeInOut(duration: 0.3), value: viewModel.progress)
+                    .scaleEffect(1 + (0.06 * warningFraction))
+                    .animation(
+                        .easeInOut(duration: 0.3),
+                        value: viewModel.progress
+                    )
+                    .animation(
+                        .easeInOut(duration: 0.6).repeatForever(autoreverses: true),
+                        value: warningFraction > 0
+                    )
+                    .animation(
+                        .easeInOut(duration: 0.3),
+                        value: warningFraction
+                    )
 
                 VStack(spacing: 8) {
                     Text(formattedTime)
@@ -208,7 +238,10 @@ struct FocusView: View {
     private var controlPanel: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
-                Button(action: viewModel.startOrPause) {
+                Button(action: {
+                    animateButtonPress(scale: &primaryButtonScale)
+                    viewModel.startOrPause()
+                }) {
                     Label(viewModel.isRunning ? "Pause" : "Start",
                           systemImage: viewModel.isRunning ? "pause.fill" : "play.fill")
                         .frame(maxWidth: .infinity)
@@ -216,13 +249,18 @@ struct FocusView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(.mint)
+                .scaleEffect(primaryButtonScale)
 
-                Button(role: .destructive, action: viewModel.reset) {
+                Button(role: .destructive, action: {
+                    animateButtonPress(scale: &resetButtonScale)
+                    viewModel.reset()
+                }) {
                     Label("Reset", systemImage: "arrow.counterclockwise")
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
                 }
                 .buttonStyle(.bordered)
+                .scaleEffect(resetButtonScale)
             }
 
             HStack {
@@ -279,6 +317,17 @@ struct FocusView: View {
         .padding()
         .background(Color(uiColor: .secondarySystemBackground).opacity(0.16))
         .cornerRadius(14)
+    }
+
+    private func animateButtonPress(scale: inout CGFloat) {
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.65)) {
+            scale = 1.06
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                scale = 1.0
+            }
+        }
     }
 
     private func minutes(from seconds: Int) -> Int {
@@ -362,6 +411,33 @@ struct FocusView: View {
                     .stroke(Color.gray.opacity(0.25), lineWidth: 1)
             )
         }
+    }
+}
+
+private extension Color {
+    func blended(withFraction fraction: Double, of color: Color) -> Color {
+        let clampedFraction = min(max(fraction, 0), 1)
+        let from = UIColor(self)
+        let to = UIColor(color)
+
+        var fromRed: CGFloat = 0
+        var fromGreen: CGFloat = 0
+        var fromBlue: CGFloat = 0
+        var fromAlpha: CGFloat = 0
+        from.getRed(&fromRed, green: &fromGreen, blue: &fromBlue, alpha: &fromAlpha)
+
+        var toRed: CGFloat = 0
+        var toGreen: CGFloat = 0
+        var toBlue: CGFloat = 0
+        var toAlpha: CGFloat = 0
+        to.getRed(&toRed, green: &toGreen, blue: &toBlue, alpha: &toAlpha)
+
+        return Color(
+            red: Double(fromRed + (toRed - fromRed) * clampedFraction),
+            green: Double(fromGreen + (toGreen - fromGreen) * clampedFraction),
+            blue: Double(fromBlue + (toBlue - fromBlue) * clampedFraction),
+            opacity: Double(fromAlpha + (toAlpha - fromAlpha) * clampedFraction)
+        )
     }
 }
 
