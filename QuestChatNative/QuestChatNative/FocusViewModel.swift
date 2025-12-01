@@ -35,6 +35,17 @@ enum FocusTimerMode: String, CaseIterable, Identifiable {
 
 }
 
+typealias FocusSessionType = FocusTimerMode
+
+struct FocusSession: Codable, Identifiable {
+    let id: UUID
+    let type: FocusSessionType
+    let duration: TimeInterval
+    let startDate: Date
+
+    var endDate: Date { startDate.addingTimeInterval(duration) }
+}
+
 enum SleepQuality: Int, CaseIterable, Identifiable {
     case awful
     case okay
@@ -1009,7 +1020,7 @@ final class FocusViewModel: ObservableObject {
         }
     }
 
-    @Published var secondsRemaining: Int
+    @Published private(set) var currentSession: FocusSession?
     @Published var hasFinishedOnce: Bool = false
     @Published var selectedMode: FocusTimerMode = .focus {
         didSet {
@@ -1054,10 +1065,13 @@ final class FocusViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     private var healthBarViewModel: HealthBarViewModel?
 
-    private var timer: Timer?
+    @Published private var pausedRemainingSeconds: Int?
+    @Published private var timerTick: Date = Date()
+    private var timerCancellable: AnyCancellable?
     @AppStorage("hydrateNudgesEnabled") private var hydrateNudgesEnabled: Bool = true
     private let notificationCenter = UNUserNotificationCenter.current()
     private let userDefaults = UserDefaults.standard
+    private static let persistedSessionKey = "focus_current_session_v1"
     private var hasInitialized = false
     private let minimumSessionDuration: TimeInterval = 60
     private var activeSessionDuration: Int?
@@ -1089,7 +1103,7 @@ final class FocusViewModel: ObservableObject {
         let initialCategory = loadedCategories.first { $0.id.mode == initialMode } ?? loadedCategories[0]
         self.selectedCategory = initialCategory.id
         self.selectedMode = initialCategory.id.mode
-        self.secondsRemaining = initialCategory.durationSeconds
+        self.pausedRemainingSeconds = initialCategory.durationSeconds
 
         hasInitialized = true
 
@@ -1220,10 +1234,24 @@ final class FocusViewModel: ObservableObject {
         durationForSelectedCategory()
     }
 
+    var remainingSeconds: Int {
+        _ = timerTick
+        if let session = currentSession {
+            let remaining = Int(ceil(session.endDate.timeIntervalSinceNow))
+            return max(0, remaining)
+        }
+
+        if let pausedRemainingSeconds {
+            return pausedRemainingSeconds
+        }
+
+        return currentDuration
+    }
+
     var progress: Double {
         let total = Double(activeSessionDuration ?? currentDuration)
         guard total > 0 else { return 0 }
-        let value = 1 - (Double(secondsRemaining) / total)
+        let value = 1 - (Double(remainingSeconds) / total)
         return min(max(value, 0), 1)
     }
 
@@ -1256,11 +1284,10 @@ final class FocusViewModel: ObservableObject {
     func start() {
         guard state == .idle || state == .paused else { return }
 
-        let rawDuration = secondsRemaining == 0 ? currentDuration : secondsRemaining
+        let rawDuration = remainingSeconds == 0 ? currentDuration : remainingSeconds
         let clampedDuration = max(rawDuration, Int(minimumSessionDuration))
 
-        if secondsRemaining == 0 || state == .idle {
-            secondsRemaining = clampedDuration
+        if remainingSeconds == 0 || state == .idle {
             hasFinishedOnce = false
         }
 
@@ -1268,23 +1295,20 @@ final class FocusViewModel: ObservableObject {
             activeSessionDuration = clampedDuration
         }
 
-        invalidateTimer()
+        let session = FocusSession(
+            id: currentSession?.id ?? UUID(),
+            type: selectedMode,
+            duration: TimeInterval(clampedDuration),
+            startDate: Date()
+        )
+
+        pausedRemainingSeconds = nil
+        currentSession = session
         state = .running
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         scheduleCompletionNotification()
-
-        timer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            if self.secondsRemaining > 0 {
-                self.secondsRemaining -= 1
-            } else {
-                self.finishSession()
-            }
-        }
-
-        if let timer {
-            RunLoop.main.add(timer, forMode: .common)
-        }
+        startUITimer()
+        handleSessionCompletionIfNeeded()
     }
 
     /// Pauses the timer if currently running.
@@ -1292,17 +1316,22 @@ final class FocusViewModel: ObservableObject {
         guard state == .running else { return }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         cancelCompletionNotifications()
-        invalidateTimer()
+        pausedRemainingSeconds = remainingSeconds
+        currentSession = nil
+        stopUITimer()
+        clearPersistedSession()
         state = .paused
     }
 
     /// Resets the timer to the selected category duration.
     func reset() {
         cancelCompletionNotifications()
-        invalidateTimer()
-        secondsRemaining = currentDuration
+        pausedRemainingSeconds = nil
+        currentSession = nil
+        stopUITimer()
         hasFinishedOnce = false
         activeSessionDuration = nil
+        clearPersistedSession()
         state = .idle
     }
 
@@ -1312,7 +1341,7 @@ final class FocusViewModel: ObservableObject {
 
         selectedCategory = category.id
         selectedMode = category.id.mode
-        secondsRemaining = category.durationSeconds
+        pausedRemainingSeconds = category.durationSeconds
         hasFinishedOnce = false
         activeSessionDuration = nil
         state = .idle
@@ -1332,7 +1361,7 @@ final class FocusViewModel: ObservableObject {
         saveDuration(clamped, for: categories[index].id)
 
         if state == .idle {
-            secondsRemaining = clamped
+            pausedRemainingSeconds = clamped
             activeSessionDuration = nil
         }
     }
@@ -1346,20 +1375,35 @@ final class FocusViewModel: ObservableObject {
         return String(format: "%d:%02d", minutes, secondsPart)
     }
 
-    private func invalidateTimer() {
-        timer?.invalidate()
-        timer = nil
+    private func stopUITimer() {
+        timerCancellable?.cancel()
+        timerCancellable = nil
+    }
+
+    private func startUITimer() {
+        guard state == .running else { return }
+        timerCancellable?.cancel()
+        timerCancellable = Timer.publish(every: 1, on: .main, in: .common)
+            .autoconnect()
+            .sink { [weak self] date in
+                guard let self else { return }
+                self.timerTick = date
+                self.handleSessionCompletionIfNeeded()
+            }
     }
 
     private func finishSession() {
         cancelCompletionNotifications()
-        invalidateTimer()
+        stopUITimer()
         state = .finished
         hasFinishedOnce = true
+        if let sessionType = currentSession?.type {
+            selectedMode = sessionType
+        }
         statsStore.refreshDailyFocusTotal()
         let previousFocusTotal = statsStore.totalFocusSecondsToday
         let xpBefore = statsStore.progression.totalXP
-        let recordedDuration = activeSessionDuration ?? currentDuration
+        let recordedDuration = Int(currentSession?.duration ?? TimeInterval(activeSessionDuration ?? currentDuration))
         _ = statsStore.recordSession(mode: selectedMode, duration: recordedDuration)
         _ = statsStore.recordCategorySession(categoryID: selectedCategory)
         let streakLevelUp = statsStore.registerActiveToday()
@@ -1378,7 +1422,9 @@ final class FocusViewModel: ObservableObject {
                 timestamp: Date()
             )
         }
-        secondsRemaining = 0
+        pausedRemainingSeconds = 0
+        currentSession = nil
+        clearPersistedSession()
         handleHydrationThresholds(previousTotal: previousFocusTotal, newTotal: statsStore.totalFocusSecondsToday)
         sendImmediateHydrationReminder()
         onSessionComplete?()
@@ -1386,8 +1432,8 @@ final class FocusViewModel: ObservableObject {
 
     private func resetForModeChange() {
         cancelCompletionNotifications()
-        invalidateTimer()
-        secondsRemaining = currentDuration
+        stopUITimer()
+        pausedRemainingSeconds = currentDuration
         hasFinishedOnce = false
         state = .idle
     }
@@ -1409,13 +1455,71 @@ final class FocusViewModel: ObservableObject {
         content.body = QuestChatStrings.Notifications.timerCompleteBody
         content.sound = .default
 
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: TimeInterval(secondsRemaining), repeats: false)
+        guard let session = currentSession else { return }
+        let interval = session.endDate.timeIntervalSinceNow
+        guard interval > 0 else { return }
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
         let request = UNNotificationRequest(identifier: "focus_timer_completion", content: content, trigger: trigger)
         notificationCenter.add(request)
     }
 
     private func cancelCompletionNotifications() {
         notificationCenter.removePendingNotificationRequests(withIdentifiers: ["focus_timer_completion"])
+    }
+
+    func handleScenePhaseChange(_ phase: ScenePhase) {
+        switch phase {
+        case .active:
+            restorePersistedSessionIfNeeded()
+            startUITimer()
+            handleSessionCompletionIfNeeded()
+        case .background:
+            persistCurrentSessionIfNeeded()
+            scheduleCompletionNotification()
+            stopUITimer()
+        default:
+            break
+        }
+    }
+
+    private func handleSessionCompletionIfNeeded() {
+        guard let session = currentSession else { return }
+        if Date() >= session.endDate {
+            finishSession()
+        }
+    }
+
+    private func persistCurrentSessionIfNeeded() {
+        guard state == .running else {
+            clearPersistedSession()
+            return
+        }
+
+        guard let session = currentSession else {
+            clearPersistedSession()
+            return
+        }
+
+        if let data = try? JSONEncoder().encode(session) {
+            userDefaults.set(data, forKey: Self.persistedSessionKey)
+        }
+    }
+
+    private func restorePersistedSessionIfNeeded() {
+        guard currentSession == nil else { return }
+        guard let data = userDefaults.data(forKey: Self.persistedSessionKey),
+              let session = try? JSONDecoder().decode(FocusSession.self, from: data) else { return }
+
+        userDefaults.removeObject(forKey: Self.persistedSessionKey)
+        currentSession = session
+        activeSessionDuration = Int(session.duration)
+        selectedMode = session.type
+        state = .running
+    }
+
+    private func clearPersistedSession() {
+        userDefaults.removeObject(forKey: Self.persistedSessionKey)
     }
 
     private func sendImmediateHydrationReminder() {
