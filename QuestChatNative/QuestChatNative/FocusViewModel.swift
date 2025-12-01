@@ -403,8 +403,31 @@ final class SessionStatsStore: ObservableObject {
     }
 
     var currentMomentum: Double {
-        refreshMomentumIfNeeded()
-        return momentum
+        // Return a computed value without mutating @Published properties to avoid publishing during view updates
+        return computeDecayedMomentum(now: Date())
+    }
+
+    private func computeDecayedMomentum(now: Date) -> Double {
+        guard let lastUpdate = lastMomentumUpdate else { return momentum }
+        let elapsed = now.timeIntervalSince(lastUpdate)
+        guard elapsed > 0, momentum > 0 else { return momentum }
+        guard momentumDecayDuration > 0 else { return momentum }
+        let decayAmount = elapsed / momentumDecayDuration
+        guard decayAmount > 0 else { return momentum }
+        return max(0, momentum - decayAmount)
+    }
+
+    func refreshMomentumIfNeeded(now: Date = Date()) {
+        let newMomentum = computeDecayedMomentum(now: now)
+        // If nothing changes, still update lastMomentumUpdate and persist asynchronously
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if newMomentum != self.momentum {
+                self.momentum = newMomentum
+            }
+            self.lastMomentumUpdate = now
+            self.persistMomentum()
+        }
     }
 
     var weeklyGoalProgress: [WeeklyGoalDayStatus] {
@@ -544,30 +567,6 @@ final class SessionStatsStore: ObservableObject {
         lastKnownLevel = newLevel
     }
 
-    func refreshMomentumIfNeeded(now: Date = Date()) {
-        guard let lastUpdate = lastMomentumUpdate else { return }
-
-        let elapsed = now.timeIntervalSince(lastUpdate)
-        guard elapsed > 0, momentum > 0 else {
-            lastMomentumUpdate = now
-            persistMomentum()
-            return
-        }
-
-        guard momentumDecayDuration > 0 else { return }
-
-        let decayAmount = elapsed / momentumDecayDuration
-        guard decayAmount > 0 else { return }
-
-        let newMomentum = max(0, momentum - decayAmount)
-        if newMomentum != momentum {
-            momentum = newMomentum
-        }
-
-        lastMomentumUpdate = now
-        persistMomentum()
-    }
-
     private func persistMomentum() {
         userDefaults.set(momentum, forKey: Keys.momentum)
         if let lastSessionDate {
@@ -691,17 +690,28 @@ final class FocusViewModel: ObservableObject {
         statsStore: SessionStatsStore = SessionStatsStore(),
         initialMode: FocusTimerMode = .focus
     ) {
+        // Assign non-dependent stored properties first
         self.statsStore = statsStore
-        let seededCategories = FocusViewModel.seededCategories()
-        categories = seededCategories.map { category in
-            var category = category
-            category.durationMinutes = loadDuration(for: category)
+
+        // Build categories using local variables to avoid referencing self before init completes
+        let seeded = FocusViewModel.seededCategories()
+        let loadedCategories: [TimerCategory] = seeded.map { base in
+            var category = base
+            // Use a temporary UserDefaults instance directly instead of self.userDefaults
+            let key = "timerCategory_duration_\(category.id.uuidString)"
+            let storedMinutes = UserDefaults.standard.integer(forKey: key)
+            category.durationMinutes = storedMinutes > 0 ? storedMinutes : category.defaultDurationMinutes
             return category
         }
-        let initialCategory = categories.first { $0.mode == initialMode } ?? categories[0]
-        selectedCategoryID = initialCategory.id
-        selectedMode = initialCategory.mode
-        secondsRemaining = initialCategory.durationMinutes * 60
+        self.categories = loadedCategories
+
+        // Pick initial category using local data
+        let initialCategory = loadedCategories.first { $0.mode == initialMode } ?? loadedCategories[0]
+        self.selectedCategoryID = initialCategory.id
+        self.selectedMode = initialCategory.mode
+        self.secondsRemaining = initialCategory.durationMinutes * 60
+
+        // Defer side-effectful calls until after full initialization
         requestNotificationAuthorization()
     }
 
