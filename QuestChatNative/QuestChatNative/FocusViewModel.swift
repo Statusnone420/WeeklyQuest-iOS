@@ -133,6 +133,14 @@ final class SessionStatsStore: ObservableObject {
         if needsDateReset {
             userDefaults.set(today, forKey: Keys.totalFocusDate)
             userDefaults.set(totalFocusSecondsToday, forKey: Keys.totalFocusSecondsToday)
+        } else {
+            // Defensive: ensure keys exist even if they were missing but it's the same day.
+            if userDefaults.object(forKey: Keys.totalFocusDate) == nil {
+                userDefaults.set(today, forKey: Keys.totalFocusDate)
+            }
+            if userDefaults.object(forKey: Keys.totalFocusSecondsToday) == nil {
+                userDefaults.set(totalFocusSecondsToday, forKey: Keys.totalFocusSecondsToday)
+            }
         }
     }
 
