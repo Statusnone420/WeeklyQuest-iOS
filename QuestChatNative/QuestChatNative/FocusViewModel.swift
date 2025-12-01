@@ -162,6 +162,8 @@ final class SessionStatsStore: ObservableObject {
     @Published private(set) var momentum: Double
     @Published private(set) var sessionHistory: [SessionRecord]
     @Published private(set) var totalFocusSecondsToday: Int
+    @Published private(set) var todayCategorySessionCounts: [UUID: Int]
+    @Published private(set) var categoryComboBonusAwardedToday: Set<UUID>
     @Published var pendingLevelUp: Int?
     @Published private(set) var dailyConfig: DailyConfig?
     @Published var shouldShowDailySetup: Bool = false
@@ -240,6 +242,26 @@ final class SessionStatsStore: ObservableObject {
             sessionHistory = []
         }
 
+        if let data = userDefaults.data(forKey: Keys.categorySessionCounts),
+           let decoded = try? JSONDecoder().decode([String: Int].self, from: data)
+        {
+            todayCategorySessionCounts = decoded.reduce(into: [:]) { partialResult, pair in
+                if let id = UUID(uuidString: pair.key) {
+                    partialResult[id] = pair.value
+                }
+            }
+        } else {
+            todayCategorySessionCounts = [:]
+        }
+
+        if let data = userDefaults.data(forKey: Keys.categoryComboBonusesAwarded),
+           let decoded = try? JSONDecoder().decode([String].self, from: data)
+        {
+            categoryComboBonusAwardedToday = Set(decoded.compactMap { UUID(uuidString: $0) })
+        } else {
+            categoryComboBonusAwardedToday = []
+        }
+
         let storedMomentum = userDefaults.double(forKey: Keys.momentum)
         let clampedMomentum = max(0, min(storedMomentum, 1))
         momentum = clampedMomentum
@@ -276,6 +298,8 @@ final class SessionStatsStore: ObservableObject {
         shouldShowDailySetup = !Self.isConfigValidForToday(storedConfig)
 
         lastWeeklyGoalBonusAwardedDate = userDefaults.object(forKey: Keys.lastWeeklyGoalBonusAwardedDate) as? Date
+
+        refreshDailyCategoryCountsIfNeeded(today: today)
 
         // Now that all stored properties are initialized, persist any needed resets.
         if needsDateReset {
@@ -338,6 +362,34 @@ final class SessionStatsStore: ObservableObject {
         return totalXPAwarded
     }
 
+    @discardableResult
+    func recordCategorySession(categoryID: UUID, now: Date = Date()) -> Int {
+        refreshDailyCategoryCountsIfNeeded(today: Calendar.current.startOfDay(for: now))
+
+        let today = Calendar.current.startOfDay(for: now)
+        let newCount = (todayCategorySessionCounts[categoryID] ?? 0) + 1
+        todayCategorySessionCounts[categoryID] = newCount
+        persistCategorySessionCounts(for: today)
+
+        if newCount >= 3, !categoryComboBonusAwardedToday.contains(categoryID) {
+            categoryComboBonusAwardedToday.insert(categoryID)
+            grantBonusXP(20)
+            persistCategoryComboBonuses(for: today)
+        }
+
+        return newCount
+    }
+
+    func comboCount(for categoryID: UUID) -> Int {
+        refreshDailyCategoryCountsIfNeeded()
+        return todayCategorySessionCounts[categoryID] ?? 0
+    }
+
+    func hasEarnedComboBonus(for categoryID: UUID) -> Bool {
+        refreshDailyCategoryCountsIfNeeded()
+        return categoryComboBonusAwardedToday.contains(categoryID)
+    }
+
     func refreshDailyFocusTotal() {
         refreshDailyTotalsIfNeeded()
     }
@@ -395,6 +447,8 @@ final class SessionStatsStore: ObservableObject {
         lastKnownLevel = level
         pendingLevelUp = nil
         sessionHistory = []
+        todayCategorySessionCounts = [:]
+        categoryComboBonusAwardedToday = []
         momentum = 0
         lastSessionDate = nil
         lastMomentumUpdate = nil
@@ -468,6 +522,9 @@ final class SessionStatsStore: ObservableObject {
         static let lastSessionDate = "lastSessionDate"
         static let lastMomentumUpdate = "lastMomentumUpdate"
         static let lastWeeklyGoalBonusAwardedDate = "lastWeeklyGoalBonusAwardedDate"
+        static let categorySessionCounts = "categorySessionCounts"
+        static let categorySessionCountsDate = "categorySessionCountsDate"
+        static let categoryComboBonusesAwarded = "categoryComboBonusesAwarded"
     }
 
     private var todaySessions: [SessionRecord] {
@@ -479,6 +536,7 @@ final class SessionStatsStore: ObservableObject {
     }
 
     private func persist() {
+        refreshDailyCategoryCountsIfNeeded()
         userDefaults.set(focusSeconds, forKey: Keys.focusSeconds)
         userDefaults.set(selfCareSeconds, forKey: Keys.selfCareSeconds)
         userDefaults.set(sessionsCompleted, forKey: Keys.sessionsCompleted)
@@ -490,12 +548,32 @@ final class SessionStatsStore: ObservableObject {
         persistMomentum()
         persistDailyConfig(dailyConfig)
         persistSessionHistory()
+        persistCategorySessionCounts()
+        persistCategoryComboBonuses()
     }
 
     private func persistSessionHistory() {
         if let data = try? JSONEncoder().encode(sessionHistory) {
             userDefaults.set(data, forKey: Keys.sessionHistory)
         }
+    }
+
+    private func persistCategorySessionCounts(for date: Date = Calendar.current.startOfDay(for: Date())) {
+        let encoded = todayCategorySessionCounts.reduce(into: [String: Int]()) { partialResult, pair in
+            partialResult[pair.key.uuidString] = pair.value
+        }
+        if let data = try? JSONEncoder().encode(encoded) {
+            userDefaults.set(data, forKey: Keys.categorySessionCounts)
+        }
+        userDefaults.set(date, forKey: Keys.categorySessionCountsDate)
+    }
+
+    private func persistCategoryComboBonuses(for date: Date = Calendar.current.startOfDay(for: Date())) {
+        let encoded = categoryComboBonusAwardedToday.map { $0.uuidString }
+        if let data = try? JSONEncoder().encode(encoded) {
+            userDefaults.set(data, forKey: Keys.categoryComboBonusesAwarded)
+        }
+        userDefaults.set(date, forKey: Keys.categorySessionCountsDate)
     }
 
     private func refreshDailyTotalsIfNeeded() {
@@ -509,6 +587,7 @@ final class SessionStatsStore: ObservableObject {
         userDefaults.set(today, forKey: Keys.totalFocusDate)
         userDefaults.set(totalFocusSecondsToday, forKey: Keys.totalFocusSecondsToday)
         refreshDailySetupIfNeeded()
+        refreshDailyCategoryCountsIfNeeded(today: today)
     }
 
     private func persistDailyConfig(_ config: DailyConfig?) {
@@ -588,6 +667,16 @@ final class SessionStatsStore: ObservableObject {
         return sessionHistory
             .filter { calendar.isDate($0.date, inSameDayAs: targetDay) }
             .reduce(0) { $0 + $1.durationSeconds }
+    }
+
+    private func refreshDailyCategoryCountsIfNeeded(today: Date = Calendar.current.startOfDay(for: Date())) {
+        let storedDate = userDefaults.object(forKey: Keys.categorySessionCountsDate) as? Date
+        guard !Calendar.current.isDate(storedDate ?? .distantPast, inSameDayAs: today) else { return }
+
+        todayCategorySessionCounts = [:]
+        categoryComboBonusAwardedToday = []
+        persistCategorySessionCounts(for: today)
+        persistCategoryComboBonuses(for: today)
     }
 
     private func evaluateWeeklyGoalBonus() {
@@ -714,6 +803,14 @@ final class FocusViewModel: ObservableObject {
         categories.first { $0.id == selectedCategoryID }
     }
 
+    var comboCountForSelectedCategory: Int {
+        statsStore.comboCount(for: selectedCategoryID)
+    }
+
+    var hasEarnedComboForSelectedCategory: Bool {
+        statsStore.hasEarnedComboBonus(for: selectedCategoryID)
+    }
+
     private var currentDuration: Int {
         selectedCategory.map { $0.durationMinutes * 60 } ?? selectedMode.defaultDurationMinutes * 60
     }
@@ -812,13 +909,16 @@ final class FocusViewModel: ObservableObject {
         hasFinishedOnce = true
         statsStore.refreshDailyFocusTotal()
         let previousFocusTotal = statsStore.totalFocusSecondsToday
-        let xpGained = statsStore.recordSession(mode: selectedMode, duration: currentDuration)
+        let xpBefore = statsStore.xp
+        _ = statsStore.recordSession(mode: selectedMode, duration: currentDuration)
+        _ = statsStore.recordCategorySession(categoryID: selectedCategoryID)
+        let totalXPGained = statsStore.xp - xpBefore
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         withAnimation(.easeInOut(duration: 0.25)) {
             lastCompletedSession = SessionSummary(
                 mode: selectedMode,
                 duration: currentDuration,
-                xpGained: xpGained,
+                xpGained: totalXPGained,
                 timestamp: Date()
             )
         }
