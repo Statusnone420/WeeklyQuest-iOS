@@ -242,11 +242,13 @@ final class SessionStatsStore: ObservableObject {
         }
 
         let storedMomentum = userDefaults.double(forKey: Keys.momentum)
-        momentum = max(0, min(storedMomentum, 1))
+        let clampedMomentum = max(0, min(storedMomentum, 1))
+        momentum = clampedMomentum
 
         lastSessionDate = userDefaults.object(forKey: Keys.lastSessionDate) as? Date
-        lastMomentumUpdate = userDefaults.object(forKey: Keys.lastMomentumUpdate) as? Date ?? lastSessionDate
-        if momentum > 0, lastMomentumUpdate == nil {
+        let storedLastMomentumUpdate = userDefaults.object(forKey: Keys.lastMomentumUpdate) as? Date
+        lastMomentumUpdate = storedLastMomentumUpdate ?? lastSessionDate
+        if clampedMomentum > 0, lastMomentumUpdate == nil {
             lastMomentumUpdate = Date()
         }
 
@@ -979,3 +981,4 @@ private extension FocusViewModel.HydrationNudgeLevel {
         }
     }
 }
+
