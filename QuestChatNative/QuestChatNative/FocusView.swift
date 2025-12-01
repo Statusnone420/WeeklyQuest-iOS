@@ -6,6 +6,7 @@ struct FocusView: View {
     @ObservedObject var healthBarViewModel: HealthBarViewModel
     @ObservedObject private var statsStore: SessionStatsStore
     @EnvironmentObject var questsViewModel: QuestsViewModel
+    @Environment(\.scenePhase) private var scenePhase
     @Binding var selectedTab: MainTab
 
     @State private var primaryButtonScale: CGFloat = 1
@@ -21,14 +22,14 @@ struct FocusView: View {
     }
 
     private var formattedTime: String {
-        let minutes = viewModel.secondsRemaining / 60
-        let seconds = viewModel.secondsRemaining % 60
+        let minutes = viewModel.remainingSeconds / 60
+        let seconds = viewModel.remainingSeconds % 60
         return String(format: "%02d:%02d", minutes, seconds)
     }
 
     private var warningFraction: Double {
-        guard viewModel.secondsRemaining <= 10 else { return 0 }
-        let fraction = 1 - (Double(viewModel.secondsRemaining) / 10)
+        guard viewModel.remainingSeconds <= 10 else { return 0 }
+        let fraction = 1 - (Double(viewModel.remainingSeconds) / 10)
         return min(max(fraction, 0), 1)
     }
 
@@ -120,6 +121,12 @@ struct FocusView: View {
         .animation(.spring(response: 0.4, dampingFraction: 0.85), value: viewModel.selectedCategory)
         .onAppear {
             statsStore.refreshMomentumIfNeeded()
+        }
+        .onAppear {
+            viewModel.handleScenePhaseChange(scenePhase)
+        }
+        .onChange(of: scenePhase) { phase in
+            viewModel.handleScenePhaseChange(phase)
         }
         .onChange(of: viewModel.selectedCategory) { _ in
             heroCardScale = 0.98
@@ -574,11 +581,11 @@ struct FocusView: View {
                     .overlay {
                         Circle()
                             .stroke(Color.white.opacity(0.22), lineWidth: 6)
-                            .scaleEffect(viewModel.secondsRemaining <= 10 && viewModel.secondsRemaining > 0 ? 1.05 : 1)
-                            .opacity(viewModel.secondsRemaining <= 10 && viewModel.secondsRemaining > 0 ? 0.9 : 0)
+                            .scaleEffect(viewModel.remainingSeconds <= 10 && viewModel.remainingSeconds > 0 ? 1.05 : 1)
+                            .opacity(viewModel.remainingSeconds <= 10 && viewModel.remainingSeconds > 0 ? 0.9 : 0)
                             .animation(
                                 .easeInOut(duration: 0.75).repeatForever(autoreverses: true),
-                                value: viewModel.secondsRemaining <= 10 && viewModel.secondsRemaining > 0
+                                value: viewModel.remainingSeconds <= 10 && viewModel.remainingSeconds > 0
                             )
                     }
 
