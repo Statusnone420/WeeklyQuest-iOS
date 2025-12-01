@@ -20,7 +20,7 @@ struct HealthBarCardView: View {
     private var statRow: some View {
         HStack(spacing: 12) {
             StatPill(icon: "drop.fill", label: "Hydration", value: "\(viewModel.inputs.hydrationCount)")
-            StatPill(icon: "hands.sparkles.fill", label: "Self-care", value: "\(viewModel.inputs.selfCareSessions)")
+            StatPill(icon: "hands.sparkles.fill", label: "Comfort bev.", value: "\(viewModel.inputs.selfCareSessions)")
             StatPill(icon: "bolt.fill", label: "Focus", value: "\(viewModel.inputs.focusSprints)")
         }
     }
@@ -50,7 +50,7 @@ struct HealthBarCardView: View {
 
             HStack(spacing: 8) {
                 StatPill(icon: "drop.fill", label: "Hydration", value: "\(viewModel.inputs.hydrationCount)x")
-                StatPill(icon: "figure.mind.and.body", label: "Self-care", value: "\(viewModel.inputs.selfCareSessions)")
+                StatPill(icon: "figure.mind.and.body", label: "Comfort bev.", value: "\(viewModel.inputs.selfCareSessions)")
                 StatPill(icon: "bolt.fill", label: "Focus", value: "\(viewModel.inputs.focusSprints)")
             }
 
@@ -64,23 +64,50 @@ struct HealthBarCardView: View {
             }
 
             HStack(spacing: 12) {
-                Button("Drank water") {
+                Button {
                     viewModel.logHydration()
+                } label: {
+                    Label {
+                        Text("Drank water")
+                    } icon: {
+                        Image(systemName: "cross.case.fill")
+                            .foregroundStyle(.red)
+                    }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.teal)
+                .buttonStyle(HealthPotionButtonStyle(color: Color.cyan))
 
-                Button("Self-care done") {
+                Button {
                     viewModel.logSelfCareSession()
+                } label: {
+                    Label {
+                        Text("Comfort beverage")
+                    } icon: {
+                        Image(systemName: "cup.and.saucer.fill")
+                            .foregroundStyle(.yellow)
+                    }
                 }
-                .buttonStyle(.borderedProminent)
-                .tint(.teal.opacity(0.75))
+                .buttonStyle(HealthPotionButtonStyle(color: Color.cyan))
             }
-            .font(.subheadline.weight(.semibold))
         }
         .padding(14)
         .background(Color(uiColor: .secondarySystemBackground).opacity(0.65))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+}
+
+struct HealthPotionButtonStyle: ButtonStyle {
+    let color: Color
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.system(.subheadline, design: .rounded).weight(.semibold))
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .background(color)
+            .clipShape(Capsule())
+            .shadow(color: color.opacity(0.35), radius: 8, x: 0, y: 3)
+            .scaleEffect(configuration.isPressed ? 0.94 : 1)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: configuration.isPressed)
     }
 }
 
