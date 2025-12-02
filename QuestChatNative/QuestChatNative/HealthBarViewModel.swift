@@ -9,9 +9,14 @@ final class HealthBarViewModel: ObservableObject {
     private let maxHP: Double = 100
 
     private let storage: HealthBarStorageProtocol
+    private let statsStore: HealthBarIRLStatsStore?
 
-    init(storage: HealthBarStorageProtocol = DefaultHealthBarStorage()) {
+    init(
+        storage: HealthBarStorageProtocol = DefaultHealthBarStorage(),
+        statsStore: HealthBarIRLStatsStore? = nil
+    ) {
         self.storage = storage
+        self.statsStore = statsStore
         inputs = storage.loadTodayInputs()
         recalculate()
     }
@@ -65,7 +70,7 @@ final class HealthBarViewModel: ObservableObject {
 
 private extension HealthBarViewModel {
     func recalculate() {
-        hp = HealthBarCalculator.hp(for: inputs)
+        hp = statsStore?.calculateHP(for: inputs) ?? HealthBarCalculator.hp(for: inputs)
     }
 
     func save() {

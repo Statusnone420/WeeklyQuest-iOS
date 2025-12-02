@@ -14,7 +14,7 @@ final class DependencyContainer {
         xpStore: statsStore,
         sessionStatsStore: statsStore
     )
-    private lazy var healthBarViewModel = HealthBarViewModel()
+    private lazy var healthBarViewModel = HealthBarViewModel(statsStore: healthBarStatsStore)
     private lazy var focusViewModel = FocusViewModel(
         statsStore: statsStore,
         healthStatsStore: healthBarStatsStore,
