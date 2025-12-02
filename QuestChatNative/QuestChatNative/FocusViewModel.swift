@@ -1067,6 +1067,10 @@ final class FocusViewModel: ObservableObject {
         FocusTimerLiveActivityManager.shared
     }
 
+    private var liveActivityOriginalDuration: Int?
+    private var liveActivityTitle: String?
+    private var lastLiveActivityRemainingSeconds: Int?
+
     private static let persistedSessionKey = "focus_current_session_v1"
     private var hasInitialized = false
     private let minimumSessionDuration: TimeInterval = 60
@@ -1395,6 +1399,8 @@ final class FocusViewModel: ObservableObject {
             activeSessionDuration = clampedDuration
         }
 
+        let totalDuration = activeSessionDuration ?? clampedDuration
+
         let session = FocusSession(
             id: currentSession?.id ?? UUID(),
             type: selectedMode,
@@ -1408,10 +1414,19 @@ final class FocusViewModel: ObservableObject {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         scheduleCompletionNotification()
         startUITimer()
+        let category = selectedCategoryData ?? TimerCategory(id: selectedCategory, durationSeconds: currentDuration)
+        let title = category.id.title
+        if #available(iOS 17.0, *) {
+            liveActivityOriginalDuration = totalDuration
+            liveActivityTitle = title
+            lastLiveActivityRemainingSeconds = remainingSeconds
+            FocusLiveActivityManager.start(
+                title: title,
+                totalSeconds: totalDuration
+            )
+        }
         if #available(iOS 16.1, *) {
-            let category = selectedCategoryData ?? TimerCategory(id: selectedCategory, durationSeconds: currentDuration)
             let sessionType = category.id.rawValue
-            let title = category.id.title
             liveActivityManager?.start(
                 endDate: session.endDate,
                 sessionType: sessionType,
@@ -1442,9 +1457,13 @@ final class FocusViewModel: ObservableObject {
         hasFinishedOnce = false
         activeSessionDuration = nil
         clearPersistedSession()
+        if #available(iOS 17.0, *) {
+            FocusLiveActivityManager.end()
+        }
         if #available(iOS 16.1, *) {
             liveActivityManager?.cancel()
         }
+        clearLiveActivityState()
         state = .idle
     }
 
@@ -1488,6 +1507,12 @@ final class FocusViewModel: ObservableObject {
         return String(format: "%d:%02d", minutes, secondsPart)
     }
 
+    private func clearLiveActivityState() {
+        liveActivityOriginalDuration = nil
+        liveActivityTitle = nil
+        lastLiveActivityRemainingSeconds = nil
+    }
+
     private func stopUITimer() {
         timerCancellable?.cancel()
         timerCancellable = nil
@@ -1501,6 +1526,22 @@ final class FocusViewModel: ObservableObject {
             .sink { [weak self] date in
                 guard let self else { return }
                 self.timerTick = date
+                if #available(iOS 17.0, *) {
+                    if state == .running,
+                       let totalSeconds = liveActivityOriginalDuration,
+                       let title = liveActivityTitle
+                    {
+                        let remaining = self.remainingSeconds
+                        if remaining != lastLiveActivityRemainingSeconds {
+                            lastLiveActivityRemainingSeconds = remaining
+                            FocusLiveActivityManager.update(
+                                remainingSeconds: remaining,
+                                totalSeconds: totalSeconds,
+                                title: title
+                            )
+                        }
+                    }
+                }
                 self.handleSessionCompletionIfNeeded()
             }
     }
@@ -1540,9 +1581,13 @@ final class FocusViewModel: ObservableObject {
         clearPersistedSession()
         handleHydrationThresholds(previousTotal: previousFocusTotal, newTotal: statsStore.totalFocusSecondsToday)
         sendImmediateHydrationReminder()
+        if #available(iOS 17.0, *) {
+            FocusLiveActivityManager.end()
+        }
         if #available(iOS 16.1, *) {
             liveActivityManager?.end()
         }
+        clearLiveActivityState()
         onSessionComplete?()
     }
 
