@@ -92,22 +92,7 @@
 		D8A1A01E2EDE07B400A6A01E /* QuestChatNativeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestChatNativeApp.swift; sourceTree = "<group>"; };
 		D8A1A01F2EDE07B400A6A01F /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		D8A1A0202EDE07B400A6A020 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		D8A1A0212EDE07B400A6A021 /* QuestChatLiveActivitiesBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestChatLiveActivitiesBundle.swift; sourceTree = "<group>"; };
-		D8C41B002F0F579E009E596C /* QuestChatNative.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QuestChatNative.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		D87C182F2EDF9B6F00438C3A /* QuestChatLiveActivity */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = QuestChatLiveActivity;
-			sourceTree = "<group>";
-		};
-		D87C184C2EDF9E6600438C3A /* QuestChatLiveActivity */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = QuestChatLiveActivity;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		D881CF902EDD1BC200A8A09F /* Frameworks */ = {
@@ -133,9 +118,6 @@
 			isa = PBXGroup;
 			children = (
 				D881CF952EDD1BC200A8A09F /* QuestChatNative */,
-				D8A1A0232EDE07B400A6A023 /* QuestChatLiveActivities */,
-				D87C182F2EDF9B6F00438C3A /* QuestChatLiveActivity */,
-				D87C184C2EDF9E6600438C3A /* QuestChatLiveActivity */,
 				D87C182A2EDF9B6F00438C3A /* Frameworks */,
 				D881CF942EDD1BC200A8A09F /* Products */,
 			);
@@ -175,7 +157,6 @@
 				D8A1A0072EDE07B400A6A007 /* MoreView.swift */,
 				D8A1A0052EDE07B400A6A005 /* MoreViewModel.swift */,
 				D8A1A0132EDE07B400A6A013 /* PlayerCardView.swift */,
-				D8C41B002F0F579E009E596C /* QuestChatNative.entitlements */,
 				D8A1A01E2EDE07B400A6A01E /* QuestChatNativeApp.swift */,
 				D8A1A0112EDE07B400A6A011 /* QuestChatStrings.swift */,
 				D8A1A01D2EDE07B400A6A01D /* QuestsView.swift */,
@@ -188,14 +169,6 @@
 				D8A1A0162EDE07B400A6A016 /* TodaySummaryView.swift */,
 			);
 			path = QuestChatNative;
-			sourceTree = "<group>";
-		};
-		D8A1A0232EDE07B400A6A023 /* QuestChatLiveActivities */ = {
-			isa = PBXGroup;
-			children = (
-				D8A1A0212EDE07B400A6A021 /* QuestChatLiveActivitiesBundle.swift */,
-			);
-			path = QuestChatLiveActivities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
