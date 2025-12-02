@@ -21,6 +21,9 @@ struct HealthDaySummary: Codable, Identifiable {
 
 final class HealthBarIRLStatsStore: ObservableObject {
     @Published var days: [HealthDaySummary] = []
+    @Published private(set) var currentHP: Int = 0
+
+    let maxHP: Int = 100
 
     private let userDefaults: UserDefaults
     private let storageKey = "HealthBarIRLStatsStore.days"
@@ -31,32 +34,37 @@ final class HealthBarIRLStatsStore: ObservableObject {
         load()
     }
 
-    func recordSnapshot(
-        hp: Int,
-        hydrationCount: Int,
-        selfCareCount: Int,
-        focusCount: Int,
-        gutStatus: GutStatus,
-        moodStatus: MoodStatus
-    ) {
+    var hpPercentage: Double {
+        let clamped = max(0, min(Double(currentHP), Double(maxHP)))
+        return clamped / Double(maxHP)
+    }
+
+    func calculateHP(for inputs: DailyHealthInputs) -> Int {
+        HealthBarCalculator.hp(for: inputs)
+    }
+
+    func update(from inputs: DailyHealthInputs) {
+        let hp = calculateHP(for: inputs)
+        currentHP = hp
+
         let today = calendar.startOfDay(for: Date())
 
         if let index = days.firstIndex(where: { calendar.isDate($0.date, inSameDayAs: today) }) {
             days[index].hpValues.append(hp)
-            days[index].hydrationCount = hydrationCount
-            days[index].selfCareCount = selfCareCount
-            days[index].focusCount = focusCount
-            days[index].lastGut = gutStatus
-            days[index].lastMood = moodStatus
+            days[index].hydrationCount = inputs.hydrationCount
+            days[index].selfCareCount = inputs.selfCareSessions
+            days[index].focusCount = inputs.focusSprints
+            days[index].lastGut = inputs.gutStatus
+            days[index].lastMood = inputs.moodStatus
         } else {
             let summary = HealthDaySummary(
                 date: today,
                 hpValues: [hp],
-                hydrationCount: hydrationCount,
-                selfCareCount: selfCareCount,
-                focusCount: focusCount,
-                lastGut: gutStatus,
-                lastMood: moodStatus
+                hydrationCount: inputs.hydrationCount,
+                selfCareCount: inputs.selfCareSessions,
+                focusCount: inputs.focusSprints,
+                lastGut: inputs.gutStatus,
+                lastMood: inputs.moodStatus
             )
             days.insert(summary, at: 0)
         }
@@ -71,6 +79,10 @@ final class HealthBarIRLStatsStore: ObservableObject {
         guard let decoded = try? JSONDecoder().decode([HealthDaySummary].self, from: data) else { return }
         days = decoded.sorted { $0.date > $1.date }
         trimHistory()
+
+        if let latestHP = days.first?.hpValues.last {
+            currentHP = latestHP
+        }
     }
 
     func save() {

@@ -30,6 +30,11 @@ final class StatsViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
+        healthStore.$currentHP
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
+
         hydrationSettingsStore.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.objectWillChange.send() }
@@ -41,10 +46,7 @@ final class StatsViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    var hpProgress: Double {
-        guard let latestHP = todaySummary?.hpValues.last else { return 0 }
-        return clampProgress(Double(latestHP) / 100)
-    }
+    var hpProgress: Double { healthStore.hpPercentage }
 
     var hydrationProgress: Double {
         let goal = hydrationSettingsStore.dailyWaterGoalOunces

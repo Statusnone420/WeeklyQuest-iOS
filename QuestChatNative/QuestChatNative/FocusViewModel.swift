@@ -1086,6 +1086,7 @@ final class FocusViewModel: ObservableObject {
         self.healthStatsStore = healthStatsStore
         self.healthBarViewModel = healthBarViewModel
         self.hydrationSettingsStore = hydrationSettingsStore
+        self.currentHP = healthStatsStore.currentHP
 
         let seeded = FocusViewModel.seededCategories()
         let loadedCategories: [TimerCategory] = seeded.map { base in
@@ -1109,6 +1110,11 @@ final class FocusViewModel: ObservableObject {
         statsStore.$lastLevelUp
             .receive(on: RunLoop.main)
             .sink { [weak self] in self?.lastLevelUp = $0 }
+            .store(in: &cancellables)
+
+        healthStatsStore.$currentHP
+            .receive(on: RunLoop.main)
+            .sink { [weak self] in self?.currentHP = $0 }
             .store(in: &cancellables)
 
         if let healthBarViewModel {
@@ -1152,9 +1158,6 @@ final class FocusViewModel: ObservableObject {
         statsStore.hasEarnedComboBonus(for: selectedCategory)
     }
 
-    private let baseHP = 100
-    private let maxHP = 100
-
     private var gutStatus: GutStatus {
         healthBarViewModel?.inputs.gutStatus ?? .none
     }
@@ -1163,40 +1166,9 @@ final class FocusViewModel: ObservableObject {
         healthBarViewModel?.inputs.moodStatus ?? .none
     }
 
-    var currentHP: Int {
-        let gutModifier: Int = {
-            switch gutStatus {
-            case .none:
-                return 0
-            case .great:
-                return 12
-            case .meh:
-                return 4
-            case .rough:
-                return -14
-            }
-        }()
+    @Published private(set) var currentHP: Int = 0
 
-        let moodModifier: Int = {
-            switch moodStatus {
-            case .none:
-                return 0
-            case .good:
-                return 8
-            case .neutral:
-                return 0
-            case .bad:
-                return -10
-            }
-        }()
-
-        let total = baseHP + sleepQuality.hpModifier + gutModifier + moodModifier
-        return max(0, min(total, maxHP))
-    }
-
-    var hpProgress: Double {
-        clampProgress(Double(currentHP) / Double(maxHP))
-    }
+    var hpProgress: Double { healthStatsStore.hpPercentage }
 
     var hydrationProgress: Double {
         let goal = hydrationSettingsStore.dailyWaterGoalOunces
@@ -1388,7 +1360,7 @@ final class FocusViewModel: ObservableObject {
         healthBarViewModel.logHydration()
 
         updateWaterIntakeTotals()
-        recordHealthBarSnapshot(inputs: healthBarViewModel.inputs, hp: healthBarViewModel.hp)
+        healthStatsStore.update(from: healthBarViewModel.inputs)
         evaluateHealthXPBonuses()
     }
 
@@ -1399,7 +1371,7 @@ final class FocusViewModel: ObservableObject {
         healthBarViewModel.logSelfCareSession()
 
         totalComfortOuncesToday += hydrationSettingsStore.ouncesPerComfortTap
-        recordHealthBarSnapshot(inputs: healthBarViewModel.inputs, hp: healthBarViewModel.hp)
+        healthStatsStore.update(from: healthBarViewModel.inputs)
     }
 
     func logStaminaPotionTapped() {
@@ -1720,24 +1692,13 @@ final class FocusViewModel: ObservableObject {
         }
     }
 
-    private func recordHealthBarSnapshot(inputs: DailyHealthInputs, hp: Int) {
-        healthStatsStore.recordSnapshot(
-            hp: hp,
-            hydrationCount: inputs.hydrationCount,
-            selfCareCount: inputs.selfCareSessions,
-            focusCount: inputs.focusSprints,
-            gutStatus: inputs.gutStatus,
-            moodStatus: inputs.moodStatus
-        )
-    }
-
     private func bindHealthBarViewModel(_ healthBarViewModel: HealthBarViewModel) {
-        Publishers.CombineLatest(healthBarViewModel.$inputs, healthBarViewModel.$hp)
+        healthBarViewModel.$inputs
             .debounce(for: .milliseconds(50), scheduler: RunLoop.main)
             .receive(on: RunLoop.main)
-            .sink { [weak self] inputs, hp in
+            .sink { [weak self] inputs in
                 self?.updateWaterIntakeTotals()
-                self?.recordHealthBarSnapshot(inputs: inputs, hp: hp)
+                self?.healthStatsStore.update(from: inputs)
                 self?.evaluateHealthXPBonuses()
             }
             .store(in: &cancellables)
