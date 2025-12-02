@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D87C18822EDFA74B00438C3A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D87C182B2EDF9B6F00438C3A /* WidgetKit.framework */; };
+		D87C18832EDFA74B00438C3A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D87C182D2EDF9B6F00438C3A /* SwiftUI.framework */; };
+		D87C18942EDFA74C00438C3A /* QuestChatLiveActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D87C18812EDFA74B00438C3A /* QuestChatLiveActivityExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D899A6D22EDF6D6500F90F46 /* PlayerStatusBarsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D899A6D12EDF6D6500F90F46 /* PlayerStatusBarsView.swift */; };
 		D8A200012EDE07B400A6A001 /* RPGStatBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A0012EDE07B400A6A001 /* RPGStatBar.swift */; };
 		D8A200022EDE07B400A6A001 /* HealthBarModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A0022EDE07B400A6A002 /* HealthBarModels.swift */; };
@@ -42,6 +45,16 @@
 		D8A200202EDE07B400A6A001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D8A1A0202EDE07B400A6A020 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		D87C18922EDFA74C00438C3A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D881CF8B2EDD1BC200A8A09F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D87C18802EDFA74B00438C3A;
+			remoteInfo = QuestChatLiveActivityExtension;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		D87C18442EDF9B7000438C3A /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -49,6 +62,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				D87C18942EDFA74C00438C3A /* QuestChatLiveActivityExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -58,6 +72,7 @@
 /* Begin PBXFileReference section */
 		D87C182B2EDF9B6F00438C3A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D87C182D2EDF9B6F00438C3A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		D87C18812EDFA74B00438C3A /* QuestChatLiveActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = QuestChatLiveActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		D881CF932EDD1BC200A8A09F /* QuestChatNative.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuestChatNative.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D899A6D12EDF6D6500F90F46 /* PlayerStatusBarsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerStatusBarsView.swift; sourceTree = "<group>"; };
 		D8A1A0012EDE07B400A6A001 /* RPGStatBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RPGStatBar.swift; sourceTree = "<group>"; };
@@ -94,7 +109,37 @@
 		D8A1A0202EDE07B400A6A020 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		D87C18972EDFA74C00438C3A /* Exceptions for "QuestChatLiveActivity" folder in "QuestChatLiveActivityExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = D87C18802EDFA74B00438C3A /* QuestChatLiveActivityExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		D87C18842EDFA74B00438C3A /* QuestChatLiveActivity */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				D87C18972EDFA74C00438C3A /* Exceptions for "QuestChatLiveActivity" folder in "QuestChatLiveActivityExtension" target */,
+			);
+			path = QuestChatLiveActivity;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
+		D87C187E2EDFA74B00438C3A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D87C18832EDFA74B00438C3A /* SwiftUI.framework in Frameworks */,
+				D87C18822EDFA74B00438C3A /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D881CF902EDD1BC200A8A09F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -118,6 +163,7 @@
 			isa = PBXGroup;
 			children = (
 				D881CF952EDD1BC200A8A09F /* QuestChatNative */,
+				D87C18842EDFA74B00438C3A /* QuestChatLiveActivity */,
 				D87C182A2EDF9B6F00438C3A /* Frameworks */,
 				D881CF942EDD1BC200A8A09F /* Products */,
 			);
@@ -127,6 +173,7 @@
 			isa = PBXGroup;
 			children = (
 				D881CF932EDD1BC200A8A09F /* QuestChatNative.app */,
+				D87C18812EDFA74B00438C3A /* QuestChatLiveActivityExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -174,6 +221,28 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		D87C18802EDFA74B00438C3A /* QuestChatLiveActivityExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D87C18982EDFA74C00438C3A /* Build configuration list for PBXNativeTarget "QuestChatLiveActivityExtension" */;
+			buildPhases = (
+				D87C187D2EDFA74B00438C3A /* Sources */,
+				D87C187E2EDFA74B00438C3A /* Frameworks */,
+				D87C187F2EDFA74B00438C3A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D87C18842EDFA74B00438C3A /* QuestChatLiveActivity */,
+			);
+			name = QuestChatLiveActivityExtension;
+			packageProductDependencies = (
+			);
+			productName = QuestChatLiveActivityExtension;
+			productReference = D87C18812EDFA74B00438C3A /* QuestChatLiveActivityExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		D881CF922EDD1BC200A8A09F /* QuestChatNative */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D881CF9E2EDD1BC300A8A09F /* Build configuration list for PBXNativeTarget "QuestChatNative" */;
@@ -186,6 +255,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				D87C18932EDFA74C00438C3A /* PBXTargetDependency */,
 			);
 			name = QuestChatNative;
 			packageProductDependencies = (
@@ -204,6 +274,9 @@
 				LastSwiftUpdateCheck = 2610;
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
+					D87C18802EDFA74B00438C3A = {
+						CreatedOnToolsVersion = 26.1.1;
+					};
 					D881CF922EDD1BC200A8A09F = {
 						CreatedOnToolsVersion = 26.1.1;
 					};
@@ -224,11 +297,19 @@
 			projectRoot = "";
 			targets = (
 				D881CF922EDD1BC200A8A09F /* QuestChatNative */,
+				D87C18802EDFA74B00438C3A /* QuestChatLiveActivityExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		D87C187F2EDFA74B00438C3A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D881CF912EDD1BC200A8A09F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -240,6 +321,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		D87C187D2EDFA74B00438C3A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D881CF8F2EDD1BC200A8A09F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -281,7 +369,77 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		D87C18932EDFA74C00438C3A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D87C18802EDFA74B00438C3A /* QuestChatLiveActivityExtension */;
+			targetProxy = D87C18922EDFA74C00438C3A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		D87C18952EDFA74C00438C3A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CGX65757S6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = QuestChatLiveActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QuestChatLiveActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.statusnone.QuestChatNative.QuestChatLiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		D87C18962EDFA74C00438C3A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = CGX65757S6;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = QuestChatLiveActivity/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = QuestChatLiveActivity;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.statusnone.QuestChatNative.QuestChatLiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		D881CF9C2EDD1BC300A8A09F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -472,6 +630,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		D87C18982EDFA74C00438C3A /* Build configuration list for PBXNativeTarget "QuestChatLiveActivityExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D87C18952EDFA74C00438C3A /* Debug */,
+				D87C18962EDFA74C00438C3A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		D881CF8E2EDD1BC200A8A09F /* Build configuration list for PBXProject "QuestChatNative" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
