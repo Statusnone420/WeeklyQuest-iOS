@@ -1833,10 +1833,13 @@ final class FocusViewModel: ObservableObject {
     func handleScenePhaseChange(_ phase: ScenePhase) {
         switch phase {
         case .active:
+            // App came to the foreground: restore and snap timer into sync
             restorePersistedSessionIfNeeded()
+            syncRemainingSecondsNow()
             startUITimer()
             handleSessionCompletionIfNeeded()
         case .background:
+            // App going to background: save state and stop UI timer
             persistCurrentSessionIfNeeded()
             scheduleCompletionNotification()
             stopUITimer()
@@ -1844,15 +1847,36 @@ final class FocusViewModel: ObservableObject {
             break
         }
     }
+
     func handleAppear() {
         if #available(iOS 17.0, *) {
             restoreLiveActivityIfNeeded()
         }
+        // Make the in-app timer label catch up immediately
+        syncRemainingSecondsNow()
     }
+
     private func handleSessionCompletionIfNeeded() {
         guard let session = currentSession else { return }
         if Date() >= session.endDate {
             finishSession()
+        }
+    }
+
+    private func syncRemainingSecondsNow() {
+        let now = Date()
+
+        if let session = currentSession {
+            // Timer is running: recompute based on endDate
+            let newRemaining = max(Int(ceil(session.endDate.timeIntervalSince(now))), 0)
+            if newRemaining != remainingSeconds {
+                remainingSeconds = newRemaining
+            }
+        } else if timerState == .paused, let paused = pausedRemainingSeconds {
+            // Timer is paused: keep using the paused snapshot
+            if paused != remainingSeconds {
+                remainingSeconds = paused
+            }
         }
     }
 
