@@ -1473,7 +1473,7 @@ final class FocusViewModel: ObservableObject {
         clearPersistedSession()
         if #available(iOS 17.0, *) {
             Task {
-                await endCurrentFocusActivity()
+                await endCurrentFocusActivity(remainingSeconds: 0)
             }
         }
         if #available(iOS 16.2, *) {
@@ -1603,7 +1603,8 @@ final class FocusViewModel: ObservableObject {
     @available(iOS 17.0, *)
     private func endAllCurrentFocusActivities() async {
         for activity in Activity<FocusSessionAttributes>.activities {
-            await activity.end(dismissalPolicy: .immediate)
+            let content = ActivityContent(state: activity.content.state, staleDate: nil)
+            await activity.end(content, dismissalPolicy: .immediate)
         }
         await MainActor.run {
             currentFocusActivity = nil
@@ -1613,7 +1614,8 @@ final class FocusViewModel: ObservableObject {
     @available(iOS 16.2, *)
     private func endAllLegacyFocusActivities() async {
         for activity in Activity<FocusTimerAttributes>.activities {
-            await activity.end(dismissalPolicy: .immediate)
+            let finalContent = ActivityContent(state: activity.content.state, staleDate: nil)
+            await activity.end(finalContent, dismissalPolicy: .immediate)
         }
         await MainActor.run {
             currentLegacyFocusActivity = nil

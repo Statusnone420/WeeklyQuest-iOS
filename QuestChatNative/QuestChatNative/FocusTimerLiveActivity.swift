@@ -41,13 +41,15 @@ final class FocusTimerLiveActivityManager {
 
         let attributes = FocusTimerAttributes(sessionType: sessionType)
         let startDate = Date()
+        let duration = max(endDate.timeIntervalSince(startDate), 0)
+        let finalEndDate = startDate.addingTimeInterval(duration)
         let contentState = FocusTimerAttributes.ContentState(
             startDate: startDate,
             title: title,
-            endDate: endDate,
+            endDate: finalEndDate,
             isPaused: false
         )
-        let content = ActivityContent(state: contentState, staleDate: endDate)
+        let content = ActivityContent(state: contentState, staleDate: finalEndDate)
 
         do {
             print("🚀 Requesting Live Activity – title:", title, "end:", endDate)
@@ -66,7 +68,10 @@ final class FocusTimerLiveActivityManager {
     func end() {
         Task {
             print("🧹 Ending Live Activity")
-            await activity?.end(dismissalPolicy: .immediate)
+            if let activity {
+                let finalContent = ActivityContent(state: activity.content.state, staleDate: nil)
+                await activity.end(finalContent, dismissalPolicy: .immediate)
+            }
             activity = nil
         }
     }
@@ -74,14 +79,18 @@ final class FocusTimerLiveActivityManager {
     func cancel() {
         Task {
             print("🛑 Cancelling Live Activity")
-            await activity?.end(dismissalPolicy: .immediate)
+            if let activity {
+                let finalContent = ActivityContent(state: activity.content.state, staleDate: nil)
+                await activity.end(finalContent, dismissalPolicy: .immediate)
+            }
             activity = nil
         }
     }
 
     private func endAllActivities() async {
         for activity in Activity<FocusTimerAttributes>.activities {
-            await activity.end(dismissalPolicy: .immediate)
+            let finalContent = ActivityContent(state: activity.content.state, staleDate: nil)
+            await activity.end(finalContent, dismissalPolicy: .immediate)
         }
         await MainActor.run {
             self.activity = nil
