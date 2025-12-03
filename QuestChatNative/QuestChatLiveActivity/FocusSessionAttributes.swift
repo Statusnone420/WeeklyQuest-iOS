@@ -4,10 +4,12 @@ import Foundation
 @available(iOS 17.0, *)
 struct FocusSessionAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
+        var startDate: Date
+        var endDate: Date
+        var isPaused: Bool
         var remainingSeconds: Int
         var totalSeconds: Int
         var title: String
-        var endTime: Date
     }
 
     var sessionId: UUID
