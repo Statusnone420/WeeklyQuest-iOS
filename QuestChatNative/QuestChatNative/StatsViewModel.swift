@@ -1,6 +1,5 @@
 import Foundation
 import Combine
-import SwiftUI
 
 final class StatsViewModel: ObservableObject {
     @Published private(set) var last7Days: [HealthDaySummary] = []
@@ -57,8 +56,8 @@ final class StatsViewModel: ObservableObject {
     }
 
     var sleepProgress: Double {
-        guard let sleepRating = todaysSleepRating else { return 0 }
-        let normalized = Double(sleepRating.rawValue) / Double(WellbeingRating.allCases.count - 1)
+        guard let sleepQuality = todaysSleepQuality else { return 0 }
+        let normalized = Double(sleepQuality.rawValue) / Double(SleepQuality.allCases.count - 1)
         return clampProgress(normalized)
     }
 
@@ -94,13 +93,13 @@ final class StatsViewModel: ObservableObject {
         return healthStore.days.first { calendar.isDate($0.date, inSameDayAs: today) }
     }
 
-    private var todaysSleepRating: WellbeingRating? {
+    private var todaysSleepQuality: SleepQuality? {
         guard
-            let storedDate = userDefaults.object(forKey: HealthTrackingStorageKeys.sleepRatingDate) as? Date,
+            let storedDate = userDefaults.object(forKey: HealthTrackingStorageKeys.sleepQualityDate) as? Date,
             calendar.isDate(storedDate, inSameDayAs: Date())
         else { return nil }
 
-        return WellbeingRating(rawValue: userDefaults.integer(forKey: HealthTrackingStorageKeys.sleepRatingValue))
+        return SleepQuality(rawValue: userDefaults.integer(forKey: HealthTrackingStorageKeys.sleepQualityValue))
     }
 
     private func clampProgress(_ value: Double) -> Double {

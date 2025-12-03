@@ -46,52 +46,50 @@ struct FocusSession: Codable, Identifiable {
     var endDate: Date { startDate.addingTimeInterval(duration) }
 }
 
-enum WellbeingRating: Int, CaseIterable, Identifiable {
-    case notSet
-    case bad
-    case meh
-    case good
+enum SleepQuality: Int, CaseIterable, Identifiable {
+    case awful
+    case okay
     case great
 
     var id: Int { rawValue }
 
-    var color: Color {
-        switch self {
-        case .notSet:
-            return .gray
-        case .bad:
-            return .red
-        case .meh:
-            return .yellow
-        case .good:
-            return .green
-        case .great:
-            return .mint
-        }
-    }
-
-    var emoji: String {
-        switch self {
-        case .notSet:
-            return "🙂"
-        case .bad:
-            return "😖"
-        case .meh:
-            return "😐"
-        case .good:
-            return "😊"
-        case .great:
-            return "🤩"
-        }
-    }
-
     var label: String {
         switch self {
-        case .notSet: return "Not set"
-        case .bad: return "Bad"
-        case .meh: return "Meh"
-        case .good: return "Good"
-        case .great: return "Great"
+        case .awful:
+            return "Awful"
+        case .okay:
+            return "Okay"
+        case .great:
+            return "Great"
+        }
+    }
+
+    var hpModifier: Int {
+        switch self {
+        case .awful:
+            return -15
+        case .okay:
+            return 0
+        case .great:
+            return 10
+        }
+    }
+
+    var buffLabel: String? {
+        switch self {
+        case .great:
+            return "Well-rested"
+        case .okay, .awful:
+            return nil
+        }
+    }
+
+    var debuffLabel: String? {
+        switch self {
+        case .awful:
+            return "Running on fumes"
+        case .okay, .great:
+            return nil
         }
     }
 }
@@ -1027,26 +1025,10 @@ final class FocusViewModel: ObservableObject {
     @Published var lastCompletedSession: SessionSummary?
     @Published var activeHydrationNudge: HydrationNudge?
     @Published var lastLevelUp: SessionStatsStore.LevelUpResult?
-    @Published var gutRating: WellbeingRating = .notSet {
+    @Published var sleepQuality: SleepQuality = .okay {
         didSet {
-            guard !isLoadingWellbeingData else { return }
-            persistGutRatingSelection()
-            evaluateHealthXPBonuses()
-        }
-    }
-
-    @Published var moodRating: WellbeingRating = .notSet {
-        didSet {
-            guard !isLoadingWellbeingData else { return }
-            persistMoodRatingSelection()
-            evaluateHealthXPBonuses()
-        }
-    }
-
-    @Published var sleepRating: WellbeingRating = .notSet {
-        didSet {
-            guard !isLoadingWellbeingData else { return }
-            persistSleepRatingSelection()
+            guard !isLoadingSleepData else { return }
+            persistSleepQualitySelection()
             evaluateHealthXPBonuses()
         }
     }
@@ -1093,10 +1075,8 @@ final class FocusViewModel: ObservableObject {
     private var hasInitialized = false
     private let minimumSessionDuration: TimeInterval = 60
     private var activeSessionDuration: Int?
-    private var hasLoggedGutRatingToday = false
-    private var hasLoggedMoodRatingToday = false
-    private var hasLoggedSleepRatingToday = false
-    private var isLoadingWellbeingData = false
+    private var hasLoggedSleepQualityToday = false
+    private var isLoadingSleepData = false
 
     init(
         statsStore: SessionStatsStore = SessionStatsStore(),
@@ -1146,7 +1126,7 @@ final class FocusViewModel: ObservableObject {
         }
 
         refreshDailyHealthBonusState()
-        loadWellbeingRatings()
+        loadSleepQuality()
     }
 
     var timerStatusText: String {
@@ -1182,13 +1162,17 @@ final class FocusViewModel: ObservableObject {
         statsStore.hasEarnedComboBonus(for: selectedCategory)
     }
 
+    private var gutStatus: GutStatus {
+        healthBarViewModel?.inputs.gutStatus ?? .none
+    }
+
+    private var moodStatus: MoodStatus {
+        healthBarViewModel?.inputs.moodStatus ?? .none
+    }
+
     @Published private(set) var currentHP: Int = 0
 
-    var displayedHP: Int { clampedHP(currentHP + wellbeingHPModifier) }
-
-    var hpProgress: Double {
-        clampProgress(Double(displayedHP) / Double(healthStatsStore.maxHP))
-    }
+    var hpProgress: Double { healthStatsStore.hpPercentage }
 
     var hydrationProgress: Double {
         let goal = hydrationSettingsStore.dailyWaterGoalOunces
@@ -1198,13 +1182,26 @@ final class FocusViewModel: ObservableObject {
     }
 
     var sleepProgress: Double {
-        let normalized = Double(sleepRating.rawValue) / Double(WellbeingRating.allCases.count - 1)
+        let normalized = Double(sleepQuality.rawValue) / Double(SleepQuality.allCases.count - 1)
         return clampProgress(normalized)
     }
 
     var moodProgress: Double {
-        let normalized = Double(moodRating.rawValue) / Double(WellbeingRating.allCases.count - 1)
-        return clampProgress(normalized)
+        let mood = healthBarViewModel?.inputs.moodStatus ?? .none
+        let value: Double = {
+            switch mood {
+            case .none:
+                return 0
+            case .bad:
+                return 0.25
+            case .neutral:
+                return 0.5
+            case .good:
+                return 1
+            }
+        }()
+
+        return clampProgress(value)
     }
 
     var staminaProgress: Double {
@@ -1236,23 +1233,26 @@ final class FocusViewModel: ObservableObject {
         return "\(sprints) focus sprints"
     }
 
-    var sleepRatingLabel: String { sleepRating.label }
+    var sleepQualityLabel: String { sleepQuality.label }
 
-    var moodRatingLabel: String { moodRating.label }
+    var moodStatusLabel: String {
+        switch moodStatus {
+        case .good: return "Good"
+        case .neutral: return "Neutral"
+        case .bad: return "Bad"
+        case .none: return "Not set"
+        }
+    }
 
     private func clampProgress(_ value: Double) -> Double {
         min(max(value, 0), 1)
     }
 
-    private func clampedHP(_ value: Int) -> Int {
-        max(0, min(value, healthStatsStore.maxHP))
-    }
-
     var activeEffects: [StatusEffect] {
         var effects: [StatusEffect] = []
 
-        switch gutRating {
-        case .bad:
+        switch gutStatus {
+        case .rough:
             effects.append(
                 StatusEffect(
                     title: "Gut Trouble",
@@ -1262,7 +1262,7 @@ final class FocusViewModel: ObservableObject {
                     affectedStats: ["HP"]
                 )
             )
-        case .good, .great:
+        case .great:
             effects.append(
                 StatusEffect(
                     title: "Gut of Steel",
@@ -1272,12 +1272,12 @@ final class FocusViewModel: ObservableObject {
                     affectedStats: ["HP"]
                 )
             )
-        case .meh, .notSet:
+        case .meh, .none:
             break
         }
 
-        switch moodRating {
-        case .good, .great:
+        switch moodStatus {
+        case .good:
             effects.append(
                 StatusEffect(
                     title: "Upbeat",
@@ -1297,14 +1297,14 @@ final class FocusViewModel: ObservableObject {
                     affectedStats: ["Mood", "HP"]
                 )
             )
-        case .meh, .notSet:
+        case .neutral, .none:
             break
         }
 
-        if sleepRating == .bad {
+        if sleepQuality == .awful, let debuffLabel = sleepQuality.debuffLabel {
             effects.append(
                 StatusEffect(
-                    title: "Running on fumes",
+                    title: debuffLabel,
                     description: "Poor sleep hurts stamina and HP.",
                     systemImageName: "bed.double.fill",
                     kind: .debuff,
@@ -1313,10 +1313,10 @@ final class FocusViewModel: ObservableObject {
             )
         }
 
-        if sleepRating == .great {
+        if sleepQuality == .great, let buffLabel = sleepQuality.buffLabel {
             effects.append(
                 StatusEffect(
-                    title: "Well-rested",
+                    title: buffLabel,
                     description: "Rested up and ready to quest.",
                     systemImageName: "moon.zzz.fill",
                     kind: .buff,
@@ -1326,40 +1326,6 @@ final class FocusViewModel: ObservableObject {
         }
 
         return effects
-    }
-
-    private var wellbeingHPModifier: Int {
-        gutHPModifier(from: gutRating) + moodHPModifier(from: moodRating) + sleepHPModifier(from: sleepRating)
-    }
-
-    private func gutHPModifier(from rating: WellbeingRating) -> Int {
-        switch rating {
-        case .notSet: return 0
-        case .bad: return -8
-        case .meh: return 0
-        case .good: return 8
-        case .great: return 15
-        }
-    }
-
-    private func moodHPModifier(from rating: WellbeingRating) -> Int {
-        switch rating {
-        case .notSet: return 0
-        case .bad: return -6
-        case .meh: return -2
-        case .good: return 4
-        case .great: return 8
-        }
-    }
-
-    private func sleepHPModifier(from rating: WellbeingRating) -> Int {
-        switch rating {
-        case .notSet: return 0
-        case .bad: return -12
-        case .meh: return -4
-        case .good: return 6
-        case .great: return 10
-        }
     }
 
     private var currentDuration: Int {
@@ -1794,78 +1760,43 @@ final class FocusViewModel: ObservableObject {
     }
 
     private var healthComboIsComplete: Bool {
-        gutRating != .notSet && moodRating != .notSet && sleepRating != .notSet && hasLoggedSleepRatingToday
+        let gutStatus = healthBarViewModel?.inputs.gutStatus ?? .none
+        let moodStatus = healthBarViewModel?.inputs.moodStatus ?? .none
+        return gutStatus != .none && moodStatus != .none && hasLoggedSleepQualityToday
     }
 
     private func refreshDailyHealthBonusState(today: Date = Date()) {
         waterGoalXPGrantedToday = isDate(userDefaults.object(forKey: HealthTrackingStorageKeys.waterGoalAwardDate) as? Date, inSameDayAs: today)
         healthComboXPGrantedToday = isDate(userDefaults.object(forKey: HealthTrackingStorageKeys.healthComboAwardDate) as? Date, inSameDayAs: today)
-        hasLoggedGutRatingToday = isDate(userDefaults.object(forKey: HealthTrackingStorageKeys.gutRatingDate) as? Date, inSameDayAs: today)
-        hasLoggedMoodRatingToday = isDate(userDefaults.object(forKey: HealthTrackingStorageKeys.moodRatingDate) as? Date, inSameDayAs: today)
-        hasLoggedSleepRatingToday = isDate(userDefaults.object(forKey: HealthTrackingStorageKeys.sleepRatingDate) as? Date, inSameDayAs: today)
+        hasLoggedSleepQualityToday = isDate(userDefaults.object(forKey: HealthTrackingStorageKeys.sleepQualityLogged) as? Date, inSameDayAs: today)
         updateWaterIntakeTotals()
     }
 
-    private func persistGutRatingSelection() {
+    private func persistSleepQualitySelection() {
         let today = Calendar.current.startOfDay(for: Date())
-        userDefaults.set(gutRating.rawValue, forKey: HealthTrackingStorageKeys.gutRatingValue)
-        userDefaults.set(today, forKey: HealthTrackingStorageKeys.gutRatingDate)
-        hasLoggedGutRatingToday = true
-    }
-
-    private func persistMoodRatingSelection() {
-        let today = Calendar.current.startOfDay(for: Date())
-        userDefaults.set(moodRating.rawValue, forKey: HealthTrackingStorageKeys.moodRatingValue)
-        userDefaults.set(today, forKey: HealthTrackingStorageKeys.moodRatingDate)
-        hasLoggedMoodRatingToday = true
-    }
-
-    private func persistSleepRatingSelection() {
-        let today = Calendar.current.startOfDay(for: Date())
-        userDefaults.set(sleepRating.rawValue, forKey: HealthTrackingStorageKeys.sleepRatingValue)
-        userDefaults.set(today, forKey: HealthTrackingStorageKeys.sleepRatingDate)
+        userDefaults.set(sleepQuality.rawValue, forKey: HealthTrackingStorageKeys.sleepQualityValue)
+        userDefaults.set(today, forKey: HealthTrackingStorageKeys.sleepQualityDate)
         userDefaults.set(today, forKey: HealthTrackingStorageKeys.sleepQualityLogged)
-        hasLoggedSleepRatingToday = true
+        hasLoggedSleepQualityToday = true
     }
 
-    private func loadWellbeingRatings() {
-        isLoadingWellbeingData = true
+    private func loadSleepQuality() {
+        isLoadingSleepData = true
         let today = Calendar.current.startOfDay(for: Date())
 
         if
-            let storedDate = userDefaults.object(forKey: HealthTrackingStorageKeys.gutRatingDate) as? Date,
-            Calendar.current.isDate(storedDate, inSameDayAs: today)
+            let storedDate = userDefaults.object(forKey: HealthTrackingStorageKeys.sleepQualityDate) as? Date,
+            Calendar.current.isDate(storedDate, inSameDayAs: today),
+            let storedQuality = SleepQuality(rawValue: userDefaults.integer(forKey: HealthTrackingStorageKeys.sleepQualityValue))
         {
-            gutRating = WellbeingRating(rawValue: userDefaults.integer(forKey: HealthTrackingStorageKeys.gutRatingValue)) ?? .notSet
-            hasLoggedGutRatingToday = true
+            sleepQuality = storedQuality
+            hasLoggedSleepQualityToday = isDate(userDefaults.object(forKey: HealthTrackingStorageKeys.sleepQualityLogged) as? Date, inSameDayAs: today)
         } else {
-            gutRating = .notSet
-            hasLoggedGutRatingToday = false
+            sleepQuality = .okay
+            hasLoggedSleepQualityToday = false
         }
 
-        if
-            let storedDate = userDefaults.object(forKey: HealthTrackingStorageKeys.moodRatingDate) as? Date,
-            Calendar.current.isDate(storedDate, inSameDayAs: today)
-        {
-            moodRating = WellbeingRating(rawValue: userDefaults.integer(forKey: HealthTrackingStorageKeys.moodRatingValue)) ?? .notSet
-            hasLoggedMoodRatingToday = true
-        } else {
-            moodRating = .notSet
-            hasLoggedMoodRatingToday = false
-        }
-
-        if
-            let storedDate = userDefaults.object(forKey: HealthTrackingStorageKeys.sleepRatingDate) as? Date,
-            Calendar.current.isDate(storedDate, inSameDayAs: today)
-        {
-            sleepRating = WellbeingRating(rawValue: userDefaults.integer(forKey: HealthTrackingStorageKeys.sleepRatingValue)) ?? .notSet
-            hasLoggedSleepRatingToday = true
-        } else {
-            sleepRating = .notSet
-            hasLoggedSleepRatingToday = false
-        }
-
-        isLoadingWellbeingData = false
+        isLoadingSleepData = false
     }
 
     private func evaluateHealthXPBonuses() {

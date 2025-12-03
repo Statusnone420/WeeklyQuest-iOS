@@ -259,7 +259,7 @@ struct FocusView: View {
                 Text("HealthBar IRL")
                     .font(.headline.weight(.semibold))
                 Spacer()
-                Text("\(viewModel.displayedHP) / 100 HP")
+                Text("\(viewModel.currentHP) / 100 HP")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.secondary)
             }
@@ -338,7 +338,7 @@ struct FocusView: View {
                 tint: .purple,
                 progress: viewModel.sleepProgress,
                 segments: 8,
-                detailText: viewModel.sleepRatingLabel
+                detailText: viewModel.sleepQualityLabel
             )
 
             StatusBarRow(
@@ -347,7 +347,7 @@ struct FocusView: View {
                 tint: .green,
                 progress: viewModel.moodProgress,
                 segments: 8,
-                detailText: viewModel.moodRatingLabel
+                detailText: viewModel.moodStatusLabel
             )
 
             StatusBarRow(
