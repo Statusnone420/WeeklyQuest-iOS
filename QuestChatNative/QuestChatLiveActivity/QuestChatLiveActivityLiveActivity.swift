@@ -205,7 +205,7 @@ struct FocusSessionLiveActivityWidget: Widget {
                 }
             }
 
-            DynamicIsland {
+            return DynamicIsland {
                 // Expanded Regions
                 DynamicIslandExpandedRegion(.leading) {
                     let symbol = symbolName(forTitle: context.state.title)
@@ -261,16 +261,7 @@ struct FocusSessionLiveActivityWidget: Widget {
                 }
             } compactLeading: {
                 let seconds = max(context.state.remainingSeconds, 0)
-                let label: String
-                if seconds >= 3600 {
-                    label = String(format: "%dh", seconds / 3600)
-                } else if seconds >= 60 {
-                    label = String(format: "%dm", seconds / 60)
-                } else {
-                    label = String(format: "%ds", seconds)
-                }
-
-                Text(label)
+                Text(seconds >= 3600 ? String(format: "%dh", seconds / 3600) : (seconds >= 60 ? String(format: "%dm", seconds / 60) : String(format: "%ds", seconds)))
                     .font(.caption2.weight(.semibold))
             } compactTrailing: {
                 CircularTimerRing(
