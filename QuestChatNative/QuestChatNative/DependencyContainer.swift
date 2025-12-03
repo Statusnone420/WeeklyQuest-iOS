@@ -4,7 +4,11 @@ import Foundation
 /// This can later be expanded to manage shared services and dependencies.
 final class DependencyContainer {
     static let shared = DependencyContainer()
-    private init() {}
+    let playerStateStore: PlayerStateStore
+
+    private init() {
+        playerStateStore = PlayerStateStore()
+    }
 
     private let statsStore = SessionStatsStore()
     private let healthBarStatsStore = HealthBarIRLStatsStore()
