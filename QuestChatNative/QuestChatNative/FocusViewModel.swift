@@ -3,6 +3,7 @@ import Combine
 import SwiftUI
 import UserNotifications
 import UIKit
+import ActivityKit
 
 /// Represents available timer modes.
 enum FocusTimerMode: String, CaseIterable, Identifiable, Codable {
@@ -1067,9 +1068,11 @@ final class FocusViewModel: ObservableObject {
         FocusTimerLiveActivityManager.shared
     }
 
-    private var liveActivityOriginalDuration: Int?
-    private var liveActivityTitle: String?
-    private var lastLiveActivityRemainingSeconds: Int?
+    @available(iOS 17.0, *)
+    @Published private var currentFocusActivity: Activity<FocusSessionAttributes>?
+
+    @available(iOS 16.1, *)
+    @Published private var currentLegacyFocusActivity: Activity<FocusTimerAttributes>?
 
     private static let persistedSessionKey = "focus_current_session_v1"
     private var hasInitialized = false
@@ -1417,21 +1420,31 @@ final class FocusViewModel: ObservableObject {
         let category = selectedCategoryData ?? TimerCategory(id: selectedCategory, durationSeconds: currentDuration)
         let title = category.id.title
         if #available(iOS 17.0, *) {
-            liveActivityOriginalDuration = totalDuration
-            liveActivityTitle = title
-            lastLiveActivityRemainingSeconds = remainingSeconds
-            FocusLiveActivityManager.start(
-                title: title,
-                totalSeconds: totalDuration
-            )
+            Task {
+                await endAllCurrentFocusActivities()
+                let activity = await FocusLiveActivityManager.start(
+                    title: title,
+                    totalSeconds: totalDuration
+                )
+                await MainActor.run {
+                    self.currentFocusActivity = activity
+                }
+            }
         }
         if #available(iOS 16.1, *) {
             let sessionType = category.id.rawValue
-            liveActivityManager?.start(
-                endDate: session.endDate,
-                sessionType: sessionType,
-                title: title
-            )
+            Task {
+                await endAllLegacyFocusActivities()
+                if let activity = await liveActivityManager?.start(
+                    endDate: session.endDate,
+                    sessionType: sessionType,
+                    title: title
+                ) {
+                    await MainActor.run {
+                        self.currentLegacyFocusActivity = activity
+                    }
+                }
+            }
         }
         handleSessionCompletionIfNeeded()
     }
@@ -1458,10 +1471,14 @@ final class FocusViewModel: ObservableObject {
         activeSessionDuration = nil
         clearPersistedSession()
         if #available(iOS 17.0, *) {
-            FocusLiveActivityManager.end()
+            Task {
+                await endCurrentFocusActivity()
+            }
         }
         if #available(iOS 16.1, *) {
-            liveActivityManager?.cancel()
+            Task {
+                await endCurrentLegacyActivity()
+            }
         }
         clearLiveActivityState()
         state = .idle
@@ -1508,9 +1525,12 @@ final class FocusViewModel: ObservableObject {
     }
 
     private func clearLiveActivityState() {
-        liveActivityOriginalDuration = nil
-        liveActivityTitle = nil
-        lastLiveActivityRemainingSeconds = nil
+        if #available(iOS 17.0, *) {
+            currentFocusActivity = nil
+        }
+        if #available(iOS 16.1, *) {
+            currentLegacyFocusActivity = nil
+        }
     }
 
     private func stopUITimer() {
@@ -1526,22 +1546,6 @@ final class FocusViewModel: ObservableObject {
             .sink { [weak self] date in
                 guard let self else { return }
                 self.timerTick = date
-                if #available(iOS 17.0, *) {
-                    if state == .running,
-                       let totalSeconds = liveActivityOriginalDuration,
-                       let title = liveActivityTitle
-                    {
-                        let remaining = self.remainingSeconds
-                        if remaining != lastLiveActivityRemainingSeconds {
-                            lastLiveActivityRemainingSeconds = remaining
-                            FocusLiveActivityManager.update(
-                                remainingSeconds: remaining,
-                                totalSeconds: totalSeconds,
-                                title: title
-                            )
-                        }
-                    }
-                }
                 self.handleSessionCompletionIfNeeded()
             }
     }
@@ -1582,13 +1586,75 @@ final class FocusViewModel: ObservableObject {
         handleHydrationThresholds(previousTotal: previousFocusTotal, newTotal: statsStore.totalFocusSecondsToday)
         sendImmediateHydrationReminder()
         if #available(iOS 17.0, *) {
-            FocusLiveActivityManager.end()
+            Task {
+                await endCurrentFocusActivity(remainingSeconds: 0)
+            }
         }
         if #available(iOS 16.1, *) {
-            liveActivityManager?.end()
+            Task {
+                await endCurrentLegacyActivity()
+            }
         }
         clearLiveActivityState()
         onSessionComplete?()
+    }
+
+    @available(iOS 17.0, *)
+    private func endAllCurrentFocusActivities() async {
+        for activity in Activity<FocusSessionAttributes>.activities {
+            await activity.end(dismissalPolicy: .immediate)
+        }
+        await MainActor.run {
+            currentFocusActivity = nil
+        }
+    }
+
+    @available(iOS 16.1, *)
+    private func endAllLegacyFocusActivities() async {
+        for activity in Activity<FocusTimerAttributes>.activities {
+            await activity.end(dismissalPolicy: .immediate)
+        }
+        await MainActor.run {
+            currentLegacyFocusActivity = nil
+        }
+    }
+
+    @available(iOS 17.0, *)
+    private func endCurrentFocusActivity(remainingSeconds: Int? = nil) async {
+        guard let activity = currentFocusActivity else { return }
+        let state = activity.content.state
+        let finalRemaining = remainingSeconds ?? state.remainingSeconds
+        let finalState = FocusSessionAttributes.ContentState(
+            startDate: state.startDate,
+            endDate: state.endDate,
+            isPaused: false,
+            remainingSeconds: finalRemaining,
+            totalSeconds: state.totalSeconds,
+            title: state.title
+        )
+        let finalContent = ActivityContent(state: finalState, staleDate: nil)
+        await activity.end(finalContent, dismissalPolicy: .immediate)
+        FocusLiveActivityManager.clearReference(for: activity)
+        await MainActor.run {
+            currentFocusActivity = nil
+        }
+    }
+
+    @available(iOS 16.1, *)
+    private func endCurrentLegacyActivity() async {
+        guard let activity = currentLegacyFocusActivity else { return }
+        let state = activity.content.state
+        let finalState = FocusTimerAttributes.ContentState(
+            startDate: state.startDate,
+            title: state.title,
+            endDate: state.endDate,
+            isPaused: false
+        )
+        let finalContent = ActivityContent(state: finalState, staleDate: nil)
+        await activity.end(finalContent, dismissalPolicy: .immediate)
+        await MainActor.run {
+            currentLegacyFocusActivity = nil
+        }
     }
 
     private func resetForModeChange() {

@@ -5,49 +5,65 @@ import Foundation
 enum FocusLiveActivityManager {
     private static var activity: Activity<FocusSessionAttributes>?
 
-    static func start(title: String, totalSeconds: Int) {
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
+    static func start(title: String, totalSeconds: Int) async -> Activity<FocusSessionAttributes>? {
+        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return nil }
+
+        await endAllActivities()
 
         let attributes = FocusSessionAttributes(sessionId: UUID())
+        let now = Date()
+        let endDate = now.addingTimeInterval(TimeInterval(totalSeconds))
         let contentState = FocusSessionAttributes.ContentState(
+            startDate: now,
+            endDate: endDate,
+            isPaused: false,
             remainingSeconds: totalSeconds,
             totalSeconds: totalSeconds,
-            title: title,
-            endTime: Date().addingTimeInterval(TimeInterval(totalSeconds))
+            title: title
         )
+        let content = ActivityContent(state: contentState, staleDate: endDate)
 
         do {
             activity = try Activity.request(
                 attributes: attributes,
-                contentState: contentState,
-                pushType: nil
+                content: content
             )
+            return activity
         } catch {
             print("Failed to start Focus Live Activity: \(error.localizedDescription)")
+            return nil
         }
     }
 
-    static func update(remainingSeconds: Int, totalSeconds: Int, title: String) {
+    static func end(finalState: FocusSessionAttributes.ContentState? = nil) async {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
-        guard let activity else { return }
 
-        let contentState = FocusSessionAttributes.ContentState(
-            remainingSeconds: remainingSeconds,
-            totalSeconds: totalSeconds,
-            title: title,
-            endTime: Date().addingTimeInterval(TimeInterval(remainingSeconds))
-        )
-
-        Task {
-            await activity.update(using: contentState)
+        let endingContent: ActivityContent<FocusSessionAttributes.ContentState>?
+        if let finalState {
+            endingContent = ActivityContent(state: finalState, staleDate: nil)
+        } else {
+            endingContent = nil
         }
-    }
 
-    static func end() {
-        guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
-
-        Task {
+        if let endingContent {
+            await activity?.end(endingContent, dismissalPolicy: .immediate)
+        } else {
             await activity?.end(dismissalPolicy: .immediate)
+        }
+        activity = nil
+    }
+
+    static func clearReference(for activity: Activity<FocusSessionAttributes>) {
+        if self.activity?.id == activity.id {
+            self.activity = nil
+        }
+    }
+
+    private static func endAllActivities() async {
+        for activity in Activity<FocusSessionAttributes>.activities {
+            await activity.end(dismissalPolicy: .immediate)
+        }
+        await MainActor.run {
             activity = nil
         }
     }
