@@ -48,7 +48,7 @@ enum FocusLiveActivityManager {
         if let endingContent {
             await activity?.end(endingContent, dismissalPolicy: .immediate)
         } else {
-            await activity?.end(dismissalPolicy: .immediate)
+            await activity?.end(nil, dismissalPolicy: .immediate)
         }
         activity = nil
     }
@@ -68,3 +68,4 @@ enum FocusLiveActivityManager {
         }
     }
 }
+
