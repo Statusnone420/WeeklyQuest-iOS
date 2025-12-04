@@ -1102,7 +1102,8 @@ final class FocusViewModel: ObservableObject {
         self.healthBarViewModel = healthBarViewModel
         self.hydrationSettingsStore = hydrationSettingsStore
         self.currentHP = healthStatsStore.currentHP
-        syncPlayerHP(with: healthStatsStore.currentHP)
+        // Defer syncing player HP until after initialization completes to avoid using self too early.
+        let initialHP = healthStatsStore.currentHP
 
         let seeded = FocusViewModel.seededCategories()
         let loadedCategories: [TimerCategory] = seeded.map { base in
@@ -1120,6 +1121,9 @@ final class FocusViewModel: ObservableObject {
         self.remainingSeconds = initialCategory.durationSeconds
 
         hasInitialized = true
+
+        // Now that initialization is complete, it is safe to use self in method calls.
+        syncPlayerHP(with: initialHP)
 
         // Defer side-effectful calls until after full initialization
         requestNotificationAuthorization()
