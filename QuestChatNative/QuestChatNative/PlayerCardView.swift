@@ -120,7 +120,7 @@ struct PlayerCardView: View {
 }
 
 #Preview {
-    let store = SessionStatsStore()
+    let store = SessionStatsStore(playerStateStore: DependencyContainer.shared.playerStateStore)
     let statsViewModel = StatsViewModel(
         healthStore: HealthBarIRLStatsStore(),
         hydrationSettingsStore: HydrationSettingsStore()

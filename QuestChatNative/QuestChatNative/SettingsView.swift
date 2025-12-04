@@ -61,7 +61,7 @@ struct SettingsView: View {
 #Preview {
     SettingsView(viewModel: SettingsViewModel(resetter: GameDataResetter(
         healthStatsStore: HealthBarIRLStatsStore(),
-        xpStore: SessionStatsStore(),
-        sessionStatsStore: SessionStatsStore()
+        xpStore: SessionStatsStore(playerStateStore: DependencyContainer.shared.playerStateStore),
+        sessionStatsStore: SessionStatsStore(playerStateStore: DependencyContainer.shared.playerStateStore)
     )))
 }

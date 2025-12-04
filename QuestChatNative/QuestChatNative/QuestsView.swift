@@ -353,5 +353,6 @@ private struct QuestCardView: View {
 }
 
 #Preview {
-    QuestsView(viewModel: QuestsViewModel())
+    QuestsView(viewModel: QuestsViewModel(statsStore: SessionStatsStore(playerStateStore: DependencyContainer.shared.playerStateStore)))
 }
+

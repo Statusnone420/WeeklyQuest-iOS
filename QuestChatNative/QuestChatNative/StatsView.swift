@@ -411,7 +411,7 @@ struct StatsView: View {
 }
 
 #Preview {
-    let store = SessionStatsStore()
+    let store = SessionStatsStore(playerStateStore: DependencyContainer.shared.playerStateStore)
     let healthStats = HealthBarIRLStatsStore()
     let hydrationSettingsStore = HydrationSettingsStore()
     let healthBarViewModel = HealthBarViewModel()

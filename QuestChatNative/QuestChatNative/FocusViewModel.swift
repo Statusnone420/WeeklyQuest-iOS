@@ -1002,8 +1002,8 @@ final class FocusViewModel: ObservableObject {
     private var isLoadingSleepData = false
 
     init(
-        statsStore: SessionStatsStore = SessionStatsStore(),
-        playerStateStore: PlayerStateStore = PlayerStateStore(),
+        statsStore: SessionStatsStore = SessionStatsStore(playerStateStore: DependencyContainer.shared.playerStateStore),
+        playerStateStore: PlayerStateStore = DependencyContainer.shared.playerStateStore,
         healthStatsStore: HealthBarIRLStatsStore = HealthBarIRLStatsStore(),
         healthBarViewModel: HealthBarViewModel? = nil,
         hydrationSettingsStore: HydrationSettingsStore = HydrationSettingsStore(),

@@ -10,7 +10,7 @@ final class DependencyContainer {
         playerStateStore = PlayerStateStore()
     }
 
-    private let statsStore = SessionStatsStore()
+    private lazy var statsStore = SessionStatsStore(playerStateStore: playerStateStore)
     private let healthBarStatsStore = HealthBarIRLStatsStore()
     private let hydrationSettingsStore = HydrationSettingsStore()
     private lazy var gameDataResetter = GameDataResetter(
@@ -67,3 +67,4 @@ final class DependencyContainer {
         SettingsViewModel(resetter: gameDataResetter)
     }
 }
+

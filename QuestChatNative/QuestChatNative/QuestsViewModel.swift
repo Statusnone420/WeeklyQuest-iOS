@@ -55,7 +55,7 @@ final class QuestsViewModel: ObservableObject {
     }
 
     init(
-        statsStore: SessionStatsStore = SessionStatsStore(),
+        statsStore: SessionStatsStore = SessionStatsStore(playerStateStore: DependencyContainer.shared.playerStateStore),
         userDefaults: UserDefaults = .standard,
         calendar: Calendar = .current
     ) {
