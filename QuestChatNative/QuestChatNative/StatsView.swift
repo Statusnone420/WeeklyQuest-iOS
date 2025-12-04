@@ -181,7 +181,7 @@ struct StatsView: View {
                         .font(.largeTitle.bold())
                 }
 
-                ProgressView(value: levelProgress)
+                ProgressView(value: min(max(levelProgress, 0), 1))
                     .progressViewStyle(.linear)
                     .tint(.mint)
 

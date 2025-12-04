@@ -389,14 +389,15 @@ final class SessionStatsStore: ObservableObject {
             )
         }
         let initialXP = max(initialProgression.totalXP, playerStateStore.xp)
-        playerProgress = PlayerProgress(totalXP: initialXP)
+        let initialPlayerProgress = PlayerProgress(totalXP: initialXP)
         progression = ProgressionState(
-            level: playerProgress.level,
-            xpInCurrentLevel: playerProgress.xpIntoCurrentLevel,
-            totalXP: playerProgress.totalXP,
+            level: initialPlayerProgress.level,
+            xpInCurrentLevel: initialPlayerProgress.xpIntoCurrentLevel,
+            totalXP: initialPlayerProgress.totalXP,
             streakDays: initialProgression.streakDays,
             lastActiveDate: initialProgression.lastActiveDate
         )
+        playerProgress = initialPlayerProgress
 
         lastSessionDate = userDefaults.object(forKey: Keys.lastSessionDate) as? Date
         let storedLastMomentumUpdate = userDefaults.object(forKey: Keys.lastMomentumUpdate) as? Date
@@ -421,7 +422,7 @@ final class SessionStatsStore: ObservableObject {
         totalFocusSecondsToday = initialTotalFocusSecondsToday
 
         let storedLevel = userDefaults.integer(forKey: Keys.lastKnownLevel)
-        let initialLevel = playerProgress.level
+        let initialLevel = initialPlayerProgress.level
         lastKnownLevel = storedLevel > 0 ? storedLevel : initialLevel
         pendingLevelUp = nil
 
