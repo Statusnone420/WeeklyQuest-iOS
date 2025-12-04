@@ -130,6 +130,7 @@ struct StatsView: View {
                         achievement: unlocked,
                         xpReward: 500,
                         onEquipTitle: {
+                            viewModel.equipTitle(for: unlocked)
                             viewModel.unlockedAchievementToShow = nil
                         },
                         onDismiss: {
@@ -240,11 +241,16 @@ struct StatsView: View {
             Button {
                 showPlayerCard = true
             } label: {
-                Image(systemName: "person.crop.circle")
-                    .font(.title3)
-                    .padding(8)
-                    .background(Color(uiColor: .secondarySystemBackground).opacity(0.25))
-                    .clipShape(Circle())
+                HStack(spacing: 8) {
+                    Image(systemName: "person.crop.circle")
+                        .font(.title2)
+                    Text("Player Card")
+                        .font(.subheadline)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(Color(uiColor: .secondarySystemBackground).opacity(0.25))
+                .cornerRadius(12)
             }
             .buttonStyle(.plain)
         }

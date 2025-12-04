@@ -20,10 +20,15 @@ final class StatsViewModel: ObservableObject {
     @Published private(set) var last7Days: [HealthDaySummary] = []
     @Published var seasonAchievements: [SeasonAchievementItemViewModel] = []
     @Published var unlockedAchievementToShow: SeasonAchievementItemViewModel?
+    @Published private(set) var latestUnlockedSeasonAchievement: SeasonAchievementItemViewModel?
+    @Published var activeTitle: String?
+    @Published private(set) var baseLevelTitle: String?
+    @Published private(set) var unlockedAchievementTitles: Set<String> = []
 
     private let healthStore: HealthBarIRLStatsStore
     private let hydrationSettingsStore: HydrationSettingsStore
     private let seasonAchievementsStore: SeasonAchievementsStore
+    private let playerTitleStore: PlayerTitleStore
     private let weekdayFormatter: DateFormatter
     private let userDefaults: UserDefaults
     private let calendar = Calendar.current
@@ -33,11 +38,13 @@ final class StatsViewModel: ObservableObject {
         healthStore: HealthBarIRLStatsStore,
         hydrationSettingsStore: HydrationSettingsStore,
         seasonAchievementsStore: SeasonAchievementsStore,
+        playerTitleStore: PlayerTitleStore,
         userDefaults: UserDefaults = .standard
     ) {
         self.healthStore = healthStore
         self.hydrationSettingsStore = hydrationSettingsStore
         self.seasonAchievementsStore = seasonAchievementsStore
+        self.playerTitleStore = playerTitleStore
         self.userDefaults = userDefaults
         weekdayFormatter = DateFormatter()
         weekdayFormatter.locale = .current
@@ -45,6 +52,21 @@ final class StatsViewModel: ObservableObject {
 
         refresh()
         rebuildSeasonAchievements()
+        playerTitleStore.$equippedOverrideTitle
+            .combineLatest(playerTitleStore.$baseLevelTitle)
+            .receive(on: DispatchQueue.main)
+            .map { override, base in
+                override ?? base
+            }
+            .assign(to: &$activeTitle)
+
+        playerTitleStore.$baseLevelTitle
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$baseLevelTitle)
+
+        playerTitleStore.$unlockedTitles
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$unlockedAchievementTitles)
         healthStore.$days
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
@@ -124,9 +146,11 @@ final class StatsViewModel: ObservableObject {
     }
 
     private func rebuildSeasonAchievements() {
+        var mostRecent: (Date, SeasonAchievementItemViewModel)?
+
         seasonAchievements = seasonAchievementsStore.achievements.map { achievement in
             let progress = seasonAchievementsStore.progress(for: achievement)
-            return SeasonAchievementItemViewModel(
+            let item = SeasonAchievementItemViewModel(
                 id: achievement.id,
                 title: achievement.title,
                 subtitle: achievement.subtitle,
@@ -135,7 +159,23 @@ final class StatsViewModel: ObservableObject {
                 progressTarget: achievement.threshold,
                 isUnlocked: progress.isUnlocked
             )
+
+            if progress.isUnlocked {
+                playerTitleStore.unlock(title: achievement.title)
+            }
+
+            if let unlockedAt = progress.unlockedAt {
+                if let current = mostRecent {
+                    if unlockedAt > current.0 { mostRecent = (unlockedAt, item) }
+                } else {
+                    mostRecent = (unlockedAt, item)
+                }
+            }
+
+            return item
         }
+
+        latestUnlockedSeasonAchievement = mostRecent?.1
     }
 
     func simulateAchievementUnlock() {
@@ -143,9 +183,25 @@ final class StatsViewModel: ObservableObject {
         unlockedAchievementToShow = firstLocked
     }
 
+    func equipBaseLevelTitle() {
+        playerTitleStore.clearOverride()
+    }
+
+    func equipOverrideTitle(_ title: String) {
+        playerTitleStore.equipOverride(title: title)
+    }
+
     private func handleSeasonAchievementUnlocked(id: String) {
         guard let item = seasonAchievements.first(where: { $0.id == id }) else { return }
         unlockedAchievementToShow = item
+
+        if let achievement = seasonAchievementsStore.achievements.first(where: { $0.id == id }) {
+            playerTitleStore.unlock(title: achievement.title)
+        }
+    }
+
+    func equipTitle(for achievement: SeasonAchievementItemViewModel) {
+        playerTitleStore.equipOverride(title: achievement.title)
     }
 
     private var todaySummary: HealthDaySummary? {

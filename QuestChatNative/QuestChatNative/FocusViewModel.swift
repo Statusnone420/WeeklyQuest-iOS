@@ -299,6 +299,7 @@ final class SessionStatsStore: ObservableObject {
     private(set) var lastKnownLevel: Int
 
     private let playerStateStore: PlayerStateStore
+    private let playerTitleStore: PlayerTitleStore
     private var playerCancellables = Set<AnyCancellable>()
     var questEventHandler: ((QuestEvent) -> Void)?
 
@@ -317,20 +318,7 @@ final class SessionStatsStore: ObservableObject {
 
     var xp: Int { progression.totalXP }
 
-    var playerTitle: String {
-        switch level {
-        case 1...4:
-            return QuestChatStrings.PlayerTitles.rookie
-        case 5...9:
-            return QuestChatStrings.PlayerTitles.worker
-        case 10...19:
-            return QuestChatStrings.PlayerTitles.knight
-        case 20...29:
-            return QuestChatStrings.PlayerTitles.master
-        default:
-            return QuestChatStrings.PlayerTitles.sage
-        }
-    }
+    var playerTitle: String { levelTitle(for: level) }
 
     var focusSecondsToday: Int {
         todaySessions
@@ -372,9 +360,10 @@ final class SessionStatsStore: ObservableObject {
         focusSessionsThisWeek
     }
 
-    init(userDefaults: UserDefaults = .standard, playerStateStore: PlayerStateStore) {
+    init(userDefaults: UserDefaults = .standard, playerStateStore: PlayerStateStore, playerTitleStore: PlayerTitleStore) {
         self.userDefaults = userDefaults
         self.playerStateStore = playerStateStore
+        self.playerTitleStore = playerTitleStore
         focusSeconds = userDefaults.integer(forKey: Keys.focusSeconds)
         selfCareSeconds = userDefaults.integer(forKey: Keys.selfCareSeconds)
         sessionsCompleted = userDefaults.integer(forKey: Keys.sessionsCompleted)
@@ -407,6 +396,7 @@ final class SessionStatsStore: ObservableObject {
         let initialTotalXP = initialProgression.totalXP > 0 ? initialProgression.totalXP : playerStateStore.xp
         let computedProgression = Self.computeProgression(totalXP: initialTotalXP, streakDays: initialProgression.streakDays, lastActiveDate: initialProgression.lastActiveDate)
         progression = computedProgression
+        syncBaseLevelTitle()
 
         lastSessionDate = userDefaults.object(forKey: Keys.lastSessionDate) as? Date
         let storedLastMomentumUpdate = userDefaults.object(forKey: Keys.lastMomentumUpdate) as? Date
@@ -590,6 +580,7 @@ final class SessionStatsStore: ObservableObject {
 
         let newTotal = progression.totalXP + amount
         progression = recalculatedProgression(totalXP: newTotal, streakDays: progression.streakDays, lastActiveDate: progression.lastActiveDate)
+        syncBaseLevelTitle()
 
         if level > previousLevel {
             let result = LevelUpResult(oldLevel: previousLevel, newLevel: level)
@@ -672,6 +663,7 @@ final class SessionStatsStore: ObservableObject {
         selfCareSeconds = 0
         sessionsCompleted = 0
         progression = ProgressionState(level: 1, xpInCurrentLevel: 0, totalXP: 0, streakDays: 0, lastActiveDate: nil)
+        syncBaseLevelTitle()
         totalFocusSecondsToday = 0
         userDefaults.set(Calendar.current.startOfDay(for: Date()), forKey: Keys.totalFocusDate)
         lastKnownLevel = level
@@ -703,6 +695,7 @@ final class SessionStatsStore: ObservableObject {
             streakDays: progression.streakDays,
             lastActiveDate: progression.lastActiveDate
         )
+        syncBaseLevelTitle()
 
         // Removing XP should not trigger a level-up modal
         pendingLevelUp = nil
@@ -712,6 +705,25 @@ final class SessionStatsStore: ObservableObject {
         syncPlayerStateProgress()
         saveProgression()
         persist()
+    }
+
+    private func levelTitle(for level: Int) -> String {
+        switch level {
+        case 1...4:
+            return QuestChatStrings.PlayerTitles.rookie
+        case 5...9:
+            return QuestChatStrings.PlayerTitles.worker
+        case 10...19:
+            return QuestChatStrings.PlayerTitles.knight
+        case 20...29:
+            return QuestChatStrings.PlayerTitles.master
+        default:
+            return QuestChatStrings.PlayerTitles.sage
+        }
+    }
+
+    private func syncBaseLevelTitle() {
+        playerTitleStore.updateBaseLevelTitle(levelTitle(for: level))
     }
 
     private static func computeProgression(totalXP: Int, streakDays: Int, lastActiveDate: Date?) -> ProgressionState {
@@ -1076,7 +1088,7 @@ final class FocusViewModel: ObservableObject {
     private var isLoadingSleepData = false
 
     init(
-        statsStore: SessionStatsStore = SessionStatsStore(playerStateStore: DependencyContainer.shared.playerStateStore),
+        statsStore: SessionStatsStore = DependencyContainer.shared.sessionStatsStore,
         playerStateStore: PlayerStateStore = DependencyContainer.shared.playerStateStore,
         healthStatsStore: HealthBarIRLStatsStore = HealthBarIRLStatsStore(),
         healthBarViewModel: HealthBarViewModel? = nil,

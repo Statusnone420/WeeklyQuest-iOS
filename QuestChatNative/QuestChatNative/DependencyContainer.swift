@@ -3,6 +3,7 @@ import Foundation
 final class DependencyContainer {
     static let shared = DependencyContainer()
 
+    let playerTitleStore: PlayerTitleStore
     let playerStateStore: PlayerStateStore
     let sessionStatsStore: SessionStatsStore
     let healthStatsStore: HealthBarIRLStatsStore
@@ -18,8 +19,9 @@ final class DependencyContainer {
 
     private init() {
         // Core stores
+        playerTitleStore = PlayerTitleStore()
         playerStateStore = PlayerStateStore()
-        sessionStatsStore = SessionStatsStore(playerStateStore: playerStateStore)
+        sessionStatsStore = SessionStatsStore(playerStateStore: playerStateStore, playerTitleStore: playerTitleStore)
         healthStatsStore = HealthBarIRLStatsStore()
         hydrationSettingsStore = HydrationSettingsStore()
         seasonAchievementsStore = SeasonAchievementsStore()
@@ -29,6 +31,7 @@ final class DependencyContainer {
         focusViewModel = FocusViewModel(
             statsStore: sessionStatsStore,
             playerStateStore: playerStateStore,
+            playerTitleStore: playerTitleStore,
             healthStatsStore: healthStatsStore,
             healthBarViewModel: healthBarViewModel,
             hydrationSettingsStore: hydrationSettingsStore,
@@ -38,7 +41,8 @@ final class DependencyContainer {
         statsViewModel = StatsViewModel(
             healthStore: healthStatsStore,
             hydrationSettingsStore: hydrationSettingsStore,
-            seasonAchievementsStore: seasonAchievementsStore
+            seasonAchievementsStore: seasonAchievementsStore,
+            playerTitleStore: playerTitleStore
         )
         moreViewModel = MoreViewModel(hydrationSettingsStore: hydrationSettingsStore)
 

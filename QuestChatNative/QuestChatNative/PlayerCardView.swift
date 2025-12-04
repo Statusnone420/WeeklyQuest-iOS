@@ -5,25 +5,51 @@ struct PlayerCardView: View {
     @ObservedObject var statsViewModel: StatsViewModel
     @ObservedObject var healthBarViewModel: HealthBarViewModel
     @ObservedObject var focusViewModel: FocusViewModel
+    @State private var isTitlePickerPresented = false
 
     @AppStorage("playerDisplayName") private var playerDisplayName: String = QuestChatStrings.PlayerCard.defaultName
 
     var body: some View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 20) {
-                VStack(spacing: 4) {
+            HStack(alignment: .center, spacing: 16) {
+                VStack(alignment: .leading, spacing: 4) {
                     TextField(QuestChatStrings.PlayerCard.namePlaceholder, text: $playerDisplayName)
                         .font(.title.bold())
-                        .multilineTextAlignment(.center)
                         .textFieldStyle(.plain)
-                    Text(store.playerTitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+
+                    Button {
+                        isTitlePickerPresented = true
+                    } label: {
+                        HStack(spacing: 6) {
+                            Text(statsViewModel.activeTitle ?? QuestChatStrings.StatsView.playerTitleEmpty)
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.secondary)
+                                .multilineTextAlignment(.leading)
+                            Image(systemName: "chevron.down")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
                 }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color(uiColor: .secondarySystemBackground).opacity(0.18))
-                .cornerRadius(14)
+
+                Spacer()
+
+                if let latest = statsViewModel.latestUnlockedSeasonAchievement {
+                    SeasonAchievementBadgeView(
+                        title: latest.title,
+                        iconName: latest.iconName,
+                        isUnlocked: true,
+                        progressFraction: 1.0
+                    )
+                    .frame(width: 48, height: 48)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+            .background(Color(uiColor: .secondarySystemBackground).opacity(0.18))
+            .cornerRadius(14)
 
                 playerHUDSection
 
@@ -53,6 +79,37 @@ struct PlayerCardView: View {
         .background(Color.black.ignoresSafeArea())
         .scrollDismissesKeyboard(.interactively)
         .ignoresSafeArea(.keyboard, edges: .bottom)
+        .sheet(isPresented: $isTitlePickerPresented) {
+            NavigationStack {
+                List {
+                    if let base = statsViewModel.baseLevelTitle {
+                        Section("Level titles") {
+                            Button(base) {
+                                statsViewModel.equipBaseLevelTitle()
+                                isTitlePickerPresented = false
+                            }
+                        }
+                    }
+
+                    Section("Achievement titles") {
+                        ForEach(Array(statsViewModel.unlockedAchievementTitles).sorted(), id: \.self) { title in
+                            Button(title) {
+                                statsViewModel.equipOverrideTitle(title)
+                                isTitlePickerPresented = false
+                            }
+                        }
+                    }
+                }
+                .navigationTitle("Choose Title")
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Close") {
+                            isTitlePickerPresented = false
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private func statRow(label: String, value: String, tint: Color) -> some View {
