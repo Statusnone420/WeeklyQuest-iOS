@@ -35,6 +35,18 @@ private func ringColor(forRemaining remaining: Int, total: Int) -> Color {
 }
 
 @available(iOS 17.0, *)
+private func progressMetrics(for context: ActivityViewContext<FocusSessionAttributes>, now: Date) -> (total: TimeInterval, remaining: TimeInterval, remainingSeconds: Int, progress: Double) {
+    let total = max(context.state.endDate.timeIntervalSince(context.state.startDate), 1)
+    let remaining = context.state.isPaused
+        ? max(Double(context.state.remainingSeconds), 0)
+        : max(context.state.endDate.timeIntervalSince(now), 0)
+    let remainingSeconds = Int(ceil(remaining))
+    let progress = min(max(1 - (remaining / total), 0), 1)
+
+    return (total, remaining, remainingSeconds, progress)
+}
+
+@available(iOS 17.0, *)
 private func symbolName(forTitle title: String) -> String {
     let t = title.lowercased()
     if t.contains("deep") || t.contains("focus") { return "brain.head.profile" }
@@ -101,16 +113,10 @@ struct FocusSessionLiveActivityView: View {
     let context: ActivityViewContext<FocusSessionAttributes>
 
     var body: some View {
-        let timerRange = context.state.startDate...context.state.endDate
         TimelineView(.periodic(from: .now, by: 1)) { timeline in
             Group {
-                let now = timeline.date
-                let total = max(context.state.endDate.timeIntervalSince(context.state.startDate), 1)
-                let remaining = context.state.isPaused
-                    ? max(Double(context.state.remainingSeconds), 0)
-                    : max(context.state.endDate.timeIntervalSince(now), 0)
-                let remainingSeconds = Int(ceil(remaining))
-                let progress = min(max(1 - (remaining / total), 0), 1)
+                let timerRange = context.state.startDate...context.state.endDate
+                let (_, _, remainingSeconds, progress) = progressMetrics(for: context, now: timeline.date)
 
                 HStack(alignment: .center, spacing: 16) {
                     VStack(alignment: .leading, spacing: 4) {
@@ -140,7 +146,7 @@ struct FocusSessionLiveActivityView: View {
                         Text(context.state.title)
                             .font(.body)
                             .lineLimit(1)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         ProgressView(value: progress)
                             .progressViewStyle(.linear)
                     }
@@ -180,14 +186,8 @@ struct FocusSessionLiveActivityWidget: Widget {
                 DynamicIslandExpandedRegion(.leading) {
                     TimelineView(.periodic(from: .now, by: 1)) { timeline in
                         Group {
-                            let now = timeline.date
-                            let total = max(context.state.endDate.timeIntervalSince(context.state.startDate), 1)
-                            let remaining = context.state.isPaused
-                                ? max(Double(context.state.remainingSeconds), 0)
-                                : max(context.state.endDate.timeIntervalSince(now), 0)
-                            let remainingInt = Int(ceil(remaining))
-                            let progress = 1 - (remaining / total)
-                            let color = ringColor(forRemaining: remainingInt, total: Int(total))
+                            let (_, _, remainingInt, progress) = progressMetrics(for: context, now: timeline.date)
+                            let color = ringColor(forRemaining: remainingInt, total: context.attributes.totalSeconds)
                             let symbol = symbolName(forTitle: context.state.title)
 
                             HStack(spacing: 6) {
@@ -231,13 +231,7 @@ struct FocusSessionLiveActivityWidget: Widget {
 
                 DynamicIslandExpandedRegion(.bottom) {
                     TimelineView(.periodic(from: .now, by: 1)) { timeline in
-                        let now = timeline.date
-                        let total = max(context.state.endDate.timeIntervalSince(context.state.startDate), 1)
-                        let remaining = context.state.isPaused
-                            ? max(Double(context.state.remainingSeconds), 0)
-                            : max(context.state.endDate.timeIntervalSince(now), 0)
-                        let remainingInt = Int(ceil(remaining))
-                        let progress = min(max(1 - (remaining / total), 0), 1)
+                        let (total, _, remainingInt, progress) = progressMetrics(for: context, now: timeline.date)
                         let color = ringColor(forRemaining: remainingInt, total: Int(total))
 
                         ProgressView(value: progress)
@@ -250,17 +244,20 @@ struct FocusSessionLiveActivityWidget: Widget {
                     }
                 }
             } compactLeading: {
-                TimelineView(.periodic(from: .now, by: 1)) { timeline in
-                    let now = timeline.date
-                    let total = max(context.state.endDate.timeIntervalSince(context.state.startDate), 1)
-                    let remaining = context.state.isPaused
-                        ? max(Double(context.state.remainingSeconds), 0)
-                        : max(context.state.endDate.timeIntervalSince(now), 0)
-                    let remainingSeconds = Int(ceil(remaining))
+                let timerRange = context.state.startDate...context.state.endDate
 
-                    Text(formattedTime(remainingSeconds))
+                if context.state.isPaused {
+                    Text(formattedTime(context.state.remainingSeconds))
                         .font(.caption2.weight(.semibold))
                         .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
+                } else {
+                    Text(timerInterval: timerRange, countsDown: true)
+                        .font(.caption2.weight(.semibold))
+                        .monospacedDigit()
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.6)
                 }
             } compactTrailing: {
                 let color = ringColor(forRemaining: context.state.remainingSeconds, total: context.attributes.totalSeconds)
