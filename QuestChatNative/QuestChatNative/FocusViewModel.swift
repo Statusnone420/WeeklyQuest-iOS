@@ -976,7 +976,6 @@ final class FocusViewModel: ObservableObject {
     let playerStateStore: PlayerStateStore
     let healthStatsStore: HealthBarIRLStatsStore
     let hydrationSettingsStore: HydrationSettingsStore
-    let questEngine: QuestEngine?
     private var cancellables = Set<AnyCancellable>()
     private var healthBarViewModel: HealthBarViewModel?
 
@@ -1008,7 +1007,6 @@ final class FocusViewModel: ObservableObject {
         healthStatsStore: HealthBarIRLStatsStore = HealthBarIRLStatsStore(),
         healthBarViewModel: HealthBarViewModel? = nil,
         hydrationSettingsStore: HydrationSettingsStore = HydrationSettingsStore(),
-        questEngine: QuestEngine? = nil,
         initialMode: FocusTimerMode = .focus
     ) {
         // Assign non-dependent stored properties first
@@ -1017,7 +1015,6 @@ final class FocusViewModel: ObservableObject {
         self.healthStatsStore = healthStatsStore
         self.healthBarViewModel = healthBarViewModel
         self.hydrationSettingsStore = hydrationSettingsStore
-        self.questEngine = questEngine
         self.currentHP = healthStatsStore.currentHP
         // Defer syncing player HP until after initialization completes to avoid using self too early.
         let initialHP = healthStatsStore.currentHP
@@ -1286,11 +1283,6 @@ final class FocusViewModel: ObservableObject {
         healthBarViewModel.logHydration()
 
         updateWaterIntakeTotals()
-        questEngine?.handleHydrationLogged(
-            ounces: hydrationSettingsStore.ouncesPerWaterTap,
-            totalToday: totalWaterOuncesToday,
-            logCount: healthBarViewModel.inputs.hydrationCount
-        )
         healthStatsStore.update(from: healthBarViewModel.inputs)
         syncPlayerHP()
         evaluateHealthXPBonuses()
@@ -1348,7 +1340,6 @@ final class FocusViewModel: ObservableObject {
         timerState = .running
         state = .running
         print("[FocusTimer] Start timer for \(totalDuration)s")
-        questEngine?.handleFocusSessionStarted(minutes: totalDuration / 60)
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         scheduleCompletionNotification()
         startUITimer()
@@ -1679,7 +1670,6 @@ final class FocusViewModel: ObservableObject {
         let recordedDuration = Int(currentSession?.duration ?? TimeInterval(activeSessionDuration ?? currentDuration))
         _ = statsStore.recordSession(mode: selectedMode, duration: recordedDuration)
         let streakLevelUp = statsStore.registerActiveToday()
-        questEngine?.handleFocusSessionCompleted(minutes: recordedDuration / 60, category: selectedCategory)
         let totalXPGained = statsStore.progression.totalXP - xpBefore
         if streakLevelUp != nil {
             lastLevelUp = streakLevelUp
@@ -1979,7 +1969,6 @@ final class FocusViewModel: ObservableObject {
             statsStore.grantXP(10, reason: .healthCombo)
             healthComboXPGrantedToday = true
             userDefaults.set(Calendar.current.startOfDay(for: today), forKey: HealthTrackingStorageKeys.healthComboAwardDate)
-            questEngine?.handleHPCheckinCompleted()
         }
     }
 

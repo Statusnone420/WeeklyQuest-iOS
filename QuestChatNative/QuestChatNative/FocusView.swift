@@ -1020,5 +1020,5 @@ private struct DailySetupSheet: View {
         healthBarViewModel: healthBarVM,
         selectedTab: .constant(.focus)
     )
-    .environmentObject(QuestsViewModel(questEngine: container.questEngine))
+    .environmentObject(QuestsViewModel(statsStore: container.sessionStatsStore))
 }
