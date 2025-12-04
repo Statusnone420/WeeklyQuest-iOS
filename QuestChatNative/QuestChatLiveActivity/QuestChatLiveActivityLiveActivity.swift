@@ -147,13 +147,8 @@ struct FocusSessionLiveActivityView: View {
                             .font(.body)
                             .lineLimit(1)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        if context.state.isPaused {
-                            ProgressView(value: progress)
-                                .progressViewStyle(.linear)
-                        } else {
-                            ProgressView(timerInterval: timerRange)
-                                .progressViewStyle(.linear)
-                        }
+                        ProgressView(value: progress)
+                            .progressViewStyle(.linear)
                     }
 
                     Spacer()
