@@ -581,17 +581,18 @@ final class SessionStatsStore: ObservableObject {
     }
 
     func xpForCompletedFocusSession(duration: TimeInterval) -> Int {
-        let minutes = Int(duration / 60)
+        // Round down to whole minutes, but never less than 1
+        let minutes = max(1, Int(duration / 60))
 
-        guard minutes >= 5 else { return 0 }
+        // Base: roughly 1 XP per 2 minutes, min 1 XP
+        var xp = max(1, minutes / 2)
 
-        var xp = minutes / 5
-
+        // Longer-focus bonuses
         if minutes >= 25 {
-            xp += 5
+            xp += 3   // pomodoro-ish bonus
         }
         if minutes >= 45 {
-            xp += 5
+            xp += 3   // deep-focus bonus
         }
 
         return xp
