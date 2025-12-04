@@ -7,6 +7,7 @@ final class DependencyContainer {
     let sessionStatsStore: SessionStatsStore
     let healthStatsStore: HealthBarIRLStatsStore
     let hydrationSettingsStore: HydrationSettingsStore
+    let seasonAchievementsStore: SeasonAchievementsStore
 
     let focusViewModel: FocusViewModel
     let healthBarViewModel: HealthBarViewModel
@@ -21,6 +22,7 @@ final class DependencyContainer {
         sessionStatsStore = SessionStatsStore(playerStateStore: playerStateStore)
         healthStatsStore = HealthBarIRLStatsStore()
         hydrationSettingsStore = HydrationSettingsStore()
+        seasonAchievementsStore = SeasonAchievementsStore()
 
         // View models that depend on stores
         healthBarViewModel = HealthBarViewModel()
@@ -34,7 +36,8 @@ final class DependencyContainer {
         questsViewModel = QuestsViewModel(statsStore: sessionStatsStore)
         statsViewModel = StatsViewModel(
             healthStore: healthStatsStore,
-            hydrationSettingsStore: hydrationSettingsStore
+            hydrationSettingsStore: hydrationSettingsStore,
+            seasonAchievementsStore: seasonAchievementsStore
         )
         moreViewModel = MoreViewModel(hydrationSettingsStore: hydrationSettingsStore)
 

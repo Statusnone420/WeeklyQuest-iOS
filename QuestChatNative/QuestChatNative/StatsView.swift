@@ -90,6 +90,7 @@ struct StatsView: View {
 
                     dailyGoalCard
                     weeklyPathCard
+                    achievementsSection
                     healthBarWeeklySummary
 
                     header
@@ -246,6 +247,33 @@ struct StatsView: View {
             .background(Color(uiColor: .secondarySystemBackground).opacity(0.15))
             .cornerRadius(16)
         }
+    }
+
+    private var achievementsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Season Achievements")
+                .font(.headline)
+
+            if viewModel.seasonAchievements.isEmpty {
+                Text("No achievements available yet.")
+                    .foregroundStyle(.secondary)
+            } else {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 16) {
+                    ForEach(viewModel.seasonAchievements) { item in
+                        SeasonAchievementBadgeView(
+                            title: item.title,
+                            iconName: item.iconName,
+                            isUnlocked: item.isUnlocked,
+                            progressFraction: item.progressFraction
+                        )
+                    }
+                }
+                .padding(.vertical, 8)
+            }
+        }
+        .padding()
+        .background(Color(uiColor: .secondarySystemBackground).opacity(0.15))
+        .cornerRadius(16)
     }
 
     private var sessionHistorySection: some View {
