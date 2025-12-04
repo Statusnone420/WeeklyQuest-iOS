@@ -47,6 +47,7 @@
 		D8A2001F2EDE07B400A6A001 /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A01F2EDE07B400A6A01F /* SettingsViewModel.swift */; };
 		D8A200202EDE07B400A6A001 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D8A1A0202EDE07B400A6A020 /* Assets.xcassets */; };
 		D8E9D6532EE1017A00EF0582 /* PlayerStateStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E9D6522EE1017A00EF0582 /* PlayerStateStore.swift */; };
+		D8EDD5292EE1F14B00922DCF /* QuestEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8EDD5282EE1F14B00922DCF /* QuestEvent.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -115,6 +116,7 @@
 		D8A1A01F2EDE07B400A6A01F /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		D8A1A0202EDE07B400A6A020 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D8E9D6522EE1017A00EF0582 /* PlayerStateStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerStateStore.swift; sourceTree = "<group>"; };
+		D8EDD5282EE1F14B00922DCF /* QuestEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestEvent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -197,7 +199,6 @@
 		D881CF952EDD1BC200A8A09F /* QuestChatNative */ = {
 			isa = PBXGroup;
 			children = (
-				D80A60E02EE13C6D003C5262 /* PlayerProgress.swift */,
 				D8A1A0172EDE07B400A6A017 /* AboutHealthBarView.swift */,
 				D8A1A0092EDE07B400A6A009 /* AppCoordinator.swift */,
 				D8A1A0202EDE07B400A6A020 /* Assets.xcassets */,
@@ -221,11 +222,13 @@
 				D8A1A0072EDE07B400A6A007 /* MoreView.swift */,
 				D8A1A0052EDE07B400A6A005 /* MoreViewModel.swift */,
 				D8A1A0132EDE07B400A6A013 /* PlayerCardView.swift */,
+				D80A60E02EE13C6D003C5262 /* PlayerProgress.swift */,
 				D8E9D6522EE1017A00EF0582 /* PlayerStateStore.swift */,
 				D899A6D12EDF6D6500F90F46 /* PlayerStatusBarsView.swift */,
 				D8A1A01E2EDE07B400A6A01E /* QuestChatNativeApp.swift */,
 				D8A1A0112EDE07B400A6A011 /* QuestChatStrings.swift */,
 				D80A60BC2EE1397D003C5262 /* QuestEngine.swift */,
+				D8EDD5282EE1F14B00922DCF /* QuestEvent.swift */,
 				D8A1A01D2EDE07B400A6A01D /* QuestsView.swift */,
 				D8A1A0082EDE07B400A6A008 /* QuestsViewModel.swift */,
 				D8A1A0012EDE07B400A6A001 /* RPGStatBar.swift */,
@@ -388,6 +391,7 @@
 				D8A200022EDE07B400A6A001 /* HealthBarModels.swift in Sources */,
 				D8A200012EDE07B400A6A001 /* RPGStatBar.swift in Sources */,
 				D87C18BC2EDFB72100438C3A /* FocusLiveActivityManager.swift in Sources */,
+				D8EDD5292EE1F14B00922DCF /* QuestEvent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
