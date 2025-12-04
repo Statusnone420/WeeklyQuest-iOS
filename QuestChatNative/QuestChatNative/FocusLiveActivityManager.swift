@@ -5,7 +5,14 @@ import Foundation
 enum FocusLiveActivityManager {
     private static var activity: Activity<FocusSessionAttributes>?
 
-    static func start(title: String, totalSeconds: Int) {
+    static func start(
+        title: String,
+        totalSeconds: Int,
+        hpProgress: Double,
+        playerName: String,
+        level: Int,
+        xpProgress: Double
+    ) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
 
         let attributes = FocusSessionAttributes(sessionId: UUID(), totalSeconds: totalSeconds)
@@ -14,7 +21,13 @@ enum FocusLiveActivityManager {
             endDate: Date().addingTimeInterval(TimeInterval(totalSeconds)),
             isPaused: false,
             remainingSeconds: totalSeconds,
-            title: title
+            title: title,
+            initialDurationInSeconds: totalSeconds,
+            pausedRemainingSeconds: totalSeconds,
+            hpProgress: hpProgress,
+            playerName: playerName,
+            level: level,
+            xpProgress: xpProgress
         )
 
         do {
@@ -28,7 +41,15 @@ enum FocusLiveActivityManager {
         }
     }
 
-    static func update(remainingSeconds: Int, totalSeconds: Int, title: String) {
+    static func update(
+        remainingSeconds: Int,
+        totalSeconds: Int,
+        title: String,
+        hpProgress: Double,
+        playerName: String,
+        level: Int,
+        xpProgress: Double
+    ) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
         guard let activity else { return }
 
@@ -37,11 +58,17 @@ enum FocusLiveActivityManager {
             endDate: Date().addingTimeInterval(TimeInterval(remainingSeconds)),
             isPaused: false,
             remainingSeconds: remainingSeconds,
-            title: title
+            title: title,
+            initialDurationInSeconds: totalSeconds,
+            pausedRemainingSeconds: remainingSeconds,
+            hpProgress: hpProgress,
+            playerName: playerName,
+            level: level,
+            xpProgress: xpProgress
         )
 
         Task {
-            await activity.update(using: contentState)
+            await activity.update(contentState)
         }
     }
 

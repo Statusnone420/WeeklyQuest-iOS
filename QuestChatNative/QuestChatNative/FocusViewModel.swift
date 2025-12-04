@@ -1115,6 +1115,7 @@ final class FocusViewModel: ObservableObject {
     var xpNeededForNextLevel: Int { statsStore.xpNeededToLevelUp(from: statsStore.level) }
     var playerLevel: Int { statsStore.level }
     var playerTotalXP: Int { statsStore.totalXP }
+    var xpTotalThisLevel: Int { statsStore.xpTotalThisLevel }
     var xpIntoCurrentLevel: Int { statsStore.xpIntoCurrentLevel }
     var levelProgressFraction: Double {
         let needed = max(1, xpNeededForNextLevel == Int.max ? 1 : xpNeededForNextLevel)
@@ -1136,6 +1137,16 @@ final class FocusViewModel: ObservableObject {
     @Published private(set) var currentHP: Int = 0
 
     var hpProgress: Double { healthStatsStore.hpPercentage }
+
+    var liveActivityXPProgress: Double {
+        let totalThisLevel = xpTotalThisLevel
+        guard totalThisLevel > 0 else { return 0 }
+        return clampProgress(Double(xpIntoCurrentLevel) / Double(totalThisLevel))
+    }
+
+    var playerDisplayName: String {
+        UserDefaults.standard.string(forKey: "playerDisplayName") ?? QuestChatStrings.PlayerCard.defaultName
+    }
 
     var hydrationProgress: Double {
         let goal = hydrationSettingsStore.dailyWaterGoalOunces
@@ -1393,11 +1404,17 @@ final class FocusViewModel: ObservableObject {
 
                 let attributes = FocusSessionAttributes(sessionId: UUID(), totalSeconds: totalDuration)
                 let contentState = FocusSessionAttributes.ContentState(
-                    startDate: Date(),
+                    startDate: session.startDate,
                     endDate: session.endDate,
                     isPaused: false,
                     remainingSeconds: totalDuration,
-                    title: title
+                    title: title,
+                    initialDurationInSeconds: totalDuration,
+                    pausedRemainingSeconds: totalDuration,
+                    hpProgress: hpProgress,
+                    playerName: playerDisplayName,
+                    level: playerLevel,
+                    xpProgress: liveActivityXPProgress
                 )
 
                 do {
@@ -1445,7 +1462,19 @@ final class FocusViewModel: ObservableObject {
         state = .paused
         print("[FocusTimer] Paused with \(remaining) seconds left")
         if #available(iOS 17.0, *) {
-            updateLiveActivity(isPaused: true, remaining: remaining, title: selectedCategoryData?.id.title ?? selectedMode.title, startDate: Date(), endDate: Date())
+            let initialDuration = activeSessionDuration ?? remaining
+            updateLiveActivity(
+                isPaused: true,
+                remaining: remaining,
+                title: selectedCategoryData?.id.title ?? selectedMode.title,
+                startDate: Date(),
+                endDate: Date().addingTimeInterval(TimeInterval(remaining)),
+                initialDuration: initialDuration,
+                hpProgress: hpProgress,
+                playerName: playerDisplayName,
+                playerLevel: playerLevel,
+                xpProgress: liveActivityXPProgress
+            )
         }
     }
 
@@ -1484,7 +1513,12 @@ final class FocusViewModel: ObservableObject {
                 remaining: remainingSeconds,
                 title: selectedCategoryData?.id.title ?? selectedMode.title,
                 startDate: session.startDate,
-                endDate: session.endDate
+                endDate: session.endDate,
+                initialDuration: activeSessionDuration ?? remainingSeconds,
+                hpProgress: hpProgress,
+                playerName: playerDisplayName,
+                playerLevel: playerLevel,
+                xpProgress: liveActivityXPProgress
             )
         } else if #available(iOS 16.1, *) {
             let category = selectedCategoryData ?? TimerCategory(id: selectedCategory, durationSeconds: currentDuration)
@@ -1588,19 +1622,30 @@ final class FocusViewModel: ObservableObject {
         remaining: Int,
         title: String,
         startDate: Date,
-        endDate: Date
+        endDate: Date,
+        initialDuration: Int,
+        hpProgress: Double,
+        playerName: String,
+        playerLevel: Int,
+        xpProgress: Double
     ) {
         let contentState = FocusSessionAttributes.ContentState(
             startDate: startDate,
             endDate: endDate,
             isPaused: isPaused,
             remainingSeconds: remaining,
-            title: title
+            title: title,
+            initialDurationInSeconds: initialDuration,
+            pausedRemainingSeconds: remaining,
+            hpProgress: hpProgress,
+            playerName: playerName,
+            level: playerLevel,
+            xpProgress: xpProgress
         )
 
         Task {
             guard let liveActivity else { return }
-            await liveActivity.update(using: contentState)
+            await liveActivity.update(contentState)
             print("[FocusLiveActivity] Updated: paused=\(isPaused) remaining=\(remaining)")
         }
     }
@@ -1614,14 +1659,14 @@ final class FocusViewModel: ObservableObject {
             // Use `content` instead of deprecated `contentState`
             let content = activity.content
             let contentState = content.state
-            let totalDuration = activity.attributes.totalSeconds
+            let totalDuration = contentState.initialDurationInSeconds
             let now = Date()
             let isPaused = contentState.isPaused
             var remaining: Int
 
             if isPaused {
                 // Paused session: just restore remaining seconds and paused state
-                remaining = contentState.remainingSeconds
+                remaining = contentState.pausedRemainingSeconds
                 timerState = .paused
                 self.state = .paused
                 currentSession = nil
@@ -1688,7 +1733,12 @@ final class FocusViewModel: ObservableObject {
                                 remaining: remaining,
                                 title: title,
                                 startDate: session.startDate,
-                                endDate: session.endDate
+                                endDate: session.endDate,
+                                initialDuration: self.activeSessionDuration ?? remaining,
+                                hpProgress: self.hpProgress,
+                                playerName: self.playerDisplayName,
+                                playerLevel: self.playerLevel,
+                                xpProgress: self.liveActivityXPProgress
                             )
                         }
                     }

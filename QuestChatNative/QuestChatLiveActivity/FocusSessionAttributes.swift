@@ -9,6 +9,12 @@ struct FocusSessionAttributes: ActivityAttributes {
         var isPaused: Bool
         var remainingSeconds: Int
         var title: String
+        var initialDurationInSeconds: Int
+        var pausedRemainingSeconds: Int
+        var hpProgress: Double
+        var playerName: String
+        var level: Int
+        var xpProgress: Double
     }
 
     var sessionId: UUID
