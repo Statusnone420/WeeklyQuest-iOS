@@ -31,8 +31,9 @@
 		D8A2000C2EDE07B400A6A001 /* HealthBarStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A00C2EDE07B400A6A00C /* HealthBarStorage.swift */; };
 		D8A2000D2EDE07B400A6A001 /* GameDataResetter.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A00D2EDE07B400A6A00D /* GameDataResetter.swift */; };
 		D8A2000E2EDE07B400A6A001 /* LevelUpModalView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A00E2EDE07B400A6A00E /* LevelUpModalView.swift */; };
-		D8A2000F2EDE07B400A6A001 /* StatsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A00F2EDE07B400A6A00F /* StatsViewModel.swift */; };
-		D8A200102EDE07B400A6A001 /* HealthTrackingStorageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A0102EDE07B400A6A010 /* HealthTrackingStorageKeys.swift */; };
+                D8A2000F2EDE07B400A6A001 /* StatsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A00F2EDE07B400A6A00F /* StatsViewModel.swift */; };
+                D8A200212EDE07B400A6A001 /* PlayerTitleStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A0212EDE07B400A6A021 /* PlayerTitleStore.swift */; };
+                D8A200102EDE07B400A6A001 /* HealthTrackingStorageKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A0102EDE07B400A6A010 /* HealthTrackingStorageKeys.swift */; };
 		D8A200112EDE07B400A6A001 /* QuestChatStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A0112EDE07B400A6A011 /* QuestChatStrings.swift */; };
 		D8A200122EDE07B400A6A001 /* FocusTimerLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A0122EDE07B400A6A012 /* FocusTimerLiveActivity.swift */; };
 		D8A200132EDE07B400A6A001 /* PlayerCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A0132EDE07B400A6A013 /* PlayerCardView.swift */; };
@@ -105,8 +106,9 @@
 		D8A1A00C2EDE07B400A6A00C /* HealthBarStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthBarStorage.swift; sourceTree = "<group>"; };
 		D8A1A00D2EDE07B400A6A00D /* GameDataResetter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameDataResetter.swift; sourceTree = "<group>"; };
 		D8A1A00E2EDE07B400A6A00E /* LevelUpModalView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelUpModalView.swift; sourceTree = "<group>"; };
-		D8A1A00F2EDE07B400A6A00F /* StatsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsViewModel.swift; sourceTree = "<group>"; };
-		D8A1A0102EDE07B400A6A010 /* HealthTrackingStorageKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthTrackingStorageKeys.swift; sourceTree = "<group>"; };
+                D8A1A00F2EDE07B400A6A00F /* StatsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsViewModel.swift; sourceTree = "<group>"; };
+                D8A1A0212EDE07B400A6A021 /* PlayerTitleStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerTitleStore.swift; sourceTree = "<group>"; };
+                D8A1A0102EDE07B400A6A010 /* HealthTrackingStorageKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthTrackingStorageKeys.swift; sourceTree = "<group>"; };
 		D8A1A0112EDE07B400A6A011 /* QuestChatStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuestChatStrings.swift; sourceTree = "<group>"; };
 		D8A1A0122EDE07B400A6A012 /* FocusTimerLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTimerLiveActivity.swift; sourceTree = "<group>"; };
 		D8A1A0132EDE07B400A6A013 /* PlayerCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerCardView.swift; sourceTree = "<group>"; };
@@ -233,9 +235,10 @@
 				D8A1A00E2EDE07B400A6A00E /* LevelUpModalView.swift */,
 				D8A1A0072EDE07B400A6A007 /* MoreView.swift */,
 				D8A1A0052EDE07B400A6A005 /* MoreViewModel.swift */,
-				D8A1A0132EDE07B400A6A013 /* PlayerCardView.swift */,
-				D80A60E02EE13C6D003C5262 /* PlayerProgress.swift */,
-				D8E9D6522EE1017A00EF0582 /* PlayerStateStore.swift */,
+                                D8A1A0132EDE07B400A6A013 /* PlayerCardView.swift */,
+                                D8A1A0212EDE07B400A6A021 /* PlayerTitleStore.swift */,
+                                D80A60E02EE13C6D003C5262 /* PlayerProgress.swift */,
+                                D8E9D6522EE1017A00EF0582 /* PlayerStateStore.swift */,
 				D899A6D12EDF6D6500F90F46 /* PlayerStatusBarsView.swift */,
 				D8A1A01E2EDE07B400A6A01E /* QuestChatNativeApp.swift */,
 				D8A1A0112EDE07B400A6A011 /* QuestChatStrings.swift */,
@@ -385,11 +388,12 @@
 				D8A200142EDE07B400A6A001 /* HealthBarCalculator.swift in Sources */,
 				D8A200132EDE07B400A6A001 /* PlayerCardView.swift in Sources */,
 				D8ABE41B2EE23E2400813C61 /* AchievementUnlockOverlayView.swift in Sources */,
-				D8A200122EDE07B400A6A001 /* FocusTimerLiveActivity.swift in Sources */,
-				D8A200112EDE07B400A6A001 /* QuestChatStrings.swift in Sources */,
-				D8A200102EDE07B400A6A001 /* HealthTrackingStorageKeys.swift in Sources */,
-				D8A2000F2EDE07B400A6A001 /* StatsViewModel.swift in Sources */,
-				D8E9D6532EE1017A00EF0582 /* PlayerStateStore.swift in Sources */,
+                                D8A200122EDE07B400A6A001 /* FocusTimerLiveActivity.swift in Sources */,
+                                D8A200112EDE07B400A6A001 /* QuestChatStrings.swift in Sources */,
+                                D8A200102EDE07B400A6A001 /* HealthTrackingStorageKeys.swift in Sources */,
+                                D8A200212EDE07B400A6A001 /* PlayerTitleStore.swift in Sources */,
+                                D8A2000F2EDE07B400A6A001 /* StatsViewModel.swift in Sources */,
+                                D8E9D6532EE1017A00EF0582 /* PlayerStateStore.swift in Sources */,
 				D8A2000E2EDE07B400A6A001 /* LevelUpModalView.swift in Sources */,
 				D80A60E12EE13C6D003C5262 /* PlayerProgress.swift in Sources */,
 				D8A2000D2EDE07B400A6A001 /* GameDataResetter.swift in Sources */,
