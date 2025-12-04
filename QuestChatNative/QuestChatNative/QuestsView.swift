@@ -59,7 +59,7 @@ private extension QuestsView {
                                 viewModel.toggleQuest(quest)
                             }
                         )
-                        .disabled(isEventDriven)
+                        .allowsHitTesting(!isEventDriven)
                         .listRowInsets(EdgeInsets(top: 6, leading: 20, bottom: 6, trailing: 20))
                         .listRowSeparator(.hidden)
                         .onChange(of: quest.isCompleted) { isCompleted in
@@ -340,6 +340,7 @@ private struct QuestCardView: View {
     let onTap: (() -> Void)?
 
     var body: some View {
+        let isCompleted = quest.isCompleted
         Button(action: {
             onTap?()
         }) {
@@ -368,11 +369,9 @@ private struct QuestCardView: View {
                             Text(quest.title)
                                 .font(.headline)
                                 .foregroundStyle(.primary)
-                                .opacity(contentOpacity)
                             Text(quest.detail)
                                 .font(.subheadline)
                                 .foregroundStyle(.secondary)
-                                .opacity(contentOpacity)
                         }
                     }
                 }
@@ -396,6 +395,7 @@ private struct QuestCardView: View {
             }
         }
         .buttonStyle(.plain)
+        .opacity(isCompleted ? 0.6 : 1.0)
     }
 
     private var icon: some View {
@@ -428,7 +428,6 @@ private struct QuestCardView: View {
             .background(tierColor.opacity(0.18))
             .foregroundStyle(tierColor)
             .clipShape(Capsule())
-            .opacity(contentOpacity)
     }
 
     private var xpPill: some View {
@@ -439,7 +438,6 @@ private struct QuestCardView: View {
             .background(Color.mint.opacity(0.18))
             .foregroundStyle(.mint)
             .clipShape(Capsule())
-            .opacity(contentOpacity)
     }
 
     private var completedPill: some View {
@@ -449,11 +447,6 @@ private struct QuestCardView: View {
             .padding(.vertical, 4)
             .background(Capsule().fill(Color.secondary.opacity(0.25)))
             .foregroundStyle(.secondary)
-            .opacity(contentOpacity)
-    }
-
-    private var contentOpacity: Double {
-        quest.isCompleted ? 0.6 : 1.0
     }
 }
 
