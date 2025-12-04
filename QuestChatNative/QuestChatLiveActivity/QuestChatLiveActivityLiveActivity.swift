@@ -113,7 +113,7 @@ struct FocusSessionLiveActivityView: View {
     let context: ActivityViewContext<FocusSessionAttributes>
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { timeline in
+        TimelineView(.animation(minimumInterval: 1)) { timeline in
             Group {
                 let timerRange = context.state.startDate...context.state.endDate
                 let (_, _, remainingSeconds, progress) = progressMetrics(for: context, now: timeline.date)
@@ -147,8 +147,14 @@ struct FocusSessionLiveActivityView: View {
                             .font(.body)
                             .lineLimit(1)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        ProgressView(value: progress)
-                            .progressViewStyle(.linear)
+
+                        if context.state.isPaused {
+                            ProgressView(value: progress)
+                                .progressViewStyle(.linear)
+                        } else {
+                            ProgressView(timerInterval: timerRange)
+                                .progressViewStyle(.linear)
+                        }
                     }
 
                     Spacer()
@@ -230,7 +236,7 @@ struct FocusSessionLiveActivityWidget: Widget {
                 }
 
                 DynamicIslandExpandedRegion(.bottom) {
-                    TimelineView(.periodic(from: .now, by: 1)) { timeline in
+                    TimelineView(.animation(minimumInterval: 1)) { timeline in
                         let timerRange = context.state.startDate...context.state.endDate
                         let (total, _, remainingInt, progress) = progressMetrics(for: context, now: timeline.date)
                         let color = ringColor(forRemaining: remainingInt, total: Int(total))
@@ -264,6 +270,7 @@ struct FocusSessionLiveActivityWidget: Widget {
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                         .fixedSize(horizontal: true, vertical: false)
+                        .frame(maxWidth: 54, alignment: .leading)
                 } else {
                     Text(timerInterval: timerRange, countsDown: true)
                         .font(.caption2.weight(.semibold))
@@ -271,9 +278,10 @@ struct FocusSessionLiveActivityWidget: Widget {
                         .lineLimit(1)
                         .minimumScaleFactor(0.6)
                         .fixedSize(horizontal: true, vertical: false)
+                        .frame(maxWidth: 54, alignment: .leading)
                 }
             } compactTrailing: {
-                TimelineView(.periodic(from: .now, by: 1)) { timeline in
+                TimelineView(.animation(minimumInterval: 1)) { timeline in
                     let (_, _, remainingInt, progress) = progressMetrics(for: context, now: timeline.date)
                     let color = ringColor(forRemaining: remainingInt, total: context.attributes.totalSeconds)
 
@@ -292,7 +300,7 @@ struct FocusSessionLiveActivityWidget: Widget {
                     .animation(.linear(duration: 0.2), value: progress)
                 }
             } minimal: {
-                TimelineView(.periodic(from: .now, by: 1)) { timeline in
+                TimelineView(.animation(minimumInterval: 1)) { timeline in
                     let (_, _, remainingInt, progress) = progressMetrics(for: context, now: timeline.date)
                     let color = ringColor(forRemaining: remainingInt, total: context.attributes.totalSeconds)
 
