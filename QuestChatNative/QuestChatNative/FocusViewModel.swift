@@ -396,7 +396,6 @@ final class SessionStatsStore: ObservableObject {
         let initialTotalXP = initialProgression.totalXP > 0 ? initialProgression.totalXP : playerStateStore.xp
         let computedProgression = Self.computeProgression(totalXP: initialTotalXP, streakDays: initialProgression.streakDays, lastActiveDate: initialProgression.lastActiveDate)
         progression = computedProgression
-        syncBaseLevelTitle()
 
         lastSessionDate = userDefaults.object(forKey: Keys.lastSessionDate) as? Date
         let storedLastMomentumUpdate = userDefaults.object(forKey: Keys.lastMomentumUpdate) as? Date
@@ -450,6 +449,7 @@ final class SessionStatsStore: ObservableObject {
         evaluateWeeklyGoalBonus()
 
         syncPlayerStateProgress()
+        syncBaseLevelTitle()
     }
 
     @discardableResult
@@ -1056,6 +1056,7 @@ final class FocusViewModel: ObservableObject {
     @Published private(set) var notificationAuthorized: Bool = false
     let statsStore: SessionStatsStore
     let playerStateStore: PlayerStateStore
+    let playerTitleStore: PlayerTitleStore
     let healthStatsStore: HealthBarIRLStatsStore
     let hydrationSettingsStore: HydrationSettingsStore
     let seasonAchievementsStore: SeasonAchievementsStore
@@ -1090,6 +1091,7 @@ final class FocusViewModel: ObservableObject {
     init(
         statsStore: SessionStatsStore = DependencyContainer.shared.sessionStatsStore,
         playerStateStore: PlayerStateStore = DependencyContainer.shared.playerStateStore,
+        playerTitleStore: PlayerTitleStore = DependencyContainer.shared.playerTitleStore,
         healthStatsStore: HealthBarIRLStatsStore = HealthBarIRLStatsStore(),
         healthBarViewModel: HealthBarViewModel? = nil,
         hydrationSettingsStore: HydrationSettingsStore = HydrationSettingsStore(),
@@ -1099,6 +1101,7 @@ final class FocusViewModel: ObservableObject {
         // Assign non-dependent stored properties first
         self.statsStore = statsStore
         self.playerStateStore = playerStateStore
+        self.playerTitleStore = playerTitleStore
         self.healthStatsStore = healthStatsStore
         self.healthBarViewModel = healthBarViewModel
         self.hydrationSettingsStore = hydrationSettingsStore

@@ -22,7 +22,7 @@ struct PlayerCardView: View {
                         isTitlePickerPresented = true
                     } label: {
                         HStack(spacing: 6) {
-                            Text(statsViewModel.activeTitle ?? QuestChatStrings.StatsView.playerTitleEmpty)
+                            Text(statsViewModel.activeTitle ?? "Choose Title")
                                 .font(.subheadline.weight(.semibold))
                                 .foregroundStyle(.secondary)
                                 .multilineTextAlignment(.leading)
