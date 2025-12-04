@@ -30,6 +30,7 @@ struct Quest: Identifiable, Equatable {
 
 final class QuestsViewModel: ObservableObject {
     @Published var dailyQuests: [Quest] = []
+    @Published var weeklyQuests: [Quest] = []
     @Published private(set) var hasUsedRerollToday: Bool = false
     @Published var hasQuestChestReady: Bool = false
 
@@ -54,6 +55,21 @@ final class QuestsViewModel: ObservableObject {
         "quest-chest-ready-\(completionKey)"
     }
 
+    private var currentWeekKey: String {
+        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: dayReference)
+        let year = components.yearForWeekOfYear ?? 0
+        let week = components.weekOfYear ?? 0
+        return String(format: "weekly-quests-%04d-W%02d", year, week)
+    }
+
+    private var weeklyCompletionKey: String {
+        "\(currentWeekKey)-completed"
+    }
+
+    private var weeklyActiveKey: String {
+        "\(currentWeekKey)-active"
+    }
+
     init(
         statsStore: SessionStatsStore = SessionStatsStore(playerStateStore: DependencyContainer.shared.playerStateStore),
         userDefaults: UserDefaults = .standard,
@@ -67,6 +83,8 @@ final class QuestsViewModel: ObservableObject {
         hasUsedRerollToday = userDefaults.bool(forKey: rerollKey)
         hasQuestChestReady = userDefaults.bool(forKey: questChestReadyKey)
         checkQuestChestRewardIfNeeded()
+
+        seedWeeklyQuestsIfNeeded()
 
         if let focusArea = statsStore.dailyConfig?.focusArea, !statsStore.shouldShowDailySetup {
             markCoreQuests(for: focusArea)
@@ -83,6 +101,14 @@ final class QuestsViewModel: ObservableObject {
 
     var totalDailyXP: Int {
         dailyQuests.reduce(0) { $0 + $1.xpReward }
+    }
+
+    var weeklyCompletedCount: Int {
+        weeklyQuests.filter { $0.isCompleted }.count
+    }
+
+    var weeklyTotalCount: Int {
+        weeklyQuests.count
     }
 
     var remainingQuestsUntilChest: Int {
@@ -111,6 +137,19 @@ final class QuestsViewModel: ObservableObject {
 
         persistCompletions()
         checkQuestChestRewardIfNeeded()
+    }
+
+    func toggleWeeklyQuest(_ quest: Quest) {
+        guard let index = weeklyQuests.firstIndex(where: { $0.id == quest.id }) else { return }
+
+        let wasCompleted = weeklyQuests[index].isCompleted
+        weeklyQuests[index].isCompleted.toggle()
+
+        if weeklyQuests[index].isCompleted && !wasCompleted {
+            statsStore.registerQuestCompleted(id: weeklyQuests[index].id, xp: weeklyQuests[index].xpReward)
+        }
+
+        persistWeeklyCompletions()
     }
 
     func reroll(quest: Quest) {
@@ -173,6 +212,8 @@ private extension QuestsViewModel {
 
     static let desiredDailyQuestCount = 5
 
+    static let desiredWeeklyQuestCount = 3
+
     static let questPool: [Quest] = [
         Quest(id: "daily-checkin", title: "Load today’s quest log", detail: "Open the quest log and decide what actually matters.", xpReward: 10, tier: .core, isCompleted: false),
         Quest(id: "plan-focus-session", title: "Plan one focus session", detail: "Pick a timer and commit to at least one run today.", xpReward: 35, tier: .core, isCompleted: false),
@@ -186,6 +227,15 @@ private extension QuestsViewModel {
         Quest(id: "digital-cobweb", title: "Clear one digital cobweb", detail: "Archive an inbox, clear notifications, or file a document.", xpReward: 20, tier: .habit, isCompleted: false),
         Quest(id: "step-outside", title: "Step outside or change rooms", detail: "Move your body and reset your head for a few minutes.", xpReward: 20, tier: .habit, isCompleted: false),
         Quest(id: "quick-self-care", title: "Do one quick self-care check", detail: "Breathe, sip water, or take a bathroom break.", xpReward: 20, tier: .habit, isCompleted: false)
+    ]
+
+    static let weeklyQuestPool: [Quest] = [
+        Quest(id: "weekly-focus-marathon", title: "Weekly focus marathon", detail: "Hit 120 focus minutes this week.", xpReward: 100, tier: .bonus, isCompleted: false),
+        Quest(id: "weekly-session-grinder", title: "Session grinder", detail: "Complete 15 focus sessions this week.", xpReward: 100, tier: .bonus, isCompleted: false),
+        Quest(id: "weekly-daily-quest-slayer", title: "Daily quest slayer", detail: "Complete 20 daily quests this week.", xpReward: 60, tier: .habit, isCompleted: false),
+        Quest(id: "weekly-health-check", title: "Health check-in", detail: "Log mood, gut, and sleep on 4 days this week.", xpReward: 60, tier: .habit, isCompleted: false),
+        Quest(id: "weekly-hydration-hero", title: "Hydration hero", detail: "Hit your hydration goal on 4 days this week.", xpReward: 60, tier: .habit, isCompleted: false),
+        Quest(id: "weekly-digital-dust", title: "Digital dust buster", detail: "Clear a digital cobweb on 3 days this week.", xpReward: 60, tier: .habit, isCompleted: false)
     ]
 
     static let coreQuestIDs: [FocusArea: [String]] = [
@@ -240,6 +290,40 @@ private extension QuestsViewModel {
         userDefaults.set(true, forKey: questChestGrantedKey)
         hasQuestChestReady = true
         userDefaults.set(true, forKey: questChestReadyKey)
+    }
+
+    func seedWeeklyQuestsIfNeeded() {
+        let completedIDs = Set(userDefaults.stringArray(forKey: weeklyCompletionKey) ?? [])
+        let poolByID = Dictionary(uniqueKeysWithValues: Self.weeklyQuestPool.map { ($0.id, $0) })
+
+        if let storedActiveIDs = userDefaults.stringArray(forKey: weeklyActiveKey) {
+            let storedQuests: [Quest] = storedActiveIDs.compactMap { id in
+                guard var quest = poolByID[id] else { return nil }
+                quest.isCompleted = completedIDs.contains(id)
+                return quest
+            }
+
+            if !storedQuests.isEmpty {
+                weeklyQuests = storedQuests
+                persistWeeklyCompletions()
+                return
+            }
+        }
+
+        let selected = Array(Self.weeklyQuestPool.shuffled().prefix(Self.desiredWeeklyQuestCount))
+        weeklyQuests = selected.map { quest in
+            var updated = quest
+            updated.isCompleted = completedIDs.contains(quest.id)
+            return updated
+        }
+
+        userDefaults.set(weeklyQuests.map { $0.id }, forKey: weeklyActiveKey)
+        persistWeeklyCompletions()
+    }
+
+    func persistWeeklyCompletions() {
+        let completed = weeklyQuests.filter { $0.isCompleted }.map { $0.id }
+        userDefaults.set(completed, forKey: weeklyCompletionKey)
     }
 
     static func dateKey(for date: Date, calendar: Calendar) -> String {
