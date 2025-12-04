@@ -141,8 +141,13 @@ struct FocusSessionLiveActivityView: View {
                             .font(.body)
                             .lineLimit(1)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                        ProgressView(value: progress)
-                            .progressViewStyle(.linear)
+                        if context.state.isPaused {
+                            ProgressView(value: progress)
+                                .progressViewStyle(.linear)
+                        } else {
+                            ProgressView(timerInterval: timerRange)
+                                .progressViewStyle(.linear)
+                        }
                     }
 
                     Spacer()
@@ -156,7 +161,7 @@ struct FocusSessionLiveActivityView: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.7)
                             .allowsTightening(true)
-                            .frame(maxWidth: 80, alignment: .trailing)
+                            .frame(maxWidth: 60, alignment: .trailing)
                             .foregroundColor(.primary)
                     }
                     .frame(minWidth: 72, alignment: .trailing)
@@ -226,21 +231,23 @@ struct FocusSessionLiveActivityWidget: Widget {
                         .lineLimit(1)
                         .minimumScaleFactor(0.7)
                         .allowsTightening(true)
-                        .frame(maxWidth: 80, alignment: .trailing)
+                        .frame(maxWidth: 60, alignment: .trailing)
                 }
 
                 DynamicIslandExpandedRegion(.bottom) {
-                    TimelineView(.animation(minimumInterval: 1)) { timeline in
-                        let now = timeline.date
-                        let total = max(context.state.endDate.timeIntervalSince(context.state.startDate), 1)
-                        let remaining = context.state.isPaused
-                            ? max(Double(context.state.remainingSeconds), 0)
-                            : max(context.state.endDate.timeIntervalSince(now), 0)
-                        let remainingInt = Int(ceil(remaining))
-                        let progress = 1 - (remaining / total)
-                        let color = ringColor(forRemaining: remainingInt, total: Int(total))
+                    let timerRange = context.state.startDate...context.state.endDate
+                    let color = ringColor(forRemaining: context.state.remainingSeconds, total: context.attributes.totalSeconds)
 
-                        ProgressView(value: progress)
+                    if context.state.isPaused {
+                        ProgressView(value: 1 - (Double(max(context.state.remainingSeconds, 0)) / max(context.state.endDate.timeIntervalSince(context.state.startDate), 1)))
+                            .progressViewStyle(.linear)
+                            .tint(color)
+                            .frame(height: 1)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .padding(.bottom, 8)
+                    } else {
+                        ProgressView(timerInterval: timerRange)
                             .progressViewStyle(.linear)
                             .tint(color)
                             .frame(height: 1)
@@ -250,15 +257,12 @@ struct FocusSessionLiveActivityWidget: Widget {
                     }
                 }
             } compactLeading: {
-                TimelineView(.animation(minimumInterval: 1)) { timeline in
-                    let now = timeline.date
-                    let total = max(context.state.endDate.timeIntervalSince(context.state.startDate), 1)
-                    let remaining = context.state.isPaused
-                        ? max(Double(context.state.remainingSeconds), 0)
-                        : max(context.state.endDate.timeIntervalSince(now), 0)
-                    let remainingSeconds = Int(ceil(remaining))
-
-                    Text(timeAbbrev(remainingSeconds))
+                let timerRange = context.state.startDate...context.state.endDate
+                if context.state.isPaused {
+                    Text(timeAbbrev(context.state.remainingSeconds))
+                        .font(.caption2.weight(.semibold))
+                } else {
+                    Text(timerInterval: timerRange, countsDown: true)
                         .font(.caption2.weight(.semibold))
                 }
             } compactTrailing: {
