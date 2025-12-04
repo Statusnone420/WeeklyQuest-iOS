@@ -1014,6 +1014,7 @@ final class FocusViewModel: ObservableObject {
     private let userDefaults = UserDefaults.standard
     private var activeSessionCategory: TimerCategory.Kind?
     private var hpCheckinQuestSentDate: Date?
+    private var hydrationGoalQuestSentDate: Date?
 
     @available(iOS 16.1, *)
     private var liveActivityManager: FocusTimerLiveActivityManager? {
@@ -1316,6 +1317,7 @@ final class FocusViewModel: ObservableObject {
         healthBarViewModel.logHydration()
 
         updateWaterIntakeTotals()
+        statsStore.questEventHandler?(.hydrationIntakeLogged(totalOuncesToday: totalWaterOuncesToday))
         healthStatsStore.update(from: healthBarViewModel.inputs)
         syncPlayerHP()
         evaluateHealthXPBonuses()
@@ -1976,6 +1978,7 @@ final class FocusViewModel: ObservableObject {
         healthComboXPGrantedToday = isDate(userDefaults.object(forKey: HealthTrackingStorageKeys.healthComboAwardDate) as? Date, inSameDayAs: today)
         hasLoggedSleepQualityToday = isDate(userDefaults.object(forKey: HealthTrackingStorageKeys.sleepQualityLogged) as? Date, inSameDayAs: today)
         hpCheckinQuestSentDate = userDefaults.object(forKey: HealthTrackingStorageKeys.hpCheckinQuestDate) as? Date
+        hydrationGoalQuestSentDate = userDefaults.object(forKey: HealthTrackingStorageKeys.hydrationGoalQuestDate) as? Date
         updateWaterIntakeTotals()
     }
 
@@ -2015,6 +2018,14 @@ final class FocusViewModel: ObservableObject {
             statsStore.grantXP(10, reason: .waterGoal)
             waterGoalXPGrantedToday = true
             userDefaults.set(Calendar.current.startOfDay(for: today), forKey: HealthTrackingStorageKeys.waterGoalAwardDate)
+        }
+
+        if didHitWaterGoalToday && !isDate(hydrationGoalQuestSentDate, inSameDayAs: today) {
+            let startOfDay = Calendar.current.startOfDay(for: today)
+            hydrationGoalQuestSentDate = startOfDay
+            userDefaults.set(startOfDay, forKey: HealthTrackingStorageKeys.hydrationGoalQuestDate)
+            statsStore.questEventHandler?(.hydrationGoalReached)
+            statsStore.questEventHandler?(.hydrationGoalDayCompleted)
         }
 
         if healthComboIsComplete && !healthComboXPGrantedToday {

@@ -6,4 +6,7 @@ enum QuestEvent {
     case focusSessionCompleted(durationMinutes: Int)
     case choresTimerCompleted(durationMinutes: Int)
     case hpCheckinCompleted
+    case hydrationIntakeLogged(totalOuncesToday: Int)
+    case hydrationGoalReached
+    case hydrationGoalDayCompleted
 }

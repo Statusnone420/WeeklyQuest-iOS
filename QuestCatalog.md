@@ -117,6 +117,8 @@ These are `daily_habit` quests pulled based on user-selected habits. The app can
 | WORK_EARLY_BLOCK           | daily_habit| chores_work| Small     | 20  | Early shift                   | Get one work thing done before noon.                | Complete a “Work” timer ≥ 15 minutes that ends before 12pm.                          |
 | CHORE_ROOM_RESET           | daily_habit| chores_work| Small     | 20  | Room reset                    | Do a cleaning pass somewhere that matters.          | Complete any “Chores” timer ≥ 10 minutes whose label includes “clean” or “tidy” if available. |
 
+- Retired quest: `digital-cobweb` ("Clear one digital cobweb") is disabled until an automated event source is available.
+
 ---
 
 ## Weekly Quests (8)
