@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct TodaySummaryView: View {
+    let title: String
     let completedQuests: Int
     let totalQuests: Int
     let focusMinutes: Int
@@ -32,7 +33,7 @@ struct TodaySummaryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
-                Label("Today", systemImage: "sun.max.fill")
+                Label(title, systemImage: "sun.max.fill")
                     .font(.headline)
                     .foregroundStyle(.mint)
                 Spacer()
@@ -44,7 +45,7 @@ struct TodaySummaryView: View {
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("Today: \(completedQuests) / \(totalQuests) quests done")
+                Text("\(title): \(completedQuests) / \(totalQuests) quests done")
                     .font(.subheadline)
                 HStack(spacing: 8) {
                     Text("Focus: \(focusMinutes) / \(focusGoalMinutes) minutes")
@@ -88,6 +89,7 @@ struct TodaySummaryView: View {
 
 #Preview {
     TodaySummaryView(
+        title: "Today",
         completedQuests: 2,
         totalQuests: 4,
         focusMinutes: 32,

@@ -7,6 +7,7 @@ struct StatsView: View {
     @ObservedObject var healthBarViewModel: HealthBarViewModel
     @ObservedObject var focusViewModel: FocusViewModel
     @State private var showPlayerCard = false
+    @State private var selectedScope: StatsScope = .today
 
     private var focusMinutes: Int { store.focusSeconds / 60 }
     private var selfCareMinutes: Int { store.selfCareSeconds / 60 }
@@ -19,6 +20,32 @@ struct StatsView: View {
         return "\(area.icon) \(area.displayName)"
     }
     private var reachedFocusGoal: Bool { store.todayProgress?.reachedFocusGoal ?? false }
+    private var selectedDate: Date {
+        let today = Calendar.current.startOfDay(for: Date())
+        switch selectedScope {
+        case .today:
+            return today
+        case .yesterday:
+            return Calendar.current.date(byAdding: .day, value: -1, to: today) ?? today
+        }
+    }
+    private var selectedProgress: DailyProgress { store.dailyProgress(for: selectedDate) }
+    private var scopeTitle: String { selectedScope == .today ? "Today" : "Yesterday" }
+    private var focusMinutesForScope: Int { selectedScope == .today ? focusMinutesToday : selectedProgress.focusMinutes }
+    private var dailyGoalMinutesForScope: Int { selectedScope == .today ? dailyGoalMinutes : defaultGoalMinutes }
+    private var dailyGoalProgressForScope: Int { selectedScope == .today ? dailyGoalProgress : selectedProgress.focusMinutes }
+    private var reachedFocusGoalForScope: Bool { selectedScope == .today ? reachedFocusGoal : selectedProgress.reachedFocusGoal }
+    private var focusAreaLabelForScope: String? { selectedScope == .today ? focusAreaLabel : nil }
+    private var completedQuestsForScope: Int { selectedScope == .today ? questsViewModel.completedQuestsCount : selectedProgress.questsCompleted }
+    private var defaultGoalMinutes: Int { store.todayPlan?.focusGoalMinutes ?? 40 }
+    private var focusGoalLabel: String { selectedScope == .today ? QuestChatStrings.StatsView.todaysFocusGoal : "Yesterday's Focus Goal" }
+    private var focusGoalProgressText: String {
+        if selectedScope == .today {
+            return QuestChatStrings.StatsView.dailyGoalProgress(current: dailyGoalProgressForScope, total: dailyGoalMinutesForScope)
+        }
+
+        return "Focus progress: \(dailyGoalProgressForScope) / \(dailyGoalMinutesForScope) min"
+    }
     private var levelProgress: Double {
         if store.level >= 100 { return 1 }
         let total = Double(store.xpTotalThisLevel)
@@ -69,6 +96,14 @@ struct StatsView: View {
         }
     }
 
+    private var scopePicker: some View {
+        Picker("Stats range", selection: $selectedScope) {
+            Text("Today").tag(StatsScope.today)
+            Text("Yesterday").tag(StatsScope.yesterday)
+        }
+        .pickerStyle(.segmented)
+    }
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -85,13 +120,16 @@ struct StatsView: View {
                         .padding(.top, 8)
                         .padding(.bottom, 12)
 
+                        scopePicker
+
                         TodaySummaryView(
-                            completedQuests: questsViewModel.completedQuestsCount,
+                            title: scopeTitle,
+                            completedQuests: completedQuestsForScope,
                             totalQuests: questsViewModel.totalQuestsCount,
-                            focusMinutes: focusMinutesToday,
-                            focusGoalMinutes: dailyGoalMinutes,
-                            reachedFocusGoal: reachedFocusGoal,
-                            focusAreaLabel: focusAreaLabel,
+                            focusMinutes: focusMinutesForScope,
+                            focusGoalMinutes: dailyGoalMinutesForScope,
+                            reachedFocusGoal: reachedFocusGoalForScope,
+                            focusAreaLabel: focusAreaLabelForScope,
                             currentStreakDays: store.currentStreakDays
                         )
 
@@ -143,6 +181,12 @@ struct StatsView: View {
                 }
             }
             .animation(.easeInOut, value: viewModel.unlockedAchievementToShow != nil)
+            .onAppear {
+                questsViewModel.handleQuestEvent(.statsViewed(scope: selectedScope))
+            }
+            .onChange(of: selectedScope) { newScope in
+                questsViewModel.handleQuestEvent(.statsViewed(scope: newScope))
+            }
         }
     }
 
@@ -394,24 +438,24 @@ struct StatsView: View {
     private var dailyGoalCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Label(QuestChatStrings.StatsView.todaysFocusGoal, systemImage: "target")
+                Label(focusGoalLabel, systemImage: "target")
                     .font(.headline)
                     .foregroundStyle(.mint)
                 Spacer()
-                if let focusAreaLabel {
+                if let focusAreaLabelForScope {
                     Text(focusAreaLabel)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }
             }
 
-            Text(QuestChatStrings.StatsView.dailyGoalProgress(current: dailyGoalProgress, total: dailyGoalMinutes))
+            Text(focusGoalProgressText)
                 .font(.subheadline.bold())
 
-            ProgressView(value: Double(min(dailyGoalProgress, dailyGoalMinutes)), total: Double(dailyGoalMinutes))
+            ProgressView(value: Double(min(dailyGoalProgressForScope, dailyGoalMinutesForScope)), total: Double(dailyGoalMinutesForScope))
                 .tint(.mint)
 
-            if reachedFocusGoal {
+            if reachedFocusGoalForScope {
                 Text("Goal hit! 🎯")
                     .font(.caption.bold())
                     .foregroundColor(.mint)
