@@ -44,15 +44,15 @@ struct OnboardingView: View {
                     .font(.largeTitle.bold())
                     .foregroundColor(.white)
 
-                Text("Level up your day with quests, achievements, levels, and cool timers to keep track of important stuff..")
+                Text("Level up your day with quests, achievements, levels, and cool timers to keep track of important stuff")
                     .font(.body)
                     .foregroundColor(Color.white.opacity(0.85))
             }
 
             VStack(alignment: .leading, spacing: 12) {
                 bulletRow(text: "Start focus sessions for getting work done, going big on chores, and self care time")
-                bulletRow(text: "Enter how well you slept the night before, current mood, hydration goals, and your current gut health (yes, your belly matters)")
-                bulletRow(text: "Earn XP, unlock badges and super cool achivements and titles for your player card, and fill your HealthBar figurately and literally")
+                bulletRow(text: "Enter how well you slept the night before, current mood, hydration goals, and your current gut situation")
+                bulletRow(text: "Earn XP, unlock badges and titles for your player card, and fill your HealthBar figurately and literally")
             }
 
             VStack(spacing: 10) {
