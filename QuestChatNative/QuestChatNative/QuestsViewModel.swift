@@ -301,6 +301,20 @@ final class QuestsViewModel: ObservableObject {
         weeklyQuests.count
     }
 
+    var sortedWeeklyQuests: [Quest] {
+        weeklyQuests.sorted { lhs, rhs in
+            if lhs.isCompleted != rhs.isCompleted {
+                return !lhs.isCompleted && rhs.isCompleted
+            }
+
+            if !lhs.isCompleted && !rhs.isCompleted && lhs.progressFraction != rhs.progressFraction {
+                return lhs.progressFraction > rhs.progressFraction
+            }
+
+            return lhs.title < rhs.title
+        }
+    }
+
     var remainingQuestsUntilChest: Int {
         max(dailyQuests.filter { !$0.isCompleted }.count, 0)
     }
