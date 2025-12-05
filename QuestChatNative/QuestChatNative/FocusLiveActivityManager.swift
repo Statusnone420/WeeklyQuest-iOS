@@ -1,7 +1,7 @@
 import ActivityKit
 import Foundation
 
-@available(iOS 17.0, *)
+@available(iOS 16.1, *)
 enum FocusLiveActivityManager {
     private static var activity: Activity<FocusSessionAttributes>?
     private static var currentContentState: FocusSessionAttributes.ContentState?
@@ -9,10 +9,12 @@ enum FocusLiveActivityManager {
     static func start(title: String, totalSeconds: Int) {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
 
+        let startDate = Date()
+        let endDate = startDate.addingTimeInterval(TimeInterval(totalSeconds))
         let attributes = FocusSessionAttributes(sessionId: UUID(), totalSeconds: totalSeconds)
         let contentState = FocusSessionAttributes.ContentState(
-            startDate: Date(),
-            endDate: Date().addingTimeInterval(TimeInterval(totalSeconds)),
+            startDate: startDate,
+            endDate: endDate,
             isPaused: false,
             remainingSeconds: totalSeconds,
             title: title
@@ -35,9 +37,11 @@ enum FocusLiveActivityManager {
         guard ActivityAuthorizationInfo().areActivitiesEnabled else { return }
         guard let activity else { return }
 
+        let startDate = currentContentState?.startDate ?? Date()
+        let endDate = startDate.addingTimeInterval(TimeInterval(totalSeconds))
         let contentState = FocusSessionAttributes.ContentState(
-            startDate: Date(),
-            endDate: Date().addingTimeInterval(TimeInterval(remainingSeconds)),
+            startDate: startDate,
+            endDate: endDate,
             isPaused: false,
             remainingSeconds: remainingSeconds,
             title: title
@@ -58,7 +62,7 @@ enum FocusLiveActivityManager {
         if let current = currentContentState {
             finalState = FocusSessionAttributes.ContentState(
                 startDate: current.startDate,
-                endDate: Date(),
+                endDate: current.endDate,
                 isPaused: false,
                 remainingSeconds: 0,
                 title: current.title

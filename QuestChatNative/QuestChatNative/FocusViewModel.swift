@@ -1599,11 +1599,12 @@ final class FocusViewModel: ObservableObject {
         let totalDuration = activeSessionDuration ?? clampedDuration
         remainingSeconds = totalDuration
 
+        let startDate = Date()
         let session = FocusSession(
             id: currentSession?.id ?? UUID(),
             type: selectedMode,
             duration: TimeInterval(totalDuration),
-            startDate: Date()
+            startDate: startDate
         )
 
         let category = selectedCategoryData ?? TimerCategory(id: selectedCategory, durationSeconds: currentDuration)
@@ -1630,7 +1631,7 @@ final class FocusViewModel: ObservableObject {
 
                 let attributes = FocusSessionAttributes(sessionId: UUID(), totalSeconds: totalDuration)
                 let contentState = FocusSessionAttributes.ContentState(
-                    startDate: Date(),
+                    startDate: startDate,
                     endDate: session.endDate,
                     isPaused: false,
                     remainingSeconds: totalDuration,
@@ -1673,6 +1674,8 @@ final class FocusViewModel: ObservableObject {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         cancelCompletionNotifications()
         let remaining = max(Int(ceil(session.endDate.timeIntervalSinceNow)), 0)
+        let startDate = session.startDate
+        let endDate = session.endDate
         pausedRemainingSeconds = remaining
         remainingSeconds = remaining
         currentSession = nil
@@ -1682,7 +1685,13 @@ final class FocusViewModel: ObservableObject {
         state = .paused
         print("[FocusTimer] Paused with \(remaining) seconds left")
         if #available(iOS 17.0, *) {
-            updateLiveActivity(isPaused: true, remaining: remaining, title: selectedCategoryData?.id.title ?? selectedMode.title, startDate: Date(), endDate: Date())
+            updateLiveActivity(
+                isPaused: true,
+                remaining: remaining,
+                title: selectedCategoryData?.id.title ?? selectedMode.title,
+                startDate: startDate,
+                endDate: endDate
+            )
         } else if #available(iOS 16.1, *) {
             liveActivityManager?.pause()
         }
