@@ -227,7 +227,7 @@ struct OnboardingView: View {
             )
             .padding(.top, 18)
 
-            primaryButton(title: "Enter QuestChat") {
+            primaryButton(title: "Enter HealthBar IRL") {
                 viewModel.completeOnboarding()
             }
             .padding(.top, 22)
