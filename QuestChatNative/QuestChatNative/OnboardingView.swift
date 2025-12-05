@@ -40,19 +40,19 @@ struct OnboardingView: View {
     private var welcomeStep: some View {
         VStack(alignment: .leading, spacing: 20) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Welcome to QuestChat")
+                Text("Welcome to your IRL HealthBar")
                     .font(.largeTitle.bold())
                     .foregroundColor(.white)
 
-                Text("Level up your day with quests, focus sessions, and honest habit tracking.")
+                Text("Level up your day with quests, achievements, levels, and cool timers to keep track of important stuff..")
                     .font(.body)
                     .foregroundColor(Color.white.opacity(0.85))
             }
 
             VStack(alignment: .leading, spacing: 12) {
-                bulletRow(text: "Start focus sessions for work, chores, and self-care")
-                bulletRow(text: "Track sleep, mood, hydration, and gut health")
-                bulletRow(text: "Earn XP, unlock badges, and fill your Health Bar IRL")
+                bulletRow(text: "Start focus sessions for getting work done, going big on chores, and self care time")
+                bulletRow(text: "Enter how well you slept the night before, current mood, hydration goals, and your current gut health (yes, your belly matters)")
+                bulletRow(text: "Earn XP, unlock badges and super cool achivements and titles for your player card, and fill your HealthBar figurately and literally")
             }
 
             VStack(spacing: 10) {
@@ -75,17 +75,17 @@ struct OnboardingView: View {
     private var nameStep: some View {
         VStack(alignment: .leading, spacing: 20) {
             VStack(alignment: .leading, spacing: 6) {
-                Text("What should we call you?")
+                Text("What is your badass gamer name")
                     .font(.largeTitle.bold())
                     .foregroundColor(.white)
 
-                Text("This name will show on your Player Card.")
+                Text("This name will show on your Player Card next to your badges and title.")
                     .font(.body)
                     .foregroundColor(Color.white.opacity(0.85))
             }
 
             VStack(spacing: 14) {
-                TextField("Player name", text: $viewModel.playerName)
+                TextField("Player Juan", text: $viewModel.playerName)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 10)
                     .background(Color.white.opacity(0.08))
@@ -109,7 +109,7 @@ struct OnboardingView: View {
                     .font(.largeTitle.bold())
                     .foregroundColor(.white)
 
-                Text("Pick a goal that feels realistic. You can always change this later.")
+                Text("Pick a goal that you know you won't fudge the numbers. You can always change this later.")
                     .font(.body)
                     .foregroundColor(Color.white.opacity(0.85))
             }
@@ -137,7 +137,7 @@ struct OnboardingView: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("Goal: \(viewModel.selectedHydrationGoalCups) cups per day")
+                Text("Goal: \(viewModel.selectedHydrationGoalCups) glasses (8oz) per day")
                     .font(.subheadline.weight(.semibold))
                     .foregroundColor(Color.white.opacity(0.7))
 
@@ -152,7 +152,7 @@ struct OnboardingView: View {
 
     private var moodGutSleepStep: some View {
         VStack(alignment: .leading, spacing: 22) {
-            Text("How are you feeling today?")
+            Text("How is the mood/current vibe?")
                 .font(.largeTitle.bold())
                 .foregroundColor(.white)
 
@@ -201,14 +201,14 @@ struct OnboardingView: View {
 
     private var howItWorksStep: some View {
         VStack(alignment: .leading, spacing: 20) {
-            Text("You're ready to start")
+            Text("You're ready to start earning XP")
                 .font(.largeTitle.bold())
                 .foregroundColor(.white)
 
             VStack(alignment: .leading, spacing: 12) {
-                bulletRow(text: "Quests: complete small quests to earn XP and badges.")
-                bulletRow(text: "Focus: start timers for work, chores, and self-care.")
-                bulletRow(text: "Health Bar IRL: keep your HP honest by updating sleep, mood, and gut each day.")
+                bulletRow(text: "Quests: complete daily and weekly quests automatically based on progress to earn XP and badges.")
+                bulletRow(text: "Focus: start timers for work, chores, and self-care. These help keep you focused.")
+                bulletRow(text: "HealthBar IRL: keep your HP honest by updating sleep, mood, and gut each day so you know what you're working with.")
             }
 
             VStack(alignment: .leading, spacing: 10) {
