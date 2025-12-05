@@ -1636,11 +1636,12 @@ final class FocusViewModel: ObservableObject {
                     remainingSeconds: totalDuration,
                     title: title
                 )
+                let content = ActivityContent(state: contentState, staleDate: session.endDate)
 
                 do {
                     let activity = try Activity.request(
                         attributes: attributes,
-                        contentState: contentState,
+                        content: content,
                         pushType: nil
                     )
                     await MainActor.run {
@@ -1682,7 +1683,19 @@ final class FocusViewModel: ObservableObject {
         state = .paused
         print("[FocusTimer] Paused with \(remaining) seconds left")
         if #available(iOS 17.0, *) {
-            updateLiveActivity(isPaused: true, remaining: remaining, title: selectedCategoryData?.id.title ?? selectedMode.title, startDate: Date(), endDate: Date())
+            let contentState = FocusSessionAttributes.ContentState(
+                startDate: Date(),
+                endDate: session.endDate,
+                isPaused: true,
+                remainingSeconds: remaining,
+                title: selectedCategoryData?.id.title ?? selectedMode.title
+            )
+            let content = ActivityContent(state: contentState, staleDate: nil)
+            Task {
+                guard let liveActivity else { return }
+                await liveActivity.update(content)
+                print("[FocusLiveActivity] Updated: paused=\(true) remaining=\(remaining)")
+            }
         } else if #available(iOS 16.1, *) {
             liveActivityManager?.pause()
         }
@@ -1836,10 +1849,11 @@ final class FocusViewModel: ObservableObject {
             remainingSeconds: remaining,
             title: title
         )
+        let content = ActivityContent(state: contentState, staleDate: isPaused ? nil : endDate)
 
         Task {
             guard let liveActivity else { return }
-            await liveActivity.update(using: contentState)
+            await liveActivity.update(content)
             print("[FocusLiveActivity] Updated: paused=\(isPaused) remaining=\(remaining)")
         }
     }
