@@ -23,6 +23,10 @@ struct HealthBarView: View {
                         onManaTap: { focusViewModel.logHydrationPillTapped() },
                         onStaminaTap: { focusViewModel.logStaminaPotionTapped() }
                     )
+                    if questsViewModel.dailyQuests.first != nil {
+                        Divider()
+                            .padding(.vertical, 8)
+                    }
                     todaysQuestCard
                 }
                 .padding(.horizontal, 20)
@@ -31,7 +35,7 @@ struct HealthBarView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
             .background(Color.black.ignoresSafeArea())
-            .navigationTitle("Health")
+            .navigationTitle("HP")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color.black, for: .navigationBar)
             .toolbarColorScheme(.dark, for: .navigationBar)

@@ -106,7 +106,8 @@ struct FocusView: View {
                         #endif
                     }
                     .padding(.horizontal, 20)
-                    .padding(.vertical, 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, 16)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
                 .scrollBounceBehavior(.basedOnSize)
@@ -597,27 +598,24 @@ struct FocusView: View {
     }
 
     private var reminderCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "drop.fill")
-                    .foregroundStyle(.cyan)
-                VStack(alignment: .leading) {
-                    Text(QuestChatStrings.FocusView.reminderTitle)
-                        .font(.headline)
-                    Text(QuestChatStrings.FocusView.reminderSubtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer()
+        HStack(alignment: .center, spacing: 12) {
+            Image(systemName: "hand.tap")
+                .font(.title3)
+                .foregroundStyle(.mint)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Tip: Tap the active timer while it's running to minimize.")
+                    .font(.subheadline.weight(.semibold))
+                Text("Expand again anytime to see details or adjust settings.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
 
-            Text(QuestChatStrings.FocusView.reminderTip)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+            Spacer()
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(uiColor: .secondarySystemBackground).opacity(0.12))
+        .background(.ultraThinMaterial.opacity(0.14))
         .cornerRadius(18)
         .overlay(
             RoundedRectangle(cornerRadius: 18)
