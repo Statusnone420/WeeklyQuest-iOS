@@ -54,5 +54,14 @@ final class DependencyContainer {
         )
         settingsViewModel = SettingsViewModel(resetter: resetter)
     }
+
+    func makeOnboardingViewModel(onCompletion: (() -> Void)? = nil) -> OnboardingViewModel {
+        OnboardingViewModel(
+            hydrationSettingsStore: hydrationSettingsStore,
+            healthBarViewModel: healthBarViewModel,
+            focusViewModel: focusViewModel,
+            onCompletion: onCompletion
+        )
+    }
 }
 
