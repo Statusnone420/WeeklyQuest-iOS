@@ -30,10 +30,6 @@ struct Quest: Identifiable, Equatable {
         self.isCoreToday = isCoreToday
     }
 
-    static func == (lhs: Quest, rhs: Quest) -> Bool {
-        return lhs.id == rhs.id && lhs.isCompleted == rhs.isCompleted && lhs.isCoreToday == rhs.isCoreToday
-    }
-
     var id: String { definition.id }
     var title: String { definition.title }
     var detail: String { definition.subtitle }
@@ -82,6 +78,8 @@ final class QuestsViewModel: ObservableObject {
         "DAILY_HB_GENTLE_MOVEMENT",
         "DAILY_HB_GUT_CHECK",
         "DAILY_META_SETUP_COMPLETE",
+        "DAILY_META_STATS_TODAY",
+        "DAILY_META_REVIEW_YESTERDAY",
         "DAILY_EASY_TINY_TIDY",
         "DAILY_EASY_ONE_NICE_THING",
     ]
@@ -351,6 +349,13 @@ final class QuestsViewModel: ObservableObject {
         case .dailySetupCompleted:
             completeQuestIfNeeded(id: "DAILY_META_SETUP_COMPLETE")
             registerDailySetupDay()
+        case .statsViewed(let scope):
+            switch scope {
+            case .today:
+                completeQuestIfNeeded(id: "DAILY_META_STATS_TODAY")
+            case .yesterday:
+                completeQuestIfNeeded(id: "DAILY_META_REVIEW_YESTERDAY")
+            }
         }
     }
 
@@ -413,7 +418,7 @@ final class QuestsViewModel: ObservableObject {
         guard let newDefinition = replacementCandidates.first(where: { candidate in
             var updatedDefinitions = currentDefinitions
             updatedDefinitions[index] = candidate
-            return Self.meetsDailyBoardRules(definitions: updatedDefinitions)
+            return meetsDailyBoardRules(definitions: updatedDefinitions)
         }) else { return }
 
         dailyQuests[index] = Quest(

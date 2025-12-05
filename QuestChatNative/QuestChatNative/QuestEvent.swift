@@ -1,5 +1,10 @@
 import Foundation
 
+enum StatsScope: Hashable {
+    case today
+    case yesterday
+}
+
 enum QuestEvent {
     case questsTabOpened
     case focusSessionStarted(durationMinutes: Int)
@@ -13,4 +18,5 @@ enum QuestEvent {
     case hydrationGoalReached
     case hydrationGoalDayCompleted
     case dailySetupCompleted
+    case statsViewed(scope: StatsScope)
 }

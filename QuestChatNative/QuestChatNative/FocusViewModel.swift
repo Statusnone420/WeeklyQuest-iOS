@@ -1023,6 +1023,10 @@ final class SessionStatsStore: ObservableObject {
         return streak
     }
 
+    func dailyProgress(for date: Date) -> DailyProgress {
+        progressForDay(date)
+    }
+
     private func normalizedDate(_ date: Date) -> Date { Calendar.current.startOfDay(for: date) }
 
     private func focusSessionSeconds(on day: Date) -> Int {
