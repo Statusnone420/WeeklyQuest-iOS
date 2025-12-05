@@ -118,14 +118,31 @@ struct PlayerCardView: View {
                         .foregroundColor(.white)
                 }
 
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 8) {
                     TextField(QuestChatStrings.PlayerCard.namePlaceholder, text: $playerDisplayName)
                         .font(.title2.weight(.bold))
                         .textFieldStyle(.plain)
 
-                    Text("Level \(store.level)")
-                        .font(.subheadline.weight(.semibold))
-                        .foregroundStyle(.secondary)
+                    HStack(spacing: 8) {
+                        Text("Level \(store.level)")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.secondary)
+
+                        Spacer()
+
+                        Text("\(healthBarViewModel.currentHP) / \(healthBarViewModel.maxHP) HP")
+                            .font(.caption.bold())
+                            .foregroundStyle(.secondary)
+                    }
+
+                    RPGStatBar(
+                        iconName: "heart.fill",
+                        label: "HP",
+                        color: .red,
+                        progress: healthBarViewModel.hpProgress,
+                        segments: healthBarViewModel.hpSegments
+                    )
+                    .frame(height: 36)
 
                     Button {
                         isTitlePickerPresented = true

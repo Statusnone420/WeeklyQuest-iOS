@@ -17,7 +17,8 @@ struct PotionsCard: View {
             )
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(14)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(uiColor: .secondarySystemBackground).opacity(0.45))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
