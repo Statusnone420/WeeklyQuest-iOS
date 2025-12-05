@@ -301,7 +301,6 @@ enum QuestChatStrings {
         static let timerDurationsDescription = "Adjust each category directly from the Focus tab."
         static let hydrationToggleTitle = "Hydrate + posture nudges"
         static let hydrationToggleDescription = "In-app banners and local notifications when you cross focus milestones."
-        static let visitSite = "Visit questchat.app"
     }
 
     enum PlayerCard {

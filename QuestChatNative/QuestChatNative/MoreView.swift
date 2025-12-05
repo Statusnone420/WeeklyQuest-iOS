@@ -133,16 +133,6 @@ struct LegacyMoreContentView: View {
             .background(Color(uiColor: .secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 12))
 
-            Button {
-                if let url = URL(string: "https://questchat.app") {
-                    openURL(url)
-                }
-            } label: {
-                Label(QuestChatStrings.MoreView.visitSite, systemImage: "safari")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.mint)
         }
         .frame(maxWidth: .infinity)
     }
