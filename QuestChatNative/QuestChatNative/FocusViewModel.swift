@@ -10,7 +10,7 @@ enum FocusTimerMode: String, CaseIterable, Identifiable, Codable {
     case focus
     case selfCare
 
-    var id: String { displayName }
+    var id: String { rawValue }
 
     var title: String {
         switch self {
