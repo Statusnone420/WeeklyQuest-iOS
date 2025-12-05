@@ -135,7 +135,7 @@ enum QuestChatStrings {
     enum StatsView {
         static let navigationTitle = "Stats"
         static let headerTitle = "Experience"
-        static let headerSubtitle = "Everything is stored locally until Supabase sync lands."
+        static let headerSubtitle = "Everything is stored locally on your device."
         static let levelLabel = "Level"
         static func levelProgress(current: Int, total: Int) -> String {
             "\(current) / \(total) XP into this level"
