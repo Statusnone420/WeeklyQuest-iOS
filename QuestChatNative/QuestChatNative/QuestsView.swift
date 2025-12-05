@@ -100,7 +100,7 @@ private extension QuestsView {
                             .listRowBackground(Color.clear)
                     }
 
-                    ForEach(viewModel.weeklyQuests) { quest in
+                    ForEach(viewModel.sortedWeeklyQuests) { quest in
                         let isEventDriven = viewModel.isEventDrivenWeeklyQuest(quest)
                         QuestCardView(
                             quest: quest,
