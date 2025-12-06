@@ -123,6 +123,7 @@ private extension QuestsView {
                 }
                 .textCase(nil)
                 .listSectionSeparator(.hidden)
+
             }
         }
         .listStyle(.plain)

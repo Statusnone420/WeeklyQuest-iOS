@@ -13,6 +13,8 @@ struct MoreView: View {
 
                     hydrationSettingsCard
 
+                    aboutWeeklyQuestCard
+
                     moreComingTeaser
                 }
                 .padding()
@@ -197,6 +199,37 @@ struct MoreView: View {
         .padding()
         .background(Color(uiColor: .secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private var aboutWeeklyQuestCard: some View {
+        NavigationLink {
+            AboutHealthBarView()
+        } label: {
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "questionmark.circle")
+                    .font(.title3)
+                    .imageScale(.medium)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("What is WeeklyQuest?")
+                        .font(.headline)
+                    Text("Learn how the weekly questline works.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(uiColor: .secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
 
     private var moreComingTeaser: some View {
