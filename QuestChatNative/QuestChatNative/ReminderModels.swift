@@ -30,14 +30,14 @@ final class ReminderSettingsStore: ObservableObject {
 
     private let defaults: [ReminderType: ReminderSettings] = [
         .hydration: ReminderSettings(
-            enabled: true,
+            enabled: false,
             cadenceMinutes: 60,
             activeStartHour: 9,
             activeEndHour: 22,
             onlyDuringFocusSessions: false
         ),
         .posture: ReminderSettings(
-            enabled: true,
+            enabled: false,
             cadenceMinutes: 60,
             activeStartHour: 9,
             activeEndHour: 21,
