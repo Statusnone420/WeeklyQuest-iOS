@@ -5,6 +5,10 @@ enum HealthTrackingStorageKeys {
     static let sleepQualityDate = "sleepQualityDate"
     static let sleepQualityLogged = "sleepQualityLogged"
 
+    static let activityLevelValue = "activityLevelValue"
+    static let activityLevelDate = "activityLevelDate"
+    static let activityLevelLogged = "activityLevelLogged"
+
     static let waterGoalAwardDate = "waterGoalAwardDate"
     static let healthComboAwardDate = "healthComboAwardDate"
     static let hpCheckinQuestDate = "hpCheckinQuestDate"

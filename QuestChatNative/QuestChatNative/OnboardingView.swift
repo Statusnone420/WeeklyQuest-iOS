@@ -176,19 +176,20 @@ struct OnboardingView: View {
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(Color.white.opacity(0.8))
                     Spacer()
-                    Text(viewModel.selectedSleepValue.label)
+                    Text(HealthRatingMapper.label(for: HealthRatingMapper.rating(for: viewModel.selectedSleepValue)))
                         .font(.subheadline.weight(.semibold))
                         .foregroundColor(Color.white.opacity(0.8))
                 }
 
                 Slider(value: Binding<Double>(
-                    get: { Double(viewModel.selectedSleepValue.rawValue) },
+                    get: { Double(HealthRatingMapper.rating(for: viewModel.selectedSleepValue)) },
                     set: { newValue in
-                        if let quality = SleepQuality(rawValue: Int(newValue)) {
+                        let rating = Int(newValue)
+                        if let quality = HealthRatingMapper.sleepQuality(for: rating) {
                             viewModel.selectedSleepValue = quality
                         }
                     }
-                ), in: 0...Double(SleepQuality.allCases.count - 1), step: 1)
+                ), in: 1...5, step: 1)
             }
 
             primaryButton(title: "Next", isDisabled: viewModel.selectedMoodState == .none || viewModel.selectedGutState == .none) {
@@ -216,7 +217,7 @@ struct OnboardingView: View {
                 summaryRow(title: "Water goal", value: "\(viewModel.selectedHydrationGoalCups) cups")
                 summaryRow(title: "Mood", value: label(for: viewModel.selectedMoodState))
                 summaryRow(title: "Gut", value: label(for: viewModel.selectedGutState))
-                summaryRow(title: "Sleep", value: viewModel.selectedSleepValue.label)
+                summaryRow(title: "Sleep", value: HealthRatingMapper.label(for: HealthRatingMapper.rating(for: viewModel.selectedSleepValue)))
             }
             .padding(18)
             .frame(maxWidth: .infinity, alignment: .leading)

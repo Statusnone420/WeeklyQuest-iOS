@@ -1251,6 +1251,12 @@ final class FocusViewModel: ObservableObject {
             evaluateHealthXPBonuses()
         }
     }
+    @Published var activityLevel: ActivityLevel? {
+        didSet {
+            guard !isLoadingActivityData else { return }
+            persistActivityLevelSelection()
+        }
+    }
     @Published var totalWaterOuncesToday: Int = 0
     @Published var totalComfortOuncesToday: Int = 0
     @Published private var waterGoalXPGrantedToday = false
@@ -1283,6 +1289,7 @@ final class FocusViewModel: ObservableObject {
     let reminderEventsStore: ReminderEventsStore
     let seasonAchievementsStore: SeasonAchievementsStore
     let sleepHistoryStore: SleepHistoryStore
+    let activityHistoryStore: ActivityHistoryStore
     private var cancellables = Set<AnyCancellable>()
     private var healthBarViewModel: HealthBarViewModel?
 
@@ -1315,6 +1322,8 @@ final class FocusViewModel: ObservableObject {
     private var activeSessionDuration: Int?
     private var hasLoggedSleepQualityToday = false
     private var isLoadingSleepData = false
+    private var hasLoggedActivityToday = false
+    private var isLoadingActivityData = false
 
     init(
         statsStore: SessionStatsStore = DependencyContainer.shared.sessionStatsStore,
@@ -1327,6 +1336,7 @@ final class FocusViewModel: ObservableObject {
         reminderEventsStore: ReminderEventsStore = ReminderEventsStore(),
         seasonAchievementsStore: SeasonAchievementsStore = DependencyContainer.shared.seasonAchievementsStore,
         sleepHistoryStore: SleepHistoryStore = DependencyContainer.shared.sleepHistoryStore,
+        activityHistoryStore: ActivityHistoryStore = DependencyContainer.shared.activityHistoryStore,
         initialMode: FocusTimerMode = .focus
     ) {
         // Assign non-dependent stored properties first
@@ -1340,6 +1350,7 @@ final class FocusViewModel: ObservableObject {
         self.reminderEventsStore = reminderEventsStore
         self.seasonAchievementsStore = seasonAchievementsStore
         self.sleepHistoryStore = sleepHistoryStore
+        self.activityHistoryStore = activityHistoryStore
         self.currentHP = healthStatsStore.currentHP
         hpCheckinQuestSentDate = userDefaults.object(forKey: HealthTrackingStorageKeys.hpCheckinQuestDate) as? Date
         // Defer syncing player HP until after initialization completes to avoid using self too early.
@@ -1409,6 +1420,7 @@ final class FocusViewModel: ObservableObject {
 
         refreshDailyHealthBonusState()
         loadSleepQuality()
+        loadActivityLevel()
         refreshReminderScheduling()
     }
 
@@ -2411,6 +2423,48 @@ final class FocusViewModel: ObservableObject {
         }
 
         isLoadingSleepData = false
+    }
+
+    private func persistActivityLevelSelection() {
+        guard let activityLevel else {
+            clearActivityLevel()
+            return
+        }
+
+        let today = Calendar.current.startOfDay(for: Date())
+        userDefaults.set(activityLevel.rawValue, forKey: HealthTrackingStorageKeys.activityLevelValue)
+        userDefaults.set(today, forKey: HealthTrackingStorageKeys.activityLevelDate)
+        userDefaults.set(today, forKey: HealthTrackingStorageKeys.activityLevelLogged)
+        hasLoggedActivityToday = true
+        activityHistoryStore.record(level: activityLevel, date: today)
+    }
+
+    private func loadActivityLevel() {
+        isLoadingActivityData = true
+        let today = Calendar.current.startOfDay(for: Date())
+
+        if
+            let storedDate = userDefaults.object(forKey: HealthTrackingStorageKeys.activityLevelDate) as? Date,
+            Calendar.current.isDate(storedDate, inSameDayAs: today),
+            let storedLevel = ActivityLevel(rawValue: userDefaults.integer(forKey: HealthTrackingStorageKeys.activityLevelValue))
+        {
+            activityLevel = storedLevel
+            hasLoggedActivityToday = isDate(userDefaults.object(forKey: HealthTrackingStorageKeys.activityLevelLogged) as? Date, inSameDayAs: today)
+        } else {
+            activityLevel = nil
+            hasLoggedActivityToday = false
+        }
+
+        isLoadingActivityData = false
+    }
+
+    private func clearActivityLevel() {
+        let today = Calendar.current.startOfDay(for: Date())
+        userDefaults.removeObject(forKey: HealthTrackingStorageKeys.activityLevelValue)
+        userDefaults.removeObject(forKey: HealthTrackingStorageKeys.activityLevelDate)
+        userDefaults.removeObject(forKey: HealthTrackingStorageKeys.activityLevelLogged)
+        hasLoggedActivityToday = false
+        activityHistoryStore.removeRecord(on: today)
     }
 
     private func evaluateHealthXPBonuses() {

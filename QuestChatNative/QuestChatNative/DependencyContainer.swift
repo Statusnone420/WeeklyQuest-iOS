@@ -12,6 +12,7 @@ final class DependencyContainer {
     let reminderSettingsStore: ReminderSettingsStore
     let reminderEventsStore: ReminderEventsStore
     let sleepHistoryStore: SleepHistoryStore
+    let activityHistoryStore: ActivityHistoryStore
     let seasonAchievementsStore: SeasonAchievementsStore
     let questEngine: QuestEngine
 
@@ -32,6 +33,7 @@ final class DependencyContainer {
         reminderSettingsStore = ReminderSettingsStore()
         reminderEventsStore = ReminderEventsStore()
         sleepHistoryStore = SleepHistoryStore()
+        activityHistoryStore = ActivityHistoryStore()
         seasonAchievementsStore = SeasonAchievementsStore()
         questEngine = QuestEngine()
 
@@ -52,7 +54,8 @@ final class DependencyContainer {
             reminderSettingsStore: reminderSettingsStore,
             reminderEventsStore: reminderEventsStore,
             seasonAchievementsStore: seasonAchievementsStore,
-            sleepHistoryStore: sleepHistoryStore
+            sleepHistoryStore: sleepHistoryStore,
+            activityHistoryStore: activityHistoryStore
         )
         questsViewModel = QuestsViewModel(statsStore: sessionStatsStore, questEngine: questEngine)
         statsViewModel = StatsViewModel(
