@@ -197,6 +197,10 @@ struct FocusView: View {
         .onAppear {
             statsStore.refreshDailySetupIfNeeded()
         }
+        .overlay(alignment: .bottomTrailing) {
+            settingsGearButton
+                .padding(20)
+        }
     }
 
     @ViewBuilder
@@ -256,6 +260,7 @@ struct FocusView: View {
 
             settingsGearButton
         }
+        .foregroundStyle(.mint)
     }
 
     private func headerItem(title: String, value: String, icon: String, tint: Color) -> some View {
