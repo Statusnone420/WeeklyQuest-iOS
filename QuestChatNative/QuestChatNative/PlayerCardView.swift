@@ -59,15 +59,28 @@ struct PlayerCardView: View {
     }
 
     var body: some View {
-        Group {
-            if isEmbedded {
-                content
-            } else {
-                ScrollView(.vertical, showsIndicators: false) {
+        ZStack {
+            Group {
+                if isEmbedded {
                     content
+                } else {
+                    ScrollView(.vertical, showsIndicators: false) {
+                        content
+                    }
+                    .scrollDismissesKeyboard(.interactively)
+                    .ignoresSafeArea(.keyboard, edges: .bottom)
                 }
-                .scrollDismissesKeyboard(.interactively)
-                .ignoresSafeArea(.keyboard, edges: .bottom)
+            }
+
+            // Level-up overlay when Player Card is presented as a sheet
+            if let levelUp = store.pendingLevelUp {
+                LevelUpModalView(level: levelUp) {
+                    withAnimation(.easeInOut(duration: 0.25)) {
+                        store.pendingLevelUp = nil
+                    }
+                }
+                .zIndex(100)
+                .transition(.opacity.combined(with: .scale))
             }
         }
         .background(Color.black.ignoresSafeArea())
@@ -371,4 +384,3 @@ struct PlayerCardView: View {
         focusViewModel: container.focusViewModel
     )
 }
-

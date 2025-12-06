@@ -16,6 +16,10 @@ struct MoreView: View {
                     aboutWeeklyQuestCard
 
                     moreComingTeaser
+
+#if DEBUG
+                    debugToolsCard
+#endif
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
@@ -249,6 +253,58 @@ struct MoreView: View {
         .padding(.vertical, 24)
     }
 
+#if DEBUG
+    private var debugToolsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Debug tools")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+
+            Button {
+                let stats = DependencyContainer.shared.sessionStatsStore
+                stats.pendingLevelUp = max(1, stats.level + 1)
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(.mint)
+                    Text("Simulate Level Up")
+                        .font(.subheadline.bold())
+                    Spacer()
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.mint.opacity(0.18))
+                .foregroundStyle(.mint)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                let stats = DependencyContainer.shared.sessionStatsStore
+                stats.registerQuestCompleted(id: "DEBUG_XP_GRANT", xp: 500)
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundStyle(.mint)
+                    Text("Grant +500 XP")
+                        .font(.subheadline.bold())
+                    Spacer()
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.mint.opacity(0.18))
+                .foregroundStyle(.mint)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color(uiColor: .secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+#endif
+
     private var cadenceOptions: [Int] { [30, 45, 60, 90] }
     private var hourOptions: [Int] { Array(0...23) }
 
@@ -276,3 +332,4 @@ private enum HapticsService {
 #Preview {
     MoreView(viewModel: DependencyContainer.shared.moreViewModel)
 }
+
