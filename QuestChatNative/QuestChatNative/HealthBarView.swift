@@ -130,6 +130,9 @@ struct HealthBarView: View {
                 segments: 10,
                 detailText: viewModel.hydrationSummaryText
             )
+            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: viewModel.hydrationProgress)
+            .scaleEffect(viewModel.hydrationProgressBump ? 1.02 : 1.0)
+            .animation(.easeOut(duration: 0.2), value: viewModel.hydrationProgressBump)
 
             StatusBarRow(
                 iconName: "moon.fill",

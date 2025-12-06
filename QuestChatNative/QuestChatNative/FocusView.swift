@@ -1,6 +1,28 @@
 import SwiftUI
 import UIKit
 
+private struct SipFeedbackOverlay: View {
+    let text: String
+    @State private var animate = false
+
+    var body: some View {
+        Text(text)
+            .font(.caption.bold())
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.cyan.opacity(0.2))
+            .foregroundStyle(.cyan)
+            .clipShape(Capsule())
+            .offset(y: animate ? -24 : 0)
+            .opacity(animate ? 0 : 1)
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.5)) {
+                    animate = true
+                }
+            }
+    }
+}
+
 struct FocusView: View {
     @StateObject var viewModel: FocusViewModel
     @ObservedObject var healthBarViewModel: HealthBarViewModel
@@ -641,6 +663,7 @@ struct FocusView: View {
             if event.type == .hydration {
                 Button("Took a sip") {
                     viewModel.logHydrationSip()
+                    viewModel.showSipFeedback("+1 oz")
                     viewModel.acknowledgeReminder(event)
                 }
             } else {
@@ -653,6 +676,13 @@ struct FocusView: View {
         .background(Color(uiColor: .secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .shadow(radius: 8)
+        .overlay(alignment: .topTrailing) {
+            if let feedback = viewModel.sipFeedback {
+                SipFeedbackOverlay(text: feedback)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .padding(.top, -8)
+            }
+        }
     }
 
     private func statPill(title: String, value: String) -> some View {

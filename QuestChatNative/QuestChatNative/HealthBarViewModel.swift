@@ -6,6 +6,10 @@ final class HealthBarViewModel: ObservableObject {
     @Published private(set) var inputs: DailyHealthInputs
     @Published private(set) var hp: Int = 40
     @Published private(set) var currentHP: Int = 40
+    @Published var hydrationProgressBump: Bool = false
+
+    // Accumulates partial ounces that haven't reached a full tap yet, persisted through inputs.
+    // Removed private var pendingOunces: Int = 0
 
     private let defaultMaxHP: Double = 100
 
@@ -33,6 +37,41 @@ final class HealthBarViewModel: ObservableObject {
         recalculate()
 
         bindStores()
+    }
+
+    /// Log an arbitrary number of ounces of water intake.
+    /// This converts ounces into taps based on the configured ouncesPerWaterTap, rounding to the nearest tap.
+    /// If no hydration settings are available, it falls back to 8 oz per tap.
+    func logHydration(ounces: Int) {
+        let perTap = hydrationSettingsStore?.ouncesPerWaterTap ?? 8
+        guard ounces > 0 else { return }
+        guard perTap > 0 else {
+            // Fallback: treat any positive ounces as a single tap.
+            inputs.hydrationCount += 1
+            recalculate()
+            save()
+            return
+        }
+
+        let beforeProgress = hydrationProgress
+
+        inputs.pendingHydrationOunces += ounces
+        let tapsToAdd = inputs.pendingHydrationOunces / perTap
+        if tapsToAdd > 0 {
+            inputs.hydrationCount += tapsToAdd
+            inputs.pendingHydrationOunces = inputs.pendingHydrationOunces % perTap
+            recalculate()
+            save()
+        } else {
+            // Save so pending ounces persist across restarts, and UI updates.
+            save()
+            objectWillChange.send()
+        }
+
+        let afterProgress = hydrationProgress
+        if afterProgress > beforeProgress {
+            hydrationProgressBump.toggle()
+        }
     }
 
     func logHydration() {
@@ -105,7 +144,7 @@ final class HealthBarViewModel: ObservableObject {
     var hydrationProgress: Double {
         let goal = hydrationSettingsStore?.dailyWaterGoalOunces ?? 0
         guard goal > 0 else { return 0 }
-        let intake = (inputs.hydrationCount) * (hydrationSettingsStore?.ouncesPerWaterTap ?? 0)
+        let intake = (inputs.hydrationCount) * (hydrationSettingsStore?.ouncesPerWaterTap ?? 0) + inputs.pendingHydrationOunces
         return clampProgress(Double(intake) / Double(goal))
     }
 
@@ -138,7 +177,7 @@ final class HealthBarViewModel: ObservableObject {
     }
 
     var hydrationSummaryText: String {
-        let intake = waterIntakeOuncesToday
+        let intake = (inputs.hydrationCount) * (hydrationSettingsStore?.ouncesPerWaterTap ?? 0) + inputs.pendingHydrationOunces
         let goal = hydrationSettingsStore?.dailyWaterGoalOunces ?? 0
         let goalText = goal > 0 ? " / \(goal) oz" : " oz"
         return "\(intake)\(goalText)"
@@ -167,7 +206,7 @@ final class HealthBarViewModel: ObservableObject {
     }
 
     private var waterIntakeOuncesToday: Int {
-        (inputs.hydrationCount) * (hydrationSettingsStore?.ouncesPerWaterTap ?? 0)
+        (inputs.hydrationCount) * (hydrationSettingsStore?.ouncesPerWaterTap ?? 0) + inputs.pendingHydrationOunces
     }
 
     var hpPercentage: Double {

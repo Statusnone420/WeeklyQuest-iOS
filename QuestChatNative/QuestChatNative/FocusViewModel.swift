@@ -1258,6 +1258,9 @@ final class FocusViewModel: ObservableObject {
     @Published var timerState: FocusTimerState = .idle
     @Published var remainingSeconds: Int = 0
     @Published var isActiveTimerExpanded: Bool = true
+    
+    // Added published property for hydration sip feedback
+    @Published var sipFeedback: String? = nil
 
     var onSessionComplete: (() -> Void)?
 
@@ -1658,6 +1661,14 @@ final class FocusViewModel: ObservableObject {
         guard let healthBarViewModel else { return }
 
         healthBarViewModel.logFocusSprint()
+    }
+    
+    // Added method to show sip feedback with auto-dismiss
+    func showSipFeedback(_ text: String) {
+        sipFeedback = text
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) { [weak self] in
+            self?.sipFeedback = nil
+        }
     }
 
     /// Starts the timer if currently idle or paused.
@@ -2734,16 +2745,6 @@ extension FocusViewModel {
 
 private extension FocusViewModel {
     func recordHydration(ounces: Int) {
-        // Route through the same path your other hydration logs use, but with a custom ounce value.
-        // If you have a dedicated method, call it here; otherwise, directly inform the hydration settings / stats.
-        // The implementation below should align with your existing logging side-effects.
-        self.healthBarViewModel?.logHydration()
-        // Assuming the statsStore needs to register hydration; if no such method exists, this should be adapted.
-        // For now, let's assume it exists:
-        if let statsStore = self.statsStore as? any AnyObject, statsStore.responds(to: Selector(("registerHydrationWithOunces:"))) {
-            // If a method registerHydration(ounces:) exists, call it
-            // This is pseudo-code because Swift does not support dynamic selectors like this directly.
-            // Please replace with actual method call if it exists.
-        }
+        healthBarViewModel?.logHydration(ounces: ounces)
     }
 }
