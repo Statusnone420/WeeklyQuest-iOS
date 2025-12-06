@@ -30,6 +30,10 @@ final class AppCoordinator: ObservableObject {
         )
     }
 
+    func makeTalentsView() -> some View {
+        TalentsView(viewModel: container.makeTalentsViewModel())
+    }
+
     private func resolveOnboardingViewModel() -> OnboardingViewModel {
         let viewModel = onboardingViewModel ?? container.makeOnboardingViewModel(onCompletion: { [weak self] in
             self?.markOnboardingComplete()

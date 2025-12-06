@@ -1,0 +1,133 @@
+import SwiftUI
+
+struct TalentsView: View {
+    @StateObject var viewModel: TalentsViewModel
+
+    private let columns: [GridItem] = Array(
+        repeating: GridItem(.flexible(), spacing: 12, alignment: .top),
+        count: 4
+    )
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                header
+
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(viewModel.nodes) { node in
+                        TalentNodeTile(
+                            node: node,
+                            rank: viewModel.rank(for: node),
+                            isUnlocked: viewModel.isUnlocked(node),
+                            canSpend: viewModel.canSpend(on: node)
+                        ) {
+                            viewModel.tap(node: node)
+                        }
+                    }
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("IRL Talent Tree")
+    }
+
+    private var header: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("IRL Talent Tree")
+                .font(.title2).bold()
+
+            HStack(spacing: 16) {
+                HStack(spacing: 4) {
+                    Text("Points:")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text("\(viewModel.availablePoints)")
+                        .font(.subheadline).bold()
+                }
+
+                HStack(spacing: 4) {
+                    Text("Spent:")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text("\(viewModel.pointsSpent)")
+                        .font(.subheadline)
+                }
+
+                Spacer()
+
+                Text("Lvl \(viewModel.level)")
+                    .font(.footnote)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(.thinMaterial)
+                    .clipShape(Capsule())
+            }
+        }
+    }
+}
+
+private struct TalentNodeTile: View {
+    let node: TalentNode
+    let rank: Int
+    let isUnlocked: Bool
+    let canSpend: Bool
+    let onTap: () -> Void
+
+    var body: some View {
+        Button(action: {
+            onTap()
+        }) {
+            VStack(spacing: 6) {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .strokeBorder(borderColor, lineWidth: 2)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(backgroundColor)
+                    )
+                    .overlay(
+                        Image(systemName: node.sfSymbolName)
+                            .font(.title3)
+                            .opacity(iconOpacity)
+                    )
+                    .aspectRatio(1, contentMode: .fit)
+
+                Text("\(rank)/\(node.maxRanks)")
+                    .font(.caption2)
+                    .foregroundStyle(rank > 0 ? .primary : .secondary)
+            }
+            .padding(4)
+        }
+        .buttonStyle(.plain)
+        .disabled(!canSpend)
+    }
+
+    private var borderColor: Color {
+        if rank >= node.maxRanks {
+            return .primary
+        } else if canSpend {
+            return .primary.opacity(0.9)
+        } else if isUnlocked {
+            return .secondary
+        } else {
+            return .secondary.opacity(0.4)
+        }
+    }
+
+    private var backgroundColor: Color {
+        if rank > 0 {
+            return Color.primary.opacity(0.12)
+        } else if canSpend {
+            return Color.primary.opacity(0.06)
+        } else {
+            return Color.clear
+        }
+    }
+
+    private var iconOpacity: Double {
+        if rank > 0 || canSpend {
+            return 1.0
+        } else {
+            return 0.35
+        }
+    }
+}

@@ -110,4 +110,8 @@ final class DependencyContainer {
     func makeDailyHealthRatingsStore() -> DailyHealthRatingsStore {
         dailyHealthRatingsStore
     }
+
+    func makeTalentsViewModel() -> TalentsViewModel {
+        TalentsViewModel(store: talentTreeStore)
+    }
 }
