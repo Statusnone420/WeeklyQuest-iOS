@@ -276,9 +276,15 @@ struct PlayerCardView: View {
         Binding<Int?>(
             get: { dailyRatingsStore.ratings().mood },
             set: { newValue in
+                let previous = dailyRatingsStore.ratings().mood
                 dailyRatingsStore.setMood(newValue)
                 let status = HealthRatingMapper.moodStatus(for: newValue)
                 healthBarViewModel.setMoodStatus(status)
+                if previous == nil, newValue != nil {
+                    // Complete Morning Check-In when mood is logged for the first time today.
+                    // This uses the canonical ratings store; HP tab already handles its own flow.
+                    DependencyContainer.shared.questsViewModel.completeQuestIfNeeded(id: "DAILY_HB_MORNING_CHECKIN")
+                }
             }
         )
     }

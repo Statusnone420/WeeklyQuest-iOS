@@ -493,7 +493,7 @@ final class QuestsViewModel: ObservableObject {
     }
 }
 
-private extension QuestsViewModel {
+extension QuestsViewModel {
     static let questChestBonusXP = 50
 
     static let desiredDailyQuestCount = 5
