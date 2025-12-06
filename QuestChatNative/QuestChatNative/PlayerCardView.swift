@@ -230,13 +230,41 @@ struct PlayerCardView: View {
         )
     }
 
-    private var sleepQualityBinding: Binding<Double> {
-        Binding<Double>(
-            get: { Double(focusViewModel.sleepQuality.rawValue) },
+    private var sleepQualityBinding: Binding<Int?> {
+        Binding<Int?>(
+            get: { HealthRatingMapper.rating(for: focusViewModel.sleepQuality) },
             set: { newValue in
-                if let quality = SleepQuality(rawValue: Int(newValue)) {
-                    focusViewModel.sleepQuality = quality
-                }
+                guard let rating = newValue, let quality = HealthRatingMapper.sleepQuality(for: rating) else { return }
+                focusViewModel.sleepQuality = quality
+            }
+        )
+    }
+
+    private var moodRatingBinding: Binding<Int?> {
+        Binding<Int?>(
+            get: { HealthRatingMapper.rating(for: healthBarViewModel.inputs.moodStatus) },
+            set: { newValue in
+                let status = HealthRatingMapper.moodStatus(for: newValue)
+                healthBarViewModel.setMoodStatus(status)
+            }
+        )
+    }
+
+    private var gutRatingBinding: Binding<Int?> {
+        Binding<Int?>(
+            get: { HealthRatingMapper.rating(for: healthBarViewModel.inputs.gutStatus) },
+            set: { newValue in
+                let status = HealthRatingMapper.gutStatus(for: newValue)
+                healthBarViewModel.setGutStatus(status)
+            }
+        )
+    }
+
+    private var activityRatingBinding: Binding<Int?> {
+        Binding<Int?>(
+            get: { HealthRatingMapper.rating(for: focusViewModel.activityLevel) },
+            set: { newValue in
+                focusViewModel.activityLevel = HealthRatingMapper.activityLevel(for: newValue)
             }
         )
     }
@@ -246,26 +274,45 @@ struct PlayerCardView: View {
             Text("Status")
                 .font(.headline)
 
-            GutStatusPicker(selected: healthBarViewModel.inputs.gutStatus) { status in
-                healthBarViewModel.setGutStatus(status)
-            }
+            RatingSliderRow(
+                title: "Mood",
+                systemImage: "face.smiling",
+                tint: .purple,
+                value: moodRatingBinding,
+                labels: ["Terrible", "Low", "Okay", "Good", "Great"],
+                allowsClearing: true,
+                valueDescription: { HealthRatingMapper.label(for: $0) }
+            )
 
-            MoodStatusPicker(selected: healthBarViewModel.inputs.moodStatus) { status in
-                healthBarViewModel.setMoodStatus(status)
-            }
+            RatingSliderRow(
+                title: "Gut",
+                systemImage: "heart.text.square",
+                tint: .orange,
+                value: gutRatingBinding,
+                labels: ["Terrible", "Low", "Okay", "Good", "Great"],
+                allowsClearing: true,
+                valueDescription: { HealthRatingMapper.label(for: $0) }
+            )
 
-            HStack(spacing: 12) {
-                Label("Sleep", systemImage: "bed.double.fill")
-                    .font(.caption)
-                    .foregroundStyle(.indigo)
-                    .frame(width: 70, alignment: .leading)
+            RatingSliderRow(
+                title: "Sleep",
+                systemImage: "bed.double.fill",
+                tint: .indigo,
+                value: sleepQualityBinding,
+                labels: ["Terrible", "Low", "Okay", "Good", "Great"],
+                allowsClearing: false,
+                valueDescription: { HealthRatingMapper.label(for: $0) }
+            )
 
-                Slider(value: sleepQualityBinding, in: 0...2, step: 1)
-
-                Text(focusViewModel.sleepQuality.label)
-                    .font(.subheadline.weight(.semibold))
-                    .frame(minWidth: 70, alignment: .trailing)
-            }
+            RatingSliderRow(
+                title: "Activity",
+                systemImage: "figure.walk",
+                tint: .green,
+                value: activityRatingBinding,
+                labels: ["Barely moved", "Low", "Some", "Active", "Very active"],
+                allowsClearing: true,
+                valueDescription: { HealthRatingMapper.activityLabel(for: $0) }
+            )
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
