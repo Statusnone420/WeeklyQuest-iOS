@@ -2017,16 +2017,8 @@ final class FocusViewModel: ObservableObject {
                     let remaining = max(Int(ceil(session.endDate.timeIntervalSince(date))), 0)
                     if remaining != self.remainingSeconds {
                         self.remainingSeconds = remaining
-                        if #available(iOS 17.0, *) {
-                            let title = self.selectedCategoryData?.id.title ?? self.selectedMode.title
-                            self.updateLiveActivity(
-                                isPaused: false,
-                                remaining: remaining,
-                                title: title,
-                                startDate: session.startDate,
-                                endDate: session.endDate
-                            )
-                        }
+                        // Live Activity kit updates are throttled: avoid per-second updates from the UI timer.
+                        // We update the live activity only on start/pause/resume/finish/restoration.
                     }
                 }
                 self.handleSessionCompletionIfNeeded()
