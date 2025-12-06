@@ -128,16 +128,12 @@ struct FocusView: View {
                         #endif
                     }
                     .padding(.horizontal, 20)
-                    .padding(.top, 8)
                     .padding(.bottom, 16)
                     .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
                 .scrollBounceBehavior(.basedOnSize)
                 .background(Color.black.ignoresSafeArea())
-                .navigationTitle(QuestChatStrings.FocusView.navigationTitle)
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbarBackground(Color.black, for: .navigationBar)
-                .toolbarColorScheme(.dark, for: .navigationBar)
+                .toolbar(.hidden, for: .navigationBar)
             }
             
             if let session = viewModel.lastCompletedSession {
@@ -160,6 +156,7 @@ struct FocusView: View {
                 .zIndex(3)
             }
             
+            /*
             if let event = viewModel.activeReminderEvent,
                let message = viewModel.activeReminderMessage {
                 reminderBanner(event: event, message: message)
@@ -168,6 +165,7 @@ struct FocusView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .zIndex(1)
             }
+            */
         }
         .onAppear {
             viewModel.handleAppear()
@@ -394,7 +392,6 @@ struct FocusView: View {
         )
         .shadow(color: Color.black.opacity(0.35), radius: 20, x: 0, y: 12)
         .shadow(color: Color.mint.opacity(0.22), radius: 14, x: 0, y: 8)
-        .padding(.top, 4)
         .scaleEffect(heroCardScale)
         .opacity(heroCardOpacity)
         .onAppear {
@@ -1011,3 +1008,4 @@ private struct DailySetupSheet: View {
         .background(Color.black)
         .previewDevice("iPhone 17 Pro Max")
 }
+

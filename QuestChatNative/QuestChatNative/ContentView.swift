@@ -1,5 +1,27 @@
 import SwiftUI
 
+private struct SipFeedbackOverlay: View {
+    let text: String
+    @State private var animate = false
+
+    var body: some View {
+        Text(text)
+            .font(.caption.bold())
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(Color.cyan.opacity(0.2))
+            .foregroundStyle(.cyan)
+            .clipShape(Capsule())
+            .offset(y: animate ? -24 : 0)
+            .opacity(animate ? 0 : 1)
+            .onAppear {
+                withAnimation(.easeOut(duration: 0.5)) {
+                    animate = true
+                }
+            }
+    }
+}
+
 enum MainTab: Hashable {
     case focus, health, quests, stats, more
 }
@@ -55,7 +77,8 @@ struct ContentView: View {
             .preferredColorScheme(.dark)
             .tint(.mint)
             .background(Color.black)
-
+        }
+        .safeAreaInset(edge: .top) {
             if let event = focusViewModel.activeReminderEvent,
                let message = focusViewModel.activeReminderMessage {
                 HStack(alignment: .top, spacing: 12) {
@@ -74,6 +97,7 @@ struct ContentView: View {
                     if event.type == .hydration {
                         Button("Took a sip") {
                             focusViewModel.logHydrationSip()
+                            focusViewModel.showSipFeedback("+1 oz")
                             focusViewModel.acknowledgeReminder(event)
                         }
                     } else {
@@ -87,17 +111,14 @@ struct ContentView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .shadow(radius: 8)
                 .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .zIndex(1)
-                .animation(.spring(), value: focusViewModel.activeReminderEvent != nil)
-                .gesture(
-                    DragGesture().onEnded { value in
-                        if value.translation.height < -20 {
-                            focusViewModel.acknowledgeReminder(event)
-                        }
+                .overlay(alignment: .topTrailing) {
+                    if let feedback = focusViewModel.sipFeedback {
+                        SipFeedbackOverlay(text: feedback)
+                            .transition(.move(edge: .top).combined(with: .opacity))
+                            .padding(.top, -8)
                     }
-                )
+                }
+                .zIndex(10)
             }
         }
     }
