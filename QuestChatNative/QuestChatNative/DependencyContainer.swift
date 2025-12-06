@@ -13,6 +13,7 @@ final class DependencyContainer {
     let reminderEventsStore: ReminderEventsStore
     let sleepHistoryStore: SleepHistoryStore
     let activityHistoryStore: ActivityHistoryStore
+    let dailyHealthRatingsStore: DailyHealthRatingsStore
     let seasonAchievementsStore: SeasonAchievementsStore
     let questEngine: QuestEngine
 
@@ -34,6 +35,7 @@ final class DependencyContainer {
         reminderEventsStore = ReminderEventsStore()
         sleepHistoryStore = SleepHistoryStore()
         activityHistoryStore = ActivityHistoryStore()
+        dailyHealthRatingsStore = DailyHealthRatingsStore()
         seasonAchievementsStore = SeasonAchievementsStore()
         questEngine = QuestEngine()
 
@@ -101,5 +103,8 @@ final class DependencyContainer {
             selectedTab: .constant(.health)
         )
     }
-}
 
+    func makeDailyHealthRatingsStore() -> DailyHealthRatingsStore {
+        dailyHealthRatingsStore
+    }
+}

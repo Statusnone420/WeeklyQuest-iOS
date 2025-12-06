@@ -5,13 +5,28 @@ struct PlayerCardView: View {
     @ObservedObject var statsViewModel: StatsViewModel
     @ObservedObject var healthBarViewModel: HealthBarViewModel
     @ObservedObject var focusViewModel: FocusViewModel
-    let isEmbedded: Bool = false
+    @ObservedObject var dailyRatingsStore: DailyHealthRatingsStore = DependencyContainer.shared.dailyHealthRatingsStore
+    let isEmbedded: Bool
     @State private var isTitlePickerPresented = false
     @State private var moodSliderValue: Int?
     @State private var gutSliderValue: Int?
     @State private var sleepSliderValue: Int?
 
     @AppStorage("playerDisplayName") private var playerDisplayName: String = QuestChatStrings.PlayerCard.defaultName
+
+    init(
+        store: SessionStatsStore,
+        statsViewModel: StatsViewModel,
+        healthBarViewModel: HealthBarViewModel,
+        focusViewModel: FocusViewModel,
+        isEmbedded: Bool = false
+    ) {
+        _store = ObservedObject(wrappedValue: store)
+        _statsViewModel = ObservedObject(wrappedValue: statsViewModel)
+        _healthBarViewModel = ObservedObject(wrappedValue: healthBarViewModel)
+        _focusViewModel = ObservedObject(wrappedValue: focusViewModel)
+        self.isEmbedded = isEmbedded
+    }
 
     private var content: some View {
         VStack(spacing: 20) {
@@ -257,21 +272,22 @@ struct PlayerCardView: View {
 
     private var sleepQualityBinding: Binding<Int?> {
         Binding<Int?>(
-            get: { sleepSliderValue ?? HealthRatingMapper.rating(for: focusViewModel.sleepQuality) },
+            get: { dailyRatingsStore.ratings().sleep },
             set: { newValue in
-                guard let rating = newValue, let quality = HealthRatingMapper.sleepQuality(for: rating) else { return }
-                sleepSliderValue = rating
-                focusViewModel.sleepQuality = quality
+                dailyRatingsStore.setSleep(newValue)
+                if let rating = newValue, let quality = HealthRatingMapper.sleepQuality(for: rating) {
+                    focusViewModel.sleepQuality = quality
+                }
             }
         )
     }
 
     private var moodRatingBinding: Binding<Int?> {
         Binding<Int?>(
-            get: { moodSliderValue ?? HealthRatingMapper.rating(for: healthBarViewModel.inputs.moodStatus) },
+            get: { dailyRatingsStore.ratings().mood },
             set: { newValue in
+                dailyRatingsStore.setMood(newValue)
                 let status = HealthRatingMapper.moodStatus(for: newValue)
-                moodSliderValue = newValue
                 healthBarViewModel.setMoodStatus(status)
             }
         )
@@ -279,10 +295,10 @@ struct PlayerCardView: View {
 
     private var gutRatingBinding: Binding<Int?> {
         Binding<Int?>(
-            get: { gutSliderValue ?? HealthRatingMapper.rating(for: healthBarViewModel.inputs.gutStatus) },
+            get: { dailyRatingsStore.ratings().gut },
             set: { newValue in
+                dailyRatingsStore.setGut(newValue)
                 let status = HealthRatingMapper.gutStatus(for: newValue)
-                gutSliderValue = newValue
                 healthBarViewModel.setGutStatus(status)
             }
         )
@@ -290,8 +306,9 @@ struct PlayerCardView: View {
 
     private var activityRatingBinding: Binding<Int?> {
         Binding<Int?>(
-            get: { HealthRatingMapper.rating(for: focusViewModel.activityLevel) },
+            get: { dailyRatingsStore.ratings().activity },
             set: { newValue in
+                dailyRatingsStore.setActivity(newValue)
                 focusViewModel.activityLevel = HealthRatingMapper.activityLevel(for: newValue)
             }
         )
@@ -358,3 +375,4 @@ struct PlayerCardView: View {
         focusViewModel: container.focusViewModel
     )
 }
+

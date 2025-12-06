@@ -21,13 +21,6 @@ struct HealthBarView: View {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 20) {
                     healthHeaderCard
-                    PlayerCardView(
-                        store: statsStore,
-                        statsViewModel: statsViewModel,
-                        healthBarViewModel: viewModel,
-                        focusViewModel: focusViewModel,
-                        isEmbedded: true
-                    )
                     vitalsCard
                     PotionsCard(
                         onHealthTap: { focusViewModel.logComfortBeverageTapped() },
