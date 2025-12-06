@@ -71,17 +71,7 @@ struct PlayerCardView: View {
             }
         }
         .background(Color.black.ignoresSafeArea())
-        .onAppear {
-            if moodSliderValue == nil {
-                moodSliderValue = HealthRatingMapper.rating(for: healthBarViewModel.inputs.moodStatus)
-            }
-            if gutSliderValue == nil {
-                gutSliderValue = HealthRatingMapper.rating(for: healthBarViewModel.inputs.gutStatus)
-            }
-            if sleepSliderValue == nil {
-                sleepSliderValue = HealthRatingMapper.rating(for: focusViewModel.sleepQuality)
-            }
-        }
+        // Removed onAppear to rely solely on DailyHealthRatingsStore as canonical source for slider values
         .sheet(isPresented: $isTitlePickerPresented) {
             NavigationStack {
                 VStack(spacing: 16) {

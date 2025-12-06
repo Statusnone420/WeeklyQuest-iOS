@@ -66,7 +66,8 @@ final class DependencyContainer {
             seasonAchievementsStore: seasonAchievementsStore,
             playerTitleStore: playerTitleStore,
             statsStore: sessionStatsStore,
-            sleepHistoryStore: sleepHistoryStore
+            sleepHistoryStore: sleepHistoryStore,
+            dailyRatingsStore: dailyHealthRatingsStore
         )
         moreViewModel = MoreViewModel(
             hydrationSettingsStore: hydrationSettingsStore,

@@ -66,6 +66,7 @@ final class StatsViewModel: ObservableObject {
     private let playerTitleStore: PlayerTitleStore
     private let statsStore: SessionStatsStore
     private let sleepHistoryStore: SleepHistoryStore
+    private let dailyRatingsStore: DailyHealthRatingsStore
     private let weekdayFormatter: DateFormatter
     private let userDefaults: UserDefaults
     private let calendar = Calendar.current
@@ -78,6 +79,7 @@ final class StatsViewModel: ObservableObject {
         playerTitleStore: PlayerTitleStore,
         statsStore: SessionStatsStore,
         sleepHistoryStore: SleepHistoryStore,
+        dailyRatingsStore: DailyHealthRatingsStore,
         userDefaults: UserDefaults = .standard
     ) {
         self.healthStore = healthStore
@@ -86,6 +88,7 @@ final class StatsViewModel: ObservableObject {
         self.playerTitleStore = playerTitleStore
         self.statsStore = statsStore
         self.sleepHistoryStore = sleepHistoryStore
+        self.dailyRatingsStore = dailyRatingsStore
         self.userDefaults = userDefaults
         weekdayFormatter = DateFormatter()
         weekdayFormatter.locale = .current
@@ -154,13 +157,14 @@ final class StatsViewModel: ObservableObject {
     }
 
     var sleepProgress: Double {
-        guard let sleepQuality = todaysSleepQuality else { return 0 }
-        let normalized = Double(sleepQuality.rawValue) / Double(SleepQuality.allCases.count - 1)
+        let rating = dailyRatingsStore.ratings().sleep
+        guard let rating, let quality = HealthRatingMapper.sleepQuality(for: rating) else { return 0 }
+        let normalized = Double(quality.rawValue) / Double(SleepQuality.allCases.count - 1)
         return clampProgress(normalized)
     }
 
     var moodProgress: Double {
-        let mood = todaySummary?.lastMood ?? .none
+        let mood = HealthRatingMapper.moodStatus(for: dailyRatingsStore.ratings().mood)
         let value: Double = {
             switch mood {
             case .none:
@@ -264,6 +268,8 @@ final class StatsViewModel: ObservableObject {
         return SleepQuality(rawValue: userDefaults.integer(forKey: HealthTrackingStorageKeys.sleepQualityValue))
     }
 
+    // Removed `todaysSleepQuality` property. DailyHealthRatingsStore is now canonical source for today's ratings.
+
     private func refresh() {
         let sorted = healthStore.days.sorted { $0.date > $1.date }
         last7Days = Array(sorted.prefix(7))
@@ -331,15 +337,6 @@ final class StatsViewModel: ObservableObject {
     private var todaySummary: HealthDaySummary? {
         let today = calendar.startOfDay(for: Date())
         return healthStore.days.first { calendar.isDate($0.date, inSameDayAs: today) }
-    }
-
-    private var todaysSleepQuality: SleepQuality? {
-        guard
-            let storedDate = userDefaults.object(forKey: HealthTrackingStorageKeys.sleepQualityDate) as? Date,
-            calendar.isDate(storedDate, inSameDayAs: Date())
-        else { return nil }
-
-        return SleepQuality(rawValue: userDefaults.integer(forKey: HealthTrackingStorageKeys.sleepQualityValue))
     }
 
     private func hasActivity(on date: Date, progress: DailyProgress) -> Bool {

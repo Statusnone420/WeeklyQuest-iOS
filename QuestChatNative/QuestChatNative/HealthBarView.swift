@@ -7,6 +7,7 @@ struct HealthBarView: View {
     @ObservedObject var statsViewModel: StatsViewModel
     @Binding var selectedTab: MainTab
     @EnvironmentObject var questsViewModel: QuestsViewModel
+    @ObservedObject var dailyRatingsStore: DailyHealthRatingsStore = DependencyContainer.shared.dailyHealthRatingsStore
 
     init(viewModel: HealthBarViewModel, focusViewModel: FocusViewModel, statsStore: SessionStatsStore, statsViewModel: StatsViewModel, selectedTab: Binding<MainTab>) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -96,10 +97,15 @@ struct HealthBarView: View {
                 }
             }
 
+            let ratings = dailyRatingsStore.ratings()
+            let gutText = HealthRatingMapper.gutStatus(for: ratings.gut).displayText
+            let moodText = HealthRatingMapper.moodStatus(for: ratings.mood).displayText
+            let sleepText = HealthRatingMapper.label(for: ratings.sleep ?? 0)
+
             HStack(spacing: 10) {
-                statusBadge(title: "Gut", value: viewModel.gutStatusText, systemImage: "heart.text.square", tint: .orange)
-                statusBadge(title: "Mood", value: viewModel.moodStatusText, systemImage: "face.smiling", tint: .green)
-                statusBadge(title: "Sleep", value: viewModel.sleepStatusText, systemImage: "moon.fill", tint: .purple)
+                statusBadge(title: "Gut", value: gutText, systemImage: "heart.text.square", tint: .orange)
+                statusBadge(title: "Mood", value: moodText, systemImage: "face.smiling", tint: .green)
+                statusBadge(title: "Sleep", value: sleepText, systemImage: "moon.fill", tint: .purple)
             }
         }
         .padding(14)
@@ -202,4 +208,26 @@ struct HealthBarView: View {
         selectedTab: .constant(.health)
     )
     .environmentObject(container.questsViewModel)
+}
+
+private extension MoodStatus {
+    var displayText: String {
+        switch self {
+        case .good: return "Good"
+        case .neutral: return "Okay"
+        case .bad: return "Rough"
+        case .none: return "Not set"
+        }
+    }
+}
+
+private extension GutStatus {
+    var displayText: String {
+        switch self {
+        case .great: return "Great"
+        case .meh: return "Okay"
+        case .rough: return "Rough"
+        case .none: return "Not set"
+        }
+    }
 }
