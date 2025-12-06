@@ -195,13 +195,13 @@ final class SeasonAchievementsStore: ObservableObject {
 private extension SeasonAchievementsStore.FourRealmsCategory {
     init?(kind mode: TimerCategory.Kind) {
         switch mode {
-        case .deepFocus, .workSprint:
+        case .create, .focusMode:
             self = .work
-        case .choresSprint:
+        case .chores:
             self = .home
         case .selfCare:
             self = .health
-        case .gamingReset, .quickBreak:
+        case .gamingReset, .move:
             self = .chill
         }
     }

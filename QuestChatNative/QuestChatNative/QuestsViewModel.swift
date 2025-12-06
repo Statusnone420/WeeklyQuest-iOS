@@ -640,9 +640,9 @@ private extension QuestsViewModel {
         registerWeekendTimerIfNeeded(durationMinutes: durationMinutes, date: startOfDay)
     }
 
-    func isWorkCategory(_ category: TimerCategory.Kind) -> Bool { category == .workSprint || category == .deepFocus }
-    func isChoresCategory(_ category: TimerCategory.Kind) -> Bool { category == .choresSprint }
-    func isSelfCareCategory(_ category: TimerCategory.Kind) -> Bool { category == .selfCare || category == .quickBreak }
+    func isWorkCategory(_ category: TimerCategory.Kind) -> Bool { category == .focusMode || category == .create }
+    func isChoresCategory(_ category: TimerCategory.Kind) -> Bool { category == .chores }
+    func isSelfCareCategory(_ category: TimerCategory.Kind) -> Bool { category == .selfCare || category == .move }
     func isChillCategory(_ category: TimerCategory.Kind) -> Bool { category == .gamingReset }
 
     func registerWorkTimerProgress(durationMinutes: Int) {

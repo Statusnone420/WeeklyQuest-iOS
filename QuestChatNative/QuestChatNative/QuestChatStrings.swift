@@ -2,14 +2,14 @@ import Foundation
 
 enum QuestChatStrings {
     enum TimerCategories {
-        static let deepFocusTitle = "Create"
-        static let deepFocusSubtitle = "Be creative. Drawing, music, writing, crafts—just make stuff."
+        static let createTitle = "Create"
+        static let createSubtitle = "Be creative. Drawing, music, writing, crafts—just make stuff."
 
-        static let workSprintTitle = "Focus mode"
-        static let workSprintSubtitle = "Focus on something important—no doomscrolling."
+        static let focusModeTitle = "Focus mode"
+        static let focusModeSubtitle = "Focus on something important—no doomscrolling."
 
-        static let choresSprintTitle = "Chores"
-        static let choresSprintSubtitle = "Put the room back on your side."
+        static let choresTitle = "Chores"
+        static let choresSubtitle = "Put the room back on your side."
 
         static let selfCareTitle = "Self-care"
         static let selfCareSubtitle = "Hot shower, favorite drink, skincare—do something just for you."
@@ -17,8 +17,8 @@ enum QuestChatStrings {
         static let gamingResetTitle = "Gaming"
         static let gamingResetSubtitle = "Escape the world by entering a new one—guilt-free."
 
-        static let quickBreakTitle = "Move"
-        static let quickBreakSubtitle = "Dance, gym, walk, VR—just move your body."
+        static let moveTitle = "Move"
+        static let moveSubtitle = "Dance, gym, walk, VR—just move your body."
     }
 
     enum FocusTimerModeTitles {
@@ -242,8 +242,8 @@ enum QuestChatStrings {
         static let planTitle = "Plan one focus session"
         static let planDescription = "Pick a timer and commit to at least one run today."
 
-        static let deepFocusTitle = "Deep focus"
-        static let deepFocusDescription = "Commit to 25 distraction-free minutes."
+        static let deepFocusTitle = "Creativity boost"
+        static let deepFocusDescription = "Commit to 25 minutes of creativity. Make something awesome."
 
         static let gratitudeTitle = "Gratitude note"
         static let gratitudeDescription = "Write down one thing you're grateful for."

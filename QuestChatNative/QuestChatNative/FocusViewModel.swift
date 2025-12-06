@@ -97,69 +97,69 @@ enum SleepQuality: Int, CaseIterable, Identifiable {
 
 struct TimerCategory: Identifiable, Equatable {
     enum Kind: String, Codable {
-        case deepFocus
-        case workSprint
-        case choresSprint
+        case create
+        case focusMode
+        case chores
         case selfCare
         case gamingReset
-        case quickBreak
+        case move
 
         var title: String {
             switch self {
-            case .deepFocus:
-                return QuestChatStrings.TimerCategories.deepFocusTitle
-            case .workSprint:
-                return QuestChatStrings.TimerCategories.workSprintTitle
-            case .choresSprint:
-                return QuestChatStrings.TimerCategories.choresSprintTitle
+            case .create:
+                return QuestChatStrings.TimerCategories.createTitle
+            case .focusMode:
+                return QuestChatStrings.TimerCategories.focusModeTitle
+            case .chores:
+                return QuestChatStrings.TimerCategories.choresTitle
             case .selfCare:
                 return QuestChatStrings.TimerCategories.selfCareTitle
             case .gamingReset:
                 return QuestChatStrings.TimerCategories.gamingResetTitle
-            case .quickBreak:
-                return QuestChatStrings.TimerCategories.quickBreakTitle
+            case .move:
+                return QuestChatStrings.TimerCategories.moveTitle
             }
         }
 
         var subtitle: String {
             switch self {
-            case .deepFocus:
-                return QuestChatStrings.TimerCategories.deepFocusSubtitle
-            case .workSprint:
-                return QuestChatStrings.TimerCategories.workSprintSubtitle
-            case .choresSprint:
-                return QuestChatStrings.TimerCategories.choresSprintSubtitle
+            case .create:
+                return QuestChatStrings.TimerCategories.createSubtitle
+            case .focusMode:
+                return QuestChatStrings.TimerCategories.focusModeSubtitle
+            case .chores:
+                return QuestChatStrings.TimerCategories.choresSubtitle
             case .selfCare:
                 return QuestChatStrings.TimerCategories.selfCareSubtitle
             case .gamingReset:
                 return QuestChatStrings.TimerCategories.gamingResetSubtitle
-            case .quickBreak:
-                return QuestChatStrings.TimerCategories.quickBreakSubtitle
+            case .move:
+                return QuestChatStrings.TimerCategories.moveSubtitle
             }
         }
 
         var mode: FocusTimerMode {
             switch self {
-            case .deepFocus, .workSprint, .choresSprint:
+            case .create, .focusMode, .chores:
                 return .focus
-            case .selfCare, .gamingReset, .quickBreak:
+            case .selfCare, .gamingReset, .move:
                 return .selfCare
             }
         }
 
         var systemImageName: String {
             switch self {
-            case .deepFocus:
+            case .create:
                 return "brain.head.profile"
-            case .workSprint:
+            case .focusMode:
                 return "bolt.circle"
-            case .choresSprint:
+            case .chores:
                 return "house.fill"
             case .selfCare:
                 return "figure.mind.and.body"
             case .gamingReset:
                 return "gamecontroller"
-            case .quickBreak:
+            case .move:
                 return "figure.run"
             }
         }
@@ -1354,7 +1354,7 @@ final class FocusViewModel: ObservableObject {
         }
         self.categories = loadedCategories
 
-        let initialCategory = loadedCategories.first(where: { $0.id == .workSprint })
+        let initialCategory = loadedCategories.first(where: { $0.id == .focusMode })
             ?? loadedCategories.first { $0.id.mode == initialMode }
             ?? loadedCategories[0]
         self.selectedCategory = initialCategory.id
@@ -2068,7 +2068,7 @@ final class FocusViewModel: ObservableObject {
         if currentSession?.type == .focus {
             let durationMinutes = recordedDuration / 60
             statsStore.questEventHandler?(.focusSessionCompleted(durationMinutes: durationMinutes))
-            if activeSessionCategory == .choresSprint {
+            if activeSessionCategory == .chores {
                 statsStore.questEventHandler?(.choresTimerCompleted(durationMinutes: durationMinutes))
             }
         }
@@ -2099,7 +2099,7 @@ final class FocusViewModel: ObservableObject {
                 )
             }
 
-            if activeSessionCategory == .choresSprint, durationMinutes >= 10 {
+            if activeSessionCategory == .chores, durationMinutes >= 10 {
                 seasonAchievementsStore.applyProgress(
                     conditionType: .choreBlitzSessions,
                     amount: 1,
@@ -2707,10 +2707,10 @@ final class FocusViewModel: ObservableObject {
 extension FocusViewModel {
     static func seededCategories() -> [TimerCategory] {
         [
-            TimerCategory(id: .deepFocus, durationSeconds: 25 * 60),
-            TimerCategory(id: .quickBreak, durationSeconds: 20 * 60), // TEMP: Move uses .quickBreak category until a dedicated movement category exists.
-            TimerCategory(id: .choresSprint, durationSeconds: 15 * 60),
-            TimerCategory(id: .workSprint, durationSeconds: 45 * 60),
+            TimerCategory(id: .create, durationSeconds: 25 * 60),
+            TimerCategory(id: .move, durationSeconds: 20 * 60), // TEMP: Move uses .quickBreak category until a dedicated movement category exists.
+            TimerCategory(id: .chores, durationSeconds: 15 * 60),
+            TimerCategory(id: .focusMode, durationSeconds: 45 * 60),
             TimerCategory(id: .gamingReset, durationSeconds: 45 * 60),
             TimerCategory(id: .selfCare, durationSeconds: 20 * 60),
         ]

@@ -76,8 +76,8 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .medium,
             xpReward: 40,
-            title: "Deep Work Session",
-            subtitle: "Complete one Work timer for 40+ minutes.",
+            title: "Staying Focused",
+            subtitle: "Complete a focus mode timer for 40 or more minutes.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -87,8 +87,8 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .easy,
             xpReward: 20,
-            title: "Quick Win Work",
-            subtitle: "Finish a Work timer for 15+ minutes.",
+            title: "Focus Quickie",
+            subtitle: "Complete a focus mode timer for 15 or more minutes.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -98,8 +98,8 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .easy,
             xpReward: 20,
-            title: "Chores Burst",
-            subtitle: "Finish a Chores timer for 10+ minutes.",
+            title: "Quick Round of Chores",
+            subtitle: "Complete a chores timer for 10 or more minutes.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -110,7 +110,7 @@ enum QuestCatalog {
             difficulty: .medium,
             xpReward: 35,
             title: "Home Base Reset",
-            subtitle: "Finish a Chores timer for 25+ minutes.",
+            subtitle: "Complete a Chores timer for 25 or more minutes.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -121,7 +121,7 @@ enum QuestCatalog {
             difficulty: .medium,
             xpReward: 35,
             title: "Self-Care Session",
-            subtitle: "Finish a Self-Care timer for 20+ minutes.",
+            subtitle: "Finish a Self-Care timer for 20 or more minutes.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -132,7 +132,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 20,
             title: "Mindful Break",
-            subtitle: "Finish a Self-Care timer for 10+ minutes.",
+            subtitle: "Finish a Self-Care timer for 10 or more minutes.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -142,8 +142,8 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .medium,
             xpReward: 35,
-            title: "Focus Chain",
-            subtitle: "Complete any non-Chill timer 20+ minutes long with no pauses.",
+            title: "Creativity: Locked In",
+            subtitle: "Complete a creative timer for 20 minutes or more with no distractions.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -164,8 +164,8 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .hard,
             xpReward: 60,
-            title: "Boss Battle Session",
-            subtitle: "Complete a Work timer for 60+ minutes.",
+            title: "Focus Wizard",
+            subtitle: "(hard) Complete a focus mode timer for 60 or more minutes.",
             isOncePerDay: true,
             tier: .bonus
         ),
@@ -198,7 +198,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 15,
             title: "Sleep Log",
-            subtitle: "Log last night’s sleep hours.",
+            subtitle: "Go to Player Card and log how you slept last night.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -209,7 +209,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 15,
             title: "First Potion of the Day",
-            subtitle: "Log any hydration > 0 ml.",
+            subtitle: "Log any full glass (8oz) of water.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -231,7 +231,7 @@ enum QuestCatalog {
             difficulty: .medium,
             xpReward: 40,
             title: "Hydration Complete",
-            subtitle: "Reach 100% of hydration goal.",
+            subtitle: "Reach 100% of your hydration goal.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -242,7 +242,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 20,
             title: "Posture Check",
-            subtitle: "Complete one posture check.",
+            subtitle: "Acknowledge one posture check-in notification.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -264,7 +264,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 20,
             title: "Gut Check-In",
-            subtitle: "Log today’s gut health slider.",
+            subtitle: "Log today’s gut situation slider.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -275,7 +275,7 @@ enum QuestCatalog {
             difficulty: .medium,
             xpReward: 30,
             title: "Green HealthBar",
-            subtitle: "Have mood ≥ neutral, sleep ≥ threshold, hydration ≥ 50%.",
+            subtitle: "End the day with mood at least neutral sleep 'ok', and at least half your water goal.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -308,7 +308,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 15,
             title: "Player Card Check-In",
-            subtitle: "Open the Player Card screen.",
+            subtitle: "Open the Player Card screen in the stats tab.",
             isOncePerDay: true,
             tier: .core
         ),
@@ -319,7 +319,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 15,
             title: "Peek at the Numbers",
-            subtitle: "Open Stats for Today.",
+            subtitle: "Open Stats tab and view your progress for Today.",
             isOncePerDay: true,
             tier: .core
         ),
@@ -330,7 +330,7 @@ enum QuestCatalog {
             difficulty: .medium,
             xpReward: 25,
             title: "Adjust Your Goals",
-            subtitle: "Change ≥ 1 daily goal slider.",
+            subtitle: "Change 2 or more settings on your daily goal slider.",
             isOncePerDay: true,
             tier: .habit,
             completionMode: .manualDebug
@@ -342,7 +342,7 @@ enum QuestCatalog {
             difficulty: .medium,
             xpReward: 25,
             title: "Review Yesterday’s Run",
-            subtitle: "Open Stats and view yesterday.",
+            subtitle: "Open Stats and view yesterday's progress.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -375,7 +375,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 15,
             title: "Hydration Sip",
-            subtitle: "Log ≥ 100 ml of hydration.",
+            subtitle: "Log over half a cup (4oz) of hydration.",
             isOncePerDay: true,
             tier: .bonus
         ),
@@ -408,7 +408,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 20,
             title: "Open the Gates",
-            subtitle: "Open the app after 20 hours away.",
+            subtitle: "Open the app after 20 hours away. (why do I even have this one)",
             isOncePerDay: true,
             tier: .bonus
         )
@@ -422,7 +422,7 @@ enum QuestCatalog {
             difficulty: .tiny,
             xpReward: 10,
             title: "Load today’s quest log",
-            subtitle: "Open the quest log and decide what actually matters.",
+            subtitle: "Open the quest log and feel accomplished today.",
             isOncePerDay: true,
             tier: .core
         ),
@@ -433,7 +433,7 @@ enum QuestCatalog {
             difficulty: .medium,
             xpReward: 35,
             title: "Plan one focus session",
-            subtitle: "Start a focus timer that runs for at least 15 minutes today.",
+            subtitle: "Start a session timer that runs for at least 15 minutes today.",
             isOncePerDay: true,
             tier: .core
         ),
@@ -466,7 +466,7 @@ enum QuestCatalog {
             difficulty: .medium,
             xpReward: 35,
             title: "Finish one focus session",
-            subtitle: "Complete a focus timer that lasts 25 minutes or longer.",
+            subtitle: "Complete a session timer that lasts 25 minutes or longer.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -477,7 +477,7 @@ enum QuestCatalog {
             difficulty: .big,
             xpReward: 60,
             title: "Hit 25 focus minutes today",
-            subtitle: "Accumulate at least 25 minutes of focus time.",
+            subtitle: "Accumulate at least 25 minutes of session time.",
             isOncePerDay: true,
             tier: .bonus
         ),
@@ -557,7 +557,7 @@ enum QuestCatalog {
             difficulty: .hard,
             xpReward: 100,
             title: "Weekly focus marathon",
-            subtitle: "Hit 120 focus minutes this week.",
+            subtitle: "Hit 120 total session minutes this week.",
             isOncePerDay: false,
             tier: .bonus
         ),
@@ -568,7 +568,7 @@ enum QuestCatalog {
             difficulty: .hard,
             xpReward: 100,
             title: "Session grinder",
-            subtitle: "Complete 15 focus sessions this week.",
+            subtitle: "Complete 15 timed sessions this week.",
             isOncePerDay: false,
             tier: .bonus
         ),
@@ -626,8 +626,8 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .medium,
             xpReward: 120,
-            title: "Work Week Warrior",
-            subtitle: "Complete 5 Work timers of 25+ minutes this week.",
+            title: "Focus Consistency Champion",
+            subtitle: "Complete 5 focus mode timers of 25+ minutes this week.",
             isOncePerDay: false,
             tier: .bonus
         ),
@@ -637,8 +637,8 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .hard,
             xpReward: 200,
-            title: "Deep Work Week",
-            subtitle: "Accumulate 200+ Work minutes this week.",
+            title: "Look Ma, No Focus Meds!",
+            subtitle: "Accumulate 200 or more minutes of focus mode minutes this week.",
             isOncePerDay: false,
             tier: .bonus
         ),
