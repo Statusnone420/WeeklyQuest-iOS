@@ -340,5 +340,11 @@ final class StatsViewModel: ObservableObject {
     private func clampProgress(_ value: Double) -> Double {
         min(max(value, 0), 1)
     }
+    
+    func setBaseLevelTitle(_ title: String) {
+        // Update the base level title in the store and clear any override so base wins by default.
+        playerTitleStore.updateBaseLevelTitle(title)
+        equipBaseLevelTitle()
+    }
 
 }

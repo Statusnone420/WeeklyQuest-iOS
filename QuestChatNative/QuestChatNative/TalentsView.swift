@@ -4,11 +4,19 @@ import UIKit
 struct TalentsView: View {
     @StateObject var viewModel: TalentsViewModel
     @State private var isShowingRespecConfirm = false
+    @State private var tileFrames: [String: CGRect] = [:]
 
     private let columns: [GridItem] = Array(
         repeating: GridItem(.flexible(), spacing: 12, alignment: .top),
         count: 4
     )
+
+    private func popoverArrowEdge(for node: TalentNode) -> Edge {
+        guard let rect = tileFrames[node.id] else { return .top }
+        let screenHeight = UIScreen.main.bounds.height
+        let bottomSpace = screenHeight - rect.maxY
+        return bottomSpace < 240 ? .bottom : .top
+    }
 
     var body: some View {
         ScrollView {
@@ -38,6 +46,15 @@ struct TalentsView: View {
                                 }
                         )
                         .onAppear { TalentHaptics.prepareSelection() }
+                        .background(
+                            GeometryReader { proxy in
+                                Color.clear
+                                    .preference(key: TalentTileFramePreferenceKey.self, value: [node.id: proxy.frame(in: .global)])
+                            }
+                        )
+                        .onPreferenceChange(TalentTileFramePreferenceKey.self) { frames in
+                            for (id, rect) in frames { tileFrames[id] = rect }
+                        }
                         .popover(
                             item: Binding(
                                 get: {
@@ -51,7 +68,7 @@ struct TalentsView: View {
                                 }
                             ),
                             attachmentAnchor: .rect(.bounds),
-                            arrowEdge: .top
+                            arrowEdge: popoverArrowEdge(for: node)
                         ) { node in
                             TalentDetailPopover(
                                 node: node,
@@ -271,6 +288,13 @@ private struct TalentDetailPopover: View {
         )
         .onAppear { TalentHaptics.prepareSelection() }
         .onDisappear { TalentHaptics.prepareSelection() }
+    }
+}
+
+private struct TalentTileFramePreferenceKey: PreferenceKey {
+    static var defaultValue: [String: CGRect] = [:]
+    static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
     }
 }
 

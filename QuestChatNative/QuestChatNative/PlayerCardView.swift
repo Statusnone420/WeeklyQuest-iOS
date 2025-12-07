@@ -1,5 +1,48 @@
 import SwiftUI
 
+struct LevelTitleDefinition {
+    let minLevel: Int
+    let title: String
+}
+
+enum PlayerTitles {
+    static let rookie   = "Focus Rookie"      // 1–9
+    static let worker   = "Deep Worker"       // 10–19
+    static let knight   = "Quest Knight"      // 20–29
+    static let master   = "Flow Master"       // 30–39
+    static let sage     = "Time Sage"         // 40–49
+    static let fiend    = "Focus Fiend"       // 50–59
+    static let guardian = "Grind Guardian"    // 60–69
+    static let tyrant   = "Tempo Tyrant"      // 70–79
+    static let overlord = "Attention Overlord"// 80–89
+    static let noLifer  = "Focus No Lifer"    // 90–100
+}
+
+enum PlayerTitleConfig {
+    static let levelTitles: [LevelTitleDefinition] = [
+        .init(minLevel: 1,  title: PlayerTitles.rookie),
+        .init(minLevel: 10, title: PlayerTitles.worker),
+        .init(minLevel: 20, title: PlayerTitles.knight),
+        .init(minLevel: 30, title: PlayerTitles.master),
+        .init(minLevel: 40, title: PlayerTitles.sage),
+        .init(minLevel: 50, title: PlayerTitles.fiend),
+        .init(minLevel: 60, title: PlayerTitles.guardian),
+        .init(minLevel: 70, title: PlayerTitles.tyrant),
+        .init(minLevel: 80, title: PlayerTitles.overlord),
+        .init(minLevel: 90, title: PlayerTitles.noLifer)
+    ]
+
+    static func unlockedLevelTitles(for level: Int) -> [String] {
+        levelTitles
+            .filter { level >= $0.minLevel }
+            .map { $0.title }
+    }
+
+    static func bestTitle(for level: Int) -> String {
+        unlockedLevelTitles(for: level).last ?? PlayerTitles.rookie
+    }
+}
+
 struct PlayerCardView: View {
     @ObservedObject var store: SessionStatsStore
     @ObservedObject var statsViewModel: StatsViewModel
@@ -89,16 +132,17 @@ struct PlayerCardView: View {
             NavigationStack {
                 VStack(spacing: 16) {
                     List {
-                        if let base = statsViewModel.baseLevelTitle {
-                            Section("Level titles") {
+                        Section("Level titles") {
+                            ForEach(PlayerTitleConfig.unlockedLevelTitles(for: store.level), id: \.self) { title in
                                 Button {
-                                    statsViewModel.equipBaseLevelTitle()
+                                    // Treat level titles as the base track: clear any override and set base to this selection via the view model.
+                                    statsViewModel.setBaseLevelTitle(title)
                                     isTitlePickerPresented = false
                                 } label: {
                                     HStack {
-                                        Text(base)
+                                        Text(title)
                                         Spacer()
-                                        if statsViewModel.activeTitle == base {
+                                        if statsViewModel.activeTitle == title {
                                             Image(systemName: "checkmark.circle.fill")
                                                 .font(.subheadline)
                                         }
