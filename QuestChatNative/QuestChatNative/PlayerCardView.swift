@@ -54,6 +54,7 @@ struct PlayerCardView: View {
     @State private var moodSliderValue: Int?
     @State private var gutSliderValue: Int?
     @State private var sleepSliderValue: Int?
+    @State private var avatarSpin: Double = 0
 
     @AppStorage("playerDisplayName") private var playerDisplayName: String = QuestChatStrings.PlayerCard.defaultName
     @AppStorage("playerId") private var playerIdString: String = UUID().uuidString
@@ -250,6 +251,30 @@ struct PlayerCardView: View {
                     Image(systemName: style.symbolName)
                         .font(.title2.weight(.semibold))
                         .foregroundColor(.white)
+                        .rotationEffect(.degrees(avatarSpin))
+                        .scaleEffect(avatarSpin == 0 ? 1 : 1.06)
+                }
+                .overlay(alignment: .topTrailing) {
+                    Button {
+                        let newIndex = Int.random(in: 0..<avatarStyles.count)
+                        avatarStyleIndex = newIndex
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+                            avatarSpin += 360
+                        }
+                        // reset spin to avoid precision drift
+                        if avatarSpin >= 36000 { avatarSpin = 0 }
+                    } label: {
+                        Image(systemName: "dice.fill")
+                            .font(.caption2.bold())
+                            .foregroundStyle(.white)
+                            .padding(6)
+                            .background(Color.black.opacity(0.35))
+                            .clipShape(Circle())
+                            .shadow(radius: 4)
+                    }
+                    .buttonStyle(.plain)
+                    .offset(x: 6, y: -6)
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
