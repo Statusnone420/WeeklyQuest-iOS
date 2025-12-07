@@ -57,6 +57,7 @@ struct PlayerCardView: View {
 
     @AppStorage("playerDisplayName") private var playerDisplayName: String = QuestChatStrings.PlayerCard.defaultName
     @AppStorage("playerId") private var playerIdString: String = UUID().uuidString
+    @AppStorage("playerAvatarStyleIndex") private var avatarStyleIndex: Int = -1
 
     private struct AvatarStyle {
         let symbolName: String
@@ -74,12 +75,16 @@ struct PlayerCardView: View {
         AvatarStyle(symbolName: "leaf.fill",           colors: [.green, .teal]),
     ]
 
-    private func avatarStyle(for id: UUID) -> AvatarStyle {
+    private func deterministicAvatarIndex(from id: UUID) -> Int {
         let scalars = id.uuidString.unicodeScalars
         let hash = scalars.reduce(UInt32(0)) { partial, scalar in
             (partial &* 31) &+ scalar.value
         }
-        let index = Int(hash % UInt32(avatarStyles.count))
+        return Int(hash % UInt32(avatarStyles.count))
+    }
+
+    private func avatarStyle(for id: UUID) -> AvatarStyle {
+        let index = deterministicAvatarIndex(from: id)
         return avatarStyles[index]
     }
 
@@ -105,6 +110,13 @@ struct PlayerCardView: View {
         _healthBarViewModel = ObservedObject(wrappedValue: healthBarViewModel)
         _focusViewModel = ObservedObject(wrappedValue: focusViewModel)
         self.isEmbedded = isEmbedded
+
+        // Initialize persistent avatar style index once
+        if avatarStyleIndex < 0 || avatarStyleIndex >= avatarStyles.count {
+            // Prefer a deterministic choice from playerId; fallback to a random index if needed
+            let baseIndex = deterministicAvatarIndex(from: UUID(uuidString: playerIdString) ?? UUID())
+            avatarStyleIndex = baseIndex
+        }
     }
 
     private var content: some View {
@@ -221,7 +233,7 @@ struct PlayerCardView: View {
 
     private var headerCard: some View {
         VStack(alignment: .leading, spacing: 16) {
-            let style = avatarStyle(for: playerId)
+            let style = avatarStyles[max(0, min(avatarStyleIndex, avatarStyles.count - 1))]
 
             HStack(alignment: .center, spacing: 16) {
                 ZStack {
