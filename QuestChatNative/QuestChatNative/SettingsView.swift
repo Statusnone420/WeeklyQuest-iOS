@@ -118,14 +118,12 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                Toggle(isOn: settings.enabled) {
-                    EmptyView()
-                }
-                .labelsHidden()
-                .tint(.mint)
-                .onChange(of: settings.enabled.wrappedValue) { _ in
-                    HapticsService.lightImpact()
-                }
+                Toggle(title, isOn: settings.enabled)
+                    .labelsHidden()
+                    .tint(.mint)
+                    .onChange(of: settings.enabled.wrappedValue) { _ in
+                        HapticsService.lightImpact()
+                    }
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -205,7 +203,7 @@ struct SettingsView: View {
                     HStack {
                         Text("Water per tap")
                         Spacer()
-                        Text("\\(moreViewModel.ouncesPerWaterTap) oz")
+                        Text("\(moreViewModel.ouncesPerWaterTap) oz")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -214,7 +212,7 @@ struct SettingsView: View {
                     HStack {
                         Text("Comfort drink per tap")
                         Spacer()
-                        Text("\\(moreViewModel.ouncesPerComfortTap) oz")
+                        Text("\(moreViewModel.ouncesPerComfortTap) oz")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -223,7 +221,7 @@ struct SettingsView: View {
                     HStack {
                         Text("Daily water goal")
                         Spacer()
-                        Text("\\(moreViewModel.dailyWaterGoalOunces) oz")
+                        Text("\(moreViewModel.dailyWaterGoalOunces) oz")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -371,3 +369,4 @@ private enum HapticsService {
         )
     )
 }
+
