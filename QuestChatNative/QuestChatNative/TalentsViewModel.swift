@@ -72,15 +72,10 @@ final class TalentsViewModel: ObservableObject {
         }
     }
 
-    /// 1–10, based on percent of total ranks filled
+    /// 1–10, based on how many talents are fully mastered (every 2 mastered = +1 stage)
     var treeStage: Int {
-        let total = totalTalentRanks
-        guard total > 0 else { return 1 }
-
-        let progress = Double(masteredTalentRanks) / Double(total)
-        // progress 0.0–1.0 → stage 1–10
-        let raw = Int((progress * 9.0).rounded(.down)) + 1
-        return min(max(raw, 1), 10)
+        let stageFromMastery = masteredCount / 2 // 0..10
+        return min(max(stageFromMastery + 1, 1), 10)
     }
 
     func rank(for node: TalentNode) -> Int {

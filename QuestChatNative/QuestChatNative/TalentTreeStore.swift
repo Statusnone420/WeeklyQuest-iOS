@@ -34,6 +34,31 @@ final class TalentTreeStore: ObservableObject {
         max(totalPoints - spentPoints, 0)
     }
 
+    // Count how many talents are fully mastered (current rank >= maxRanks)
+    private var masteredTalentCount: Int {
+        nodes.reduce(0) { count, node in
+            let current = currentRanks[node.id] ?? 0
+            return current >= node.maxRanks ? count + 1 : count
+        }
+    }
+
+    // Stage index based on mastered talents: every 2 mastered talents advances one stage.
+    // This keeps compatibility with existing views that expect a stage index.
+    var treeStageIndex: Int {
+        // If there's an external array of stage images, replace 10 with its count.
+        let totalStages = 10
+        guard totalStages > 0 else { return 0 }
+        let stageFromMastery = masteredTalentCount / 2
+        return min(totalStages - 1, max(0, stageFromMastery))
+    }
+
+    // If callers use a 0–1 growth progress, keep it derived from the stage index.
+    var growthProgress: Double {
+        let totalStages = 10
+        guard totalStages > 1 else { return 0 }
+        return Double(treeStageIndex) / Double(totalStages - 1)
+    }
+
     func rank(for node: TalentNode) -> Int {
         currentRanks[node.id] ?? 0
     }
