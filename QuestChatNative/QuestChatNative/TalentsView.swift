@@ -195,9 +195,9 @@ private struct TalentTileView: View {
         GeometryReader { _ in
             let rect = RoundedRectangle(cornerRadius: 24, style: .continuous)
             rect
-                .stroke(Color.teal.opacity(pulse ? 0.0 : 0.6), lineWidth: 4)
-                .scaleEffect(pulse ? 1.25 : 1.0)
-                .opacity(pulse ? 0.0 : 1.0)
+                .stroke(Color.purple.opacity(0.6), lineWidth: 4)
+                .scaleEffect(pulse ? 1.18 : 0.9)
+                .opacity(pulse ? 1.0 : 0.0)   // only visible during pulse
         }
         .allowsHitTesting(false)
     }
@@ -214,7 +214,7 @@ private struct TalentTileView: View {
 
     private var borderColor: Color {
         if isMastered {
-            return .teal
+            return Color.purple.opacity(0.9)
         } else if canSpend {
             return .primary.opacity(0.9)
         } else if isUnlocked {
