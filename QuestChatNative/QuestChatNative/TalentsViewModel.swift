@@ -60,18 +60,27 @@ final class TalentsViewModel: ObservableObject {
         }
     }
 
-    // Convert masteredCount → stage index
-    var treeStage: Int {
-        switch masteredCount {
-        case 0...3:
-            return 1  // Stage 1
-        case 4...8:
-            return 2  // Stage 2
-        case 9...14:
-            return 3  // Stage 3
-        default:
-            return 4  // Stage 4
+    /// Total possible talent ranks in the tree
+    var totalTalentRanks: Int {
+        nodes.reduce(0) { $0 + $1.maxRanks }
+    }
+
+    /// How many ranks the player has actually put in
+    var masteredTalentRanks: Int {
+        nodes.reduce(0) { partial, node in
+            partial + rank(for: node)
         }
+    }
+
+    /// 1–10, based on percent of total ranks filled
+    var treeStage: Int {
+        let total = totalTalentRanks
+        guard total > 0 else { return 1 }
+
+        let progress = Double(masteredTalentRanks) / Double(total)
+        // progress 0.0–1.0 → stage 1–10
+        let raw = Int((progress * 9.0).rounded(.down)) + 1
+        return min(max(raw, 1), 10)
     }
 
     func rank(for node: TalentNode) -> Int {
