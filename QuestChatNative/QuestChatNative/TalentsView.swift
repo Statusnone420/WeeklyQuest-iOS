@@ -18,106 +18,107 @@ struct TalentsView: View {
         return bottomSpace < 240 ? .bottom : .top
     }
 
-    @ViewBuilder
-    private var backgroundAura: some View {
-        switch viewModel.masteryTier {
-        case 0:
-            Color.black
-
-        case 1:
-            LinearGradient(
-                colors: [
-                    Color.teal.opacity(0.12),
-                    Color.purple.opacity(0.16)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .overlay(Color.black.opacity(0.85))
-
-        default:
-            LinearGradient(
-                colors: [
-                    Color.teal.opacity(0.18),
-                    Color.purple.opacity(0.22)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .overlay(Color.black.opacity(0.78))
+    var body: some View {
+        ZStack {
+            talentTreeBackground
+            talentsContent
         }
+        .background(Color.black.ignoresSafeArea())
     }
 
-    var body: some View {
+    private var talentsContent: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                header
+
+                LazyVGrid(columns: columns, spacing: 12) {
+                    ForEach(viewModel.nodes) { node in
+                        TalentTileView(
+                            node: node,
+                            currentRank: viewModel.rank(for: node),
+                            isUnlocked: viewModel.isUnlocked(node),
+                            isMastered: viewModel.rank(for: node) == node.maxRanks,
+                            canSpend: viewModel.canSpend(on: node),
+                            masteryPulseID: $viewModel.masteryPulseID,
+                            onTap: {
+                                guard viewModel.canSpend(on: node) else { return }
+                                withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                                    viewModel.incrementRank(for: node)
+                                }
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            },
+                            onLongPress: {
+                                viewModel.selectedTalent = node
+                                UIImpactFeedbackGenerator(style: .soft).impactOccurred()
+                                TalentHaptics.prepareSelection()
+                            }
+                        )
+                        .onAppear { TalentHaptics.prepareSelection() }
+                        .background(
+                            GeometryReader { proxy in
+                                Color.clear
+                                    .preference(key: TalentTileFramePreferenceKey.self, value: [node.id: proxy.frame(in: .global)])
+                            }
+                        )
+                        .onPreferenceChange(TalentTileFramePreferenceKey.self) { frames in
+                            for (id, rect) in frames { tileFrames[id] = rect }
+                        }
+                        .popover(
+                            item: Binding(
+                                get: {
+                                    viewModel.selectedTalent?.id == node.id ? viewModel.selectedTalent : nil
+                                },
+                                set: { newValue in
+                                    if newValue == nil {
+                                        TalentHaptics.selectionChanged()
+                                        viewModel.selectedTalent = nil
+                                    }
+                                }
+                            ),
+                            attachmentAnchor: .rect(.bounds),
+                            arrowEdge: popoverArrowEdge(for: node)
+                        ) { node in
+                            TalentDetailPopover(
+                                node: node,
+                                currentRank: viewModel.rank(for: node)
+                            )
+                            .presentationCompactAdaptation(.none)
+                        }
+                    }
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("IRL Talent Tree")
+        .onAppear { TalentHaptics.prepareSelection() }
+    }
+
+    private var talentTreeBackground: some View {
         ZStack {
             backgroundAura
                 .ignoresSafeArea()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    header
+            GeometryReader { proxy in
+                let width = proxy.size.width
 
-                    LazyVGrid(columns: columns, spacing: 12) {
-                        ForEach(viewModel.nodes) { node in
-                            TalentTileView(
-                                node: node,
-                                currentRank: viewModel.rank(for: node),
-                                isUnlocked: viewModel.isUnlocked(node),
-                                isMastered: viewModel.rank(for: node) == node.maxRanks,
-                                canSpend: viewModel.canSpend(on: node),
-                                masteryPulseID: $viewModel.masteryPulseID,
-                                onTap: {
-                                    guard viewModel.canSpend(on: node) else { return }
-                                    withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                                        viewModel.incrementRank(for: node)
-                                    }
-                                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                                },
-                                onLongPress: {
-                                    viewModel.selectedTalent = node
-                                    UIImpactFeedbackGenerator(style: .soft).impactOccurred()
-                                    TalentHaptics.prepareSelection()
-                                }
-                            )
-                            .onAppear { TalentHaptics.prepareSelection() }
-                            .background(
-                                GeometryReader { proxy in
-                                    Color.clear
-                                        .preference(key: TalentTileFramePreferenceKey.self, value: [node.id: proxy.frame(in: .global)])
-                                }
-                            )
-                            .onPreferenceChange(TalentTileFramePreferenceKey.self) { frames in
-                                for (id, rect) in frames { tileFrames[id] = rect }
-                            }
-                            .popover(
-                                item: Binding(
-                                    get: {
-                                        viewModel.selectedTalent?.id == node.id ? viewModel.selectedTalent : nil
-                                    },
-                                    set: { newValue in
-                                        if newValue == nil {
-                                            TalentHaptics.selectionChanged()
-                                            viewModel.selectedTalent = nil
-                                        }
-                                    }
-                                ),
-                                attachmentAnchor: .rect(.bounds),
-                                arrowEdge: popoverArrowEdge(for: node)
-                            ) { node in
-                                TalentDetailPopover(
-                                    node: node,
-                                    currentRank: viewModel.rank(for: node)
-                                )
-                                .presentationCompactAdaptation(.none)
-                            }
-                        }
-                    }
+                VStack {
+                    Spacer()  // push tree toward bottom
+
+                    Image("TalentTreeStage1")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: width * 2.5)       // much wider — can extend under tab bar
+                        .offset(y: proxy.size.height * 0.12)                    // hug bottom; allowed under tab bar
+                        .opacity(0.5)
+                        .blendMode(.screen)
+                        .allowsHitTesting(false)
                 }
-                .padding()
+                .frame(width: proxy.size.width,
+                       height: proxy.size.height,
+                       alignment: .bottom)
             }
+            .ignoresSafeArea(edges: .bottom)
         }
-        .navigationTitle("IRL Talent Tree")
-        .onAppear { TalentHaptics.prepareSelection() }
     }
 
     private var header: some View {
@@ -170,6 +171,36 @@ struct TalentsView: View {
             }
         } message: {
             Text("This will clear all spent points so you can rebuild your tree.")
+        }
+    }
+
+    @ViewBuilder
+    private var backgroundAura: some View {
+        switch viewModel.masteryTier {
+        case 0:
+            Color.black
+
+        case 1:
+            LinearGradient(
+                colors: [
+                    Color.teal.opacity(0.12),
+                    Color.purple.opacity(0.16)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .overlay(Color.black.opacity(0.6))
+
+        default:
+            LinearGradient(
+                colors: [
+                    Color.teal.opacity(0.18),
+                    Color.purple.opacity(0.22)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .overlay(Color.black.opacity(0.55))
         }
     }
 }
