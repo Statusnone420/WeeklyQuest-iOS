@@ -104,14 +104,39 @@ struct TalentsView: View {
                 VStack {
                     Spacer()  // push tree toward bottom
 
-                    Image("TalentTreeStage1")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: width * 2.5)       // much wider — can extend under tab bar
-                        .offset(y: proxy.size.height * 0.12)                    // hug bottom; allowed under tab bar
-                        .opacity(0.5)
-                        .blendMode(.screen)
-                        .allowsHitTesting(false)
+                    ZStack {
+                        Image("TalentTreeStage1")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: width * 2.5)
+                            .offset(y: proxy.size.height * 0.12 + 16) // nudged down to match others
+                            .opacity(viewModel.treeStage == 1 ? 1 : 0)
+
+                        Image("TalentTreeStage2")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: width * 2.5)
+                            .offset(y: proxy.size.height * 0.12)
+                            .opacity(viewModel.treeStage == 2 ? 1 : 0)
+
+                        Image("TalentTreeStage3")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: width * 2.5)
+                            .offset(y: proxy.size.height * 0.12)
+                            .opacity(viewModel.treeStage == 3 ? 1 : 0)
+
+                        Image("TalentTreeStage4")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: width * 2.5)
+                            .offset(y: proxy.size.height * 0.12)
+                            .opacity(viewModel.treeStage == 4 ? 1 : 0)
+                    }
+                    .opacity(0.5)
+                    .blendMode(.screen)
+                    .allowsHitTesting(false)
+                    .animation(.easeInOut(duration: 0.45), value: viewModel.treeStage)
                 }
                 .frame(width: proxy.size.width,
                        height: proxy.size.height,

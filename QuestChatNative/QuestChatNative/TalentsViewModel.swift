@@ -46,7 +46,7 @@ final class TalentsViewModel: ObservableObject {
             .assign(to: &$level)
     }
 
-    /// Number of talents that are fully mastered (currentRank == maxRanks).
+    // How many mastered nodes the player has
     var masteredCount: Int {
         nodes.filter { rank(for: $0) >= $0.maxRanks }.count
     }
@@ -57,6 +57,20 @@ final class TalentsViewModel: ObservableObject {
         case 0...3: return 0      // no aura
         case 4...9: return 1      // soft aura
         default: return 2         // stronger aura
+        }
+    }
+
+    // Convert masteredCount → stage index
+    var treeStage: Int {
+        switch masteredCount {
+        case 0...3:
+            return 1  // Stage 1
+        case 4...8:
+            return 2  // Stage 2
+        case 9...14:
+            return 3  // Stage 3
+        default:
+            return 4  // Stage 4
         }
     }
 
