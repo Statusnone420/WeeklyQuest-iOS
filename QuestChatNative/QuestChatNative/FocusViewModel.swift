@@ -483,7 +483,7 @@ final class SessionStatsStore: ObservableObject {
         lastKnownLevel = storedLevel > 0 ? storedLevel : initialLevel
         pendingLevelUp = nil
 
-        talentTreeStore.applyLevel(progression.level)
+        talentTreeStore.applyLevel(computedProgression.level)
 
         let storedPlan = Self.decodePlan(from: userDefaults.data(forKey: Keys.dailyPlan))
             ?? Self.decodeLegacyConfig(from: userDefaults.data(forKey: Keys.legacyDailyConfig))
@@ -2857,3 +2857,4 @@ private extension FocusViewModel {
         healthBarViewModel?.logHydration(ounces: ounces)
     }
 }
+
