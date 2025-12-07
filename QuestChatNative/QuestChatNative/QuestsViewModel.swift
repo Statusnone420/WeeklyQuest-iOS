@@ -81,6 +81,8 @@ final class QuestsViewModel: ObservableObject {
     @Published private(set) var hasUsedRerollToday: Bool = false
     @Published var hasQuestChestReady: Bool = false
 
+    private var isSyncScheduled = false
+
     private let statsStore: SessionStatsStore
     private let questEngine: QuestEngine
     private let userDefaults: UserDefaults
@@ -397,6 +399,17 @@ final class QuestsViewModel: ObservableObject {
     }
 
     func syncQuestProgress() {
+        // Coalesce multiple sync requests within the same runloop to avoid stale reads and redundant work.
+        if isSyncScheduled { return }
+        isSyncScheduled = true
+        DispatchQueue.main.async { [weak self] in
+            self?.performSyncQuestProgress()
+        }
+    }
+
+    private func performSyncQuestProgress() {
+        isSyncScheduled = false
+
         dailyQuests = dailyQuests.map { quest in
             var updated = quest
             updated.target = 1
