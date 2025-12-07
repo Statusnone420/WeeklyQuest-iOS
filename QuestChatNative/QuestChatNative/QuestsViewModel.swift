@@ -75,6 +75,7 @@ final class QuestsViewModel: ObservableObject {
     }
 
     private var lastCompletionKey: String { "last-completion-\(completionKey)" }
+    private var dailyActiveKey: String { "daily-active-\(completionKey)" }
 
     @Published var dailyQuests: [Quest] = []
     @Published var weeklyQuests: [Quest] = []
@@ -197,7 +198,32 @@ final class QuestsViewModel: ObservableObject {
         self.userDefaults = userDefaults
         self.calendar = calendar
         dayReference = calendar.startOfDay(for: Date())
-        dailyQuests = Self.seedQuests(with: completedQuestIDs(for: dayReference, calendar: calendar, userDefaults: userDefaults))
+        
+        let completedToday = Self.completedQuestIDs(for: dayReference, calendar: calendar, userDefaults: userDefaults)
+        if let activeIDs = userDefaults.stringArray(forKey: dailyActiveKey), !activeIDs.isEmpty {
+            // Restore exact board
+            let pool = Self.activeDailyQuestPool
+            let byID = Dictionary(uniqueKeysWithValues: pool.map { ($0.id, $0) })
+            let restored: [Quest] = activeIDs.compactMap { id in
+                guard let def = byID[id] else { return nil }
+                return Quest(definition: def, isCompleted: completedToday.contains(id), isCoreToday: Self.requiredQuestIDs.contains(id))
+            }
+            if !restored.isEmpty {
+                dailyQuests = restored
+            } else {
+                dailyQuests = Self.seedQuests(with: completedToday)
+            }
+        } else {
+            dailyQuests = Self.seedQuests(with: completedToday)
+        }
+        // Persist the active board for the day
+        userDefaults.set(dailyQuests.map { $0.id }, forKey: dailyActiveKey)
+
+        #if DEBUG
+        let dateKey = Self.dateKey(for: dayReference, calendar: calendar)
+        print("DailyQuestStore: restoring \(dailyQuests.count) quests for \(dateKey)")
+        #endif
+
         hasUsedRerollToday = userDefaults.bool(forKey: rerollKey)
         hasQuestChestReady = userDefaults.bool(forKey: questChestReadyKey)
         checkQuestChestRewardIfNeeded()
@@ -226,6 +252,10 @@ final class QuestsViewModel: ObservableObject {
 
         statsStore.emitQuestProgressSnapshot()
         statsStore.updateDailyQuestsCompleted(completedQuestsCount, totalQuests: dailyQuests.count)
+
+        NotificationCenter.default.addObserver(forName: .gutRatingUpdated, object: nil, queue: .main) { [weak self] note in
+            self?.completeQuestIfNeeded(id: "DAILY_HB_GUT_CHECK")
+        }
 
         syncQuestProgress()
     }
@@ -455,20 +485,38 @@ final class QuestsViewModel: ObservableObject {
     }
 
     func reroll(quest: Quest) {
+        // EARLY RETURNS AS PER REQUEST
+        if dailyQuests.allSatisfy({ $0.isCompleted }) {
+            #if DEBUG
+            print("DailyQuestStore: reroll blocked — all quests already completed for \(Self.dateKey(for: dayReference, calendar: calendar)))")
+            #endif
+            return
+        }
+
+        // Re-fetch quest fresh by id to avoid stale state
+        guard let freshQuest = dailyQuests.first(where: { $0.id == quest.id }) else {
+            return
+        }
+        if freshQuest.isCompleted {
+            #if DEBUG
+            print("DailyQuestStore: reroll blocked — quest already completed: \(quest.id)")
+            #endif
+            return
+        }
+
         guard !hasUsedRerollToday else { return }
-        guard !quest.isCompleted else { return }
-        guard !Self.nonRerollableQuestIDs.contains(quest.id) else { return }
+        guard !freshQuest.isCompleted else { return }
+        // Removed guard against nonRerollableQuestIDs.contains(quest.id) to allow reroll for "plan-focus-session"
         guard let index = dailyQuests.firstIndex(where: { $0.id == quest.id }) else { return }
 
         let currentIDs = Set(dailyQuests.map { $0.id })
-        let completedToday = completedQuestIDs(for: dayReference, calendar: calendar, userDefaults: userDefaults)
+        let completedToday = Self.completedQuestIDs(for: dayReference, calendar: calendar, userDefaults: userDefaults)
         let currentDefinitions = dailyQuests.map { $0.definition }
 
         let preferredPool = Self.activeDailyQuestPool.filter { candidate in
             candidate.id != quest.id &&
                 !currentIDs.contains(candidate.id) &&
                 !completedToday.contains(candidate.id) &&
-                !Self.nonRerollableQuestIDs.contains(candidate.id) &&
                 candidate.category == quest.category &&
                 candidate.difficulty == quest.difficulty
         }
@@ -476,20 +524,55 @@ final class QuestsViewModel: ObservableObject {
         let fallbackPool = Self.activeDailyQuestPool.filter { candidate in
             candidate.id != quest.id &&
                 !currentIDs.contains(candidate.id) &&
-                !completedToday.contains(candidate.id) &&
-                !Self.nonRerollableQuestIDs.contains(candidate.id)
+                !completedToday.contains(candidate.id)
         }
 
-        let replacementCandidates = preferredPool.isEmpty ? fallbackPool : preferredPool
+        var newDefinition: QuestDefinition? = nil
+        var mode = "none"
 
-        guard let newDefinition = replacementCandidates.first(where: { candidate in
+        // Try preferred pool with board rules
+        newDefinition = preferredPool.first(where: { candidate in
             var updatedDefinitions = currentDefinitions
             updatedDefinitions[index] = candidate
             return Self.meetsDailyBoardRules(definitions: updatedDefinitions)
-        }) else { return }
+        })
+
+        if let def = newDefinition {
+            mode = "preferred"
+        } else {
+            // Try fallback pool with board rules
+            newDefinition = fallbackPool.first(where: { candidate in
+                var updatedDefinitions = currentDefinitions
+                updatedDefinitions[index] = candidate
+                return Self.meetsDailyBoardRules(definitions: updatedDefinitions)
+            })
+            if let def = newDefinition {
+                mode = "fallback"
+            }
+        }
+
+        if newDefinition == nil {
+            // Final fallback: pick any candidate from active pool not current and not same id, without board rules
+            newDefinition = Self.activeDailyQuestPool.first(where: { candidate in
+                candidate.id != quest.id && !currentIDs.contains(candidate.id)
+            })
+            if newDefinition != nil {
+                mode = "final"
+            }
+        }
+
+        guard let replacement = newDefinition else { return }
+
+        // Re-check quest completion before applying replacement to avoid race conditions
+        guard let freshQuestAfterSelection = dailyQuests.first(where: { $0.id == quest.id }), !freshQuestAfterSelection.isCompleted else {
+            #if DEBUG
+            print("DailyQuestStore: reroll blocked — quest already completed: \(quest.id)")
+            #endif
+            return
+        }
 
         dailyQuests[index] = Quest(
-            definition: newDefinition,
+            definition: replacement,
             isCompleted: false,
             isCoreToday: false
         )
@@ -497,6 +580,12 @@ final class QuestsViewModel: ObservableObject {
         hasUsedRerollToday = true
         userDefaults.set(true, forKey: rerollKey)
         persistCompletions()
+        userDefaults.set(dailyQuests.map { $0.id }, forKey: dailyActiveKey)
+
+        #if DEBUG
+        let dateKey = Self.dateKey(for: dayReference, calendar: calendar)
+        print("DailyQuestStore: rerolled quest \(quest.id) -> \(replacement.id) for \(dateKey) [mode: \(mode)]")
+        #endif
 
         if let focusArea = statsStore.todayPlan?.focusArea, !statsStore.shouldShowDailySetup {
             markCoreQuests(for: focusArea)
@@ -546,6 +635,11 @@ extension QuestsViewModel {
     ]
 
     static func seedQuests(with completedIDs: Set<String>) -> [Quest] {
+        #if DEBUG
+        // This path seeds the daily board (reroll) for the active date.
+        let todayKey = dateKey(for: Date(), calendar: .current)
+        print("DailyQuestStore: rerolling daily quests for new date \(todayKey)")
+        #endif
         var selectedDefinitions: [QuestDefinition] = requiredQuestIDs.compactMap { id in
             activeDailyQuestPool.first(where: { $0.id == id })
         }
@@ -759,8 +853,8 @@ extension QuestsViewModel {
         }
     }
 
-    func completedQuestIDs(for date: Date, calendar: Calendar, userDefaults: UserDefaults) -> Set<String> {
-        let key = Self.dateKey(for: date, calendar: calendar)
+    static func completedQuestIDs(for date: Date, calendar: Calendar, userDefaults: UserDefaults) -> Set<String> {
+        let key = dateKey(for: date, calendar: calendar)
         return Set(userDefaults.stringArray(forKey: key) ?? [])
     }
 
@@ -1000,7 +1094,7 @@ extension QuestsViewModel {
             if calendar.isDate(dayStart, inSameDayAs: dayReference) {
                 counts[dayStart] = dailyQuests.filter { $0.isCompleted }.count
             } else {
-                counts[dayStart] = completedQuestIDs(for: dayStart, calendar: calendar, userDefaults: userDefaults).count
+                counts[dayStart] = Self.completedQuestIDs(for: dayStart, calendar: calendar, userDefaults: userDefaults).count
             }
         }
 
@@ -1066,7 +1160,7 @@ extension QuestsViewModel {
         if let startOfWeek = calendar.date(from: calendar.dateComponents([.weekOfYear, .yearForWeekOfYear], from: dayReference)) {
             for offset in 0..<7 {
                 guard let date = calendar.date(byAdding: .day, value: offset, to: startOfWeek) else { continue }
-                let completedIDs = completedQuestIDs(for: date, calendar: calendar, userDefaults: userDefaults)
+                let completedIDs = Self.completedQuestIDs(for: date, calendar: calendar, userDefaults: userDefaults)
                 if completedIDs.contains("healthbar-checkin") {
                     combined.insert(date)
                 }
@@ -1230,8 +1324,8 @@ extension QuestsViewModel {
     }
 
     static let requiredQuestIDs: [String] = ["daily-checkin"]
-    static let preferredQuestIDs: [String] = ["plan-focus-session", "healthbar-checkin"]
-    static let nonRerollableQuestIDs: Set<String> = Set(requiredQuestIDs + preferredQuestIDs)
+    static let preferredQuestIDs: [String] = ["healthbar-checkin"]
+    static let nonRerollableQuestIDs: Set<String> = []  // Changed to empty set
 
     static let weeklyHydrationGoalTarget = 4
     static let weeklyHPCheckinTarget = 4
@@ -1239,4 +1333,3 @@ extension QuestsViewModel {
     static let weeklyFocusMinutesTarget = 120
     static let weeklyFocusSessionTarget = 15
 }
-

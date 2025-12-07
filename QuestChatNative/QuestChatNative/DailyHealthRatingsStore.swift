@@ -1,6 +1,10 @@
 import Foundation
 import Combine
 
+extension Notification.Name {
+    static let gutRatingUpdated = Notification.Name("gutRatingUpdated")
+}
+
 struct DailyHealthRatings: Codable {
     var mood: Int?      // 1–5, nil means Not set
     var gut: Int?
@@ -19,6 +23,7 @@ final class DailyHealthRatingsStore: ObservableObject {
     private let calendar = Calendar.current
 
     @Published private(set) var ratingsByDay: [Date: DailyHealthRatings] = [:]
+    private let notificationCenter = NotificationCenter.default
 
     init(userDefaults: UserDefaults = .standard) {
         self.userDefaults = userDefaults
@@ -33,15 +38,28 @@ final class DailyHealthRatingsStore: ObservableObject {
     func update(_ transform: (inout DailyHealthRatings) -> Void, on date: Date = Date()) {
         let day = calendar.startOfDay(for: date)
         var current = ratingsByDay[day] ?? DailyHealthRatings(mood: nil, gut: nil, sleep: nil, activity: nil)
+        let oldGut = current.gut
         transform(&current)
         ratingsByDay[day] = current
         save()
+        notifyGutChangedIfNeeded(old: oldGut, new: current.gut, day: day)
     }
 
     func setMood(_ value: Int?, on date: Date = Date()) { update { $0.mood = value } }
     func setGut(_ value: Int?, on date: Date = Date()) { update { $0.gut = value } }
     func setSleep(_ value: Int?, on date: Date = Date()) { update { $0.sleep = value } }
     func setActivity(_ value: Int?, on date: Date = Date()) { update { $0.activity = value } }
+
+    private func notifyGutChangedIfNeeded(old: Int?, new: Int?, day: Date) {
+        guard old != new else { return }
+        var info: [String: Any] = ["date": day]
+        if let new {
+            info["value"] = new
+        } else {
+            info["value"] = NSNull()
+        }
+        notificationCenter.post(name: .gutRatingUpdated, object: self, userInfo: info)
+    }
 
     private func save() {
         let entries: [Entry] = ratingsByDay.map { Entry(day: $0.key, ratings: $0.value) }
