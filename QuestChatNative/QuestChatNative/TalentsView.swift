@@ -28,9 +28,13 @@ struct TalentsView: View {
                             }
                             UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         }
-                        .onLongPressGesture {
-                            viewModel.selectedTalent = node
-                        }
+                        .contentShape(Rectangle())
+                        .highPriorityGesture(
+                            LongPressGesture(minimumDuration: 0.35)
+                                .onEnded { _ in
+                                    viewModel.selectedTalent = node
+                                }
+                        )
                         .popover(
                             item: Binding(
                                 get: {
@@ -214,51 +218,47 @@ private struct TalentDetailPopover: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color.accentColor.opacity(0.16))
-                        .frame(width: 40, height: 40)
-                    Image(systemName: node.sfSymbolName)
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundStyle(Color.accentColor)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(node.name)
-                        .font(.subheadline.bold())
-                        .foregroundStyle(.primary)
-                        .lineLimit(2)
-                        .minimumScaleFactor(0.9)
-
-                    HStack(spacing: 6) {
-                        Image(systemName: "star.fill")
-                            .font(.caption2)
-                        Text("Rank \(currentRank)/\(node.maxRanks)")
-                            .font(.caption.bold())
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(rankColor.opacity(0.18))
-                    .foregroundStyle(rankColor)
-                    .clipShape(Capsule())
-                }
-
-                Spacer(minLength: 0)
+        VStack(alignment: .center, spacing: 12) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(Color.accentColor.opacity(0.16))
+                    .frame(width: 44, height: 44)
+                Image(systemName: node.sfSymbolName)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(Color.accentColor)
             }
+
+            Text(node.name)
+                .font(.subheadline.bold())
+                .foregroundStyle(.primary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.9)
+
+            HStack(spacing: 6) {
+                Image(systemName: "star.fill")
+                    .font(.caption2)
+                Text("Rank \(currentRank)/\(node.maxRanks)")
+                    .font(.caption.bold())
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(rankColor.opacity(0.2))
+            .foregroundStyle(rankColor)
+            .clipShape(Capsule())
 
             Text(node.description)
                 .font(.footnote)
                 .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
                 .lineSpacing(1.5)
         }
-        .padding(14)
-        .frame(maxWidth: 340)
+        .padding(16)
+        .frame(maxWidth: 360)
         .background(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .fill(Color(uiColor: .secondarySystemBackground).opacity(0.20))
+                .fill(Color(uiColor: .secondarySystemBackground).opacity(0.22))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 16, style: .continuous)
