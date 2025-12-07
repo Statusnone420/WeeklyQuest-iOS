@@ -150,6 +150,7 @@ private struct TalentTileView: View {
     let onLongPress: () -> Void
 
     @State private var pulse = false
+    @State private var ringProgress: CGFloat = 0
 
     var body: some View {
         let baseTile = VStack(spacing: 6) {
@@ -160,21 +161,20 @@ private struct TalentTileView: View {
                         .fill(backgroundColor)
                 )
                 .overlay(
-                    Image(systemName: node.sfSymbolName)
-                        .font(.title3)
-                        .opacity(iconOpacity)
+                    iconOverlay
                 )
+                .overlay(masteredRingOverlay)
                 .aspectRatio(1, contentMode: .fit)
 
             Text("\(currentRank)/\(node.maxRanks)")
                 .font(.caption2)
-                .foregroundStyle(currentRank > 0 ? .primary : .secondary)
+                .foregroundStyle(rankForeground)
         }
         .padding(4)
         .frame(maxWidth: .infinity, minHeight: 88)
 
         baseTile
-            .scaleEffect(pulse ? 1.05 : 1.0)
+            .scaleEffect(pulse ? 1.08 : 1.0)
             .overlay(haloOverlay)
             .contentShape(Rectangle())
             .onTapGesture {
@@ -187,6 +187,10 @@ private struct TalentTileView: View {
             .onChange(of: masteryPulseID) { newValue in
                 guard newValue == node.id else { return }
                 pulseOnce()
+            }
+            .onAppear { if isMastered { ringProgress = 1 } }
+            .onChange(of: isMastered) { newValue in
+                ringProgress = newValue ? 1 : 0
             }
             .animation(.spring(response: 0.25, dampingFraction: 0.7), value: pulse)
     }
@@ -203,7 +207,11 @@ private struct TalentTileView: View {
     }
 
     private func pulseOnce() {
+        ringProgress = 0
         pulse = true
+        withAnimation(.easeOut(duration: 0.35)) {
+            ringProgress = 1
+        }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
             pulse = false
             if masteryPulseID == node.id {
@@ -213,34 +221,96 @@ private struct TalentTileView: View {
     }
 
     private var borderColor: Color {
-        if isMastered {
-            return Color.purple.opacity(0.9)
-        } else if canSpend {
-            return .primary.opacity(0.9)
-        } else if isUnlocked {
-            return .secondary
-        } else {
-            return .secondary.opacity(0.4)
+        switch visualState {
+        case .mastered:
+            return Color.clear
+        case .invested:
+            return Color.primary.opacity(0.9)
+        case .available:
+            return Color.primary.opacity(0.6)
+        case .locked:
+            return Color.secondary.opacity(0.4)
         }
     }
 
     private var backgroundColor: Color {
-        if currentRank > 0 {
+        switch visualState {
+        case .mastered:
+            return Color.primary.opacity(0.18)
+        case .invested:
             return Color.primary.opacity(0.12)
-        } else if canSpend {
+        case .available:
             return Color.primary.opacity(0.06)
-        } else {
+        case .locked:
             return Color.clear
         }
     }
 
     private var iconOpacity: Double {
-        if currentRank > 0 || canSpend {
-            return 1.0
-        } else {
-            return 0.35
+        visualState == .locked ? 0.35 : 1.0
+    }
+
+    private var rankForeground: Color {
+        switch visualState {
+        case .mastered:
+            return .primary
+        case .invested:
+            return .primary
+        case .available:
+            return .secondary
+        case .locked:
+            return .secondary
         }
     }
+
+    private var iconOverlay: some View {
+        ZStack {
+            if isMastered {
+                Circle()
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: 34, height: 34)
+            }
+
+            Image(systemName: node.sfSymbolName)
+                .font(iconFont)
+                .opacity(iconOpacity)
+        }
+    }
+
+    private var iconFont: Font {
+        isMastered ? .system(size: 22, weight: .semibold) : .title3
+    }
+
+    private var masteredRingOverlay: some View {
+        Group {
+            if isMastered {
+                let shape = RoundedRectangle(cornerRadius: 10, style: .continuous)
+                shape
+                    .trim(from: 0, to: ringProgress)
+                    .stroke(masteredGradient, lineWidth: 3)
+                    .rotationEffect(.degrees(-90))
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private var masteredGradient: AngularGradient {
+        AngularGradient(colors: [.teal, .purple, .teal], center: .center)
+    }
+
+    private var visualState: TileVisualState {
+        if isMastered { return .mastered }
+        if currentRank > 0 { return .invested }
+        if canSpend { return .available }
+        return .locked
+    }
+}
+
+private enum TileVisualState {
+    case locked
+    case available
+    case invested
+    case mastered
 }
 
 private struct TalentDetailSheet: View {
