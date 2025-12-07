@@ -220,9 +220,9 @@ struct PlayerCardView: View {
     }
 
     private var headerCard: some View {
-        let style = avatarStyle(for: playerId)
-
         VStack(alignment: .leading, spacing: 16) {
+            let style = avatarStyle(for: playerId)
+
             HStack(alignment: .center, spacing: 16) {
                 ZStack {
                     Circle()
@@ -479,3 +479,4 @@ struct DailyVitalsSlidersView: View {
 }
 
 // Avatar now uses a UUID-based rolled SF Symbol + gradient style.
+
