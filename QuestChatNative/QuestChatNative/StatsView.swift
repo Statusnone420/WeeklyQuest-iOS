@@ -227,37 +227,46 @@ struct StatsView: View {
             // Activity metrics grid
             HStack(spacing: 12) {
                 // Hydration
-                HStack(spacing: 6) {
+                HStack(spacing: 4) {
                     Image(systemName: "drop.fill")
                         .font(.caption)
                         .foregroundStyle(.blue)
-                    Text("\(day.hydrationOunces) oz")
+                    Text("\(day.hydrationOunces)")
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.primary)
+                    Text("oz")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
                 // Self-care sessions
-                HStack(spacing: 6) {
+                HStack(spacing: 4) {
                     Image(systemName: "sparkles")
                         .font(.caption)
                         .foregroundStyle(.cyan)
-                    Text("\(day.selfCareCount) session\(day.selfCareCount == 1 ? "" : "s")")
-                        .font(.caption)
+                    Text("\(day.selfCareCount)")
+                        .font(.caption.monospacedDigit())
                         .foregroundStyle(.primary)
+                    Text("Self-care session\(day.selfCareCount == 1 ? "" : "s")")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             
             HStack(spacing: 12) {
                 // Focus sessions
-                HStack(spacing: 6) {
+                HStack(spacing: 4) {
                     Image(systemName: "bolt.fill")
                         .font(.caption)
                         .foregroundStyle(.mint)
-                    Text("\(day.focusCount) session\(day.focusCount == 1 ? "" : "s")")
-                        .font(.caption)
+                    Text("\(day.focusCount)")
+                        .font(.caption.monospacedDigit())
                         .foregroundStyle(.primary)
+                    Text("Focus session\(day.focusCount == 1 ? "" : "s")")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
