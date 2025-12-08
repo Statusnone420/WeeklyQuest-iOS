@@ -80,7 +80,7 @@ enum TalentTreeConfig {
             tier: 2,
             column: 2,
             maxRanks: 3,
-            prerequisiteIDs: [],
+            prerequisiteIDs: ["gentleReset"],
             sfSymbolName: "sparkles"
         ),
         TalentNode(
@@ -90,7 +90,7 @@ enum TalentTreeConfig {
             tier: 2,
             column: 3,
             maxRanks: 3,
-            prerequisiteIDs: [],
+            prerequisiteIDs: ["moodTuner"],
             sfSymbolName: "heart.text.square"
         ),
         TalentNode(
@@ -120,7 +120,7 @@ enum TalentTreeConfig {
             tier: 3,
             column: 2,
             maxRanks: 3,
-            prerequisiteIDs: [],
+            prerequisiteIDs: ["tidySweep"],
             sfSymbolName: "flame"
         ),
         TalentNode(
@@ -130,7 +130,7 @@ enum TalentTreeConfig {
             tier: 3,
             column: 3,
             maxRanks: 3,
-            prerequisiteIDs: [],
+            prerequisiteIDs: ["softLanding"],
             sfSymbolName: "moon.zzz"
         ),
         TalentNode(
@@ -140,7 +140,7 @@ enum TalentTreeConfig {
             tier: 4,
             column: 0,
             maxRanks: 3,
-            prerequisiteIDs: ["tidySweep"],
+            prerequisiteIDs: ["hydrationDemonLite"],
             sfSymbolName: "square.grid.2x2"
         ),
         TalentNode(
@@ -150,7 +150,7 @@ enum TalentTreeConfig {
             tier: 4,
             column: 1,
             maxRanks: 3,
-            prerequisiteIDs: [],
+            prerequisiteIDs: ["deepFocusDiver"],
             sfSymbolName: "list.bullet.rectangle"
         ),
         TalentNode(
@@ -160,7 +160,7 @@ enum TalentTreeConfig {
             tier: 4,
             column: 2,
             maxRanks: 3,
-            prerequisiteIDs: [],
+            prerequisiteIDs: ["momentumKeeper"],
             sfSymbolName: "bubble.left.and.bubble.right"
         ),
         TalentNode(
@@ -170,7 +170,7 @@ enum TalentTreeConfig {
             tier: 4,
             column: 3,
             maxRanks: 3,
-            prerequisiteIDs: ["softLanding"],
+            prerequisiteIDs: ["sleepRespecter"],
             sfSymbolName: "arrow.triangle.2.circlepath"
         ),
         TalentNode(
@@ -180,7 +180,7 @@ enum TalentTreeConfig {
             tier: 5,
             column: 0,
             maxRanks: 1,
-            prerequisiteIDs: ["hydrationDemonLite"],
+            prerequisiteIDs: ["environmentArchitect"],
             sfSymbolName: "shield"
         ),
         TalentNode(
@@ -200,7 +200,7 @@ enum TalentTreeConfig {
             tier: 5,
             column: 2,
             maxRanks: 1,
-            prerequisiteIDs: ["deepFocusDiver"],
+            prerequisiteIDs: ["socialPing"],
             sfSymbolName: "brain"
         ),
         TalentNode(

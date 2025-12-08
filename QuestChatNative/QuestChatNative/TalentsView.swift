@@ -45,7 +45,8 @@ struct TalentsView: View {
                                 withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
                                     viewModel.incrementRank(for: node)
                                 }
-                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                TalentHaptics.prepareImpactGenerators()
+                                TalentHaptics.impactLight.impactOccurred(intensity: 0.7)
                             },
                             onLongPress: {
                                 viewModel.selectedTalent = node
@@ -70,7 +71,11 @@ struct TalentsView: View {
                                 },
                                 set: { newValue in
                                     if newValue == nil {
-                                        TalentHaptics.selectionChanged()
+                                        // Fire exit haptic immediately when the binding clears to avoid onDisappear delay
+                                        DispatchQueue.main.async {
+                                            TalentHaptics.impactClose()
+                                            TalentHaptics.selectionChanged()
+                                        }
                                         viewModel.selectedTalent = nil
                                     }
                                 }
@@ -90,7 +95,10 @@ struct TalentsView: View {
             .padding()
         }
         .navigationTitle("IRL Talent Tree")
-        .onAppear { TalentHaptics.prepareSelection() }
+        .onAppear {
+            TalentHaptics.prepareSelection()
+            TalentHaptics.prepareImpactGenerators()
+        }
     }
 
     private var talentTreeBackground: some View {
@@ -314,14 +322,19 @@ private struct TalentTileView: View {
                 guard canSpend else { return }
                 onTap()
             }
-            .onLongPressGesture(minimumDuration: 0.35) {
+            .onLongPressGesture(minimumDuration: 0.25) {
+                TalentHaptics.prepareImpactGenerators()
+                TalentHaptics.impactOpen()
                 onLongPress()
             }
             .onChange(of: masteryPulseID) { newValue in
                 guard newValue == node.id else { return }
                 pulseOnce()
             }
-            .onAppear { if isMastered { ringProgress = 1 } }
+            .onAppear {
+                if isMastered { ringProgress = 1 }
+                TalentHaptics.prepareImpactGenerators()
+            }
             .onChange(of: isMastered) { newValue in
                 ringProgress = newValue ? 1 : 0
             }
@@ -539,8 +552,26 @@ private struct TalentTileFramePreferenceKey: PreferenceKey {
     }
 }
 
-private enum TalentHaptics {
+private struct TalentHaptics {
     static let selection = UISelectionFeedbackGenerator()
+    static let impactLight = UIImpactFeedbackGenerator(style: .light)
+    static let impactMedium = UIImpactFeedbackGenerator(style: .medium)
+    static let impactHeavy = UIImpactFeedbackGenerator(style: .heavy)
+
     static func prepareSelection() { selection.prepare() }
     static func selectionChanged() { selection.selectionChanged() }
+    
+    static func prepareImpactGenerators() {
+        impactLight.prepare()
+        impactMedium.prepare()
+        impactHeavy.prepare()
+    }
+
+    static func impactOpen() {
+        impactHeavy.impactOccurred(intensity: 0.9)
+    }
+
+    static func impactClose() {
+        impactMedium.impactOccurred(intensity: 0.8)
+    }
 }

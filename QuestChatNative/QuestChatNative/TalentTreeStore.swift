@@ -8,6 +8,17 @@ final class TalentTreeStore: ObservableObject {
     @Published private(set) var spentPoints: Int
     @Published private(set) var currentLevel: Int  // external code can adjust this later
 
+    private func prerequisitesSatisfied(for node: TalentNode) -> Bool {
+        guard !node.prerequisiteIDs.isEmpty else { return true }
+        for prereqID in node.prerequisiteIDs {
+            // Find the prerequisite node to know its maxRanks
+            guard let prereqNode = nodes.first(where: { $0.id == prereqID }) else { return false }
+            let rank = currentRanks[prereqID] ?? 0
+            if rank < prereqNode.maxRanks { return false } // must be fully maxed (e.g., 5/5 or 3/3)
+        }
+        return true
+    }
+
     init(
         nodes: [TalentNode] = TalentTreeConfig.defaultNodes,
         currentRanks: [String: Int] = [:],
@@ -34,31 +45,6 @@ final class TalentTreeStore: ObservableObject {
         max(totalPoints - spentPoints, 0)
     }
 
-    // Count how many talents are fully mastered (current rank >= maxRanks)
-    private var masteredTalentCount: Int {
-        nodes.reduce(0) { count, node in
-            let current = currentRanks[node.id] ?? 0
-            return current >= node.maxRanks ? count + 1 : count
-        }
-    }
-
-    // Stage index based on mastered talents: every 2 mastered talents advances one stage.
-    // This keeps compatibility with existing views that expect a stage index.
-    var treeStageIndex: Int {
-        // If there's an external array of stage images, replace 10 with its count.
-        let totalStages = 10
-        guard totalStages > 0 else { return 0 }
-        let stageFromMastery = masteredTalentCount / 2
-        return min(totalStages - 1, max(0, stageFromMastery))
-    }
-
-    // If callers use a 0–1 growth progress, keep it derived from the stage index.
-    var growthProgress: Double {
-        let totalStages = 10
-        guard totalStages > 1 else { return 0 }
-        return Double(treeStageIndex) / Double(totalStages - 1)
-    }
-
     func rank(for node: TalentNode) -> Int {
         currentRanks[node.id] ?? 0
     }
@@ -74,12 +60,7 @@ final class TalentTreeStore: ObservableObject {
         let requiredPoints = max((node.tier - 1) * 5, 0)
         guard spentPoints >= requiredPoints else { return false }
 
-        // Prerequisites must exist and be at max rank
-        for prereqID in node.prerequisiteIDs {
-            guard let prereqNode = nodes.first(where: { $0.id == prereqID }) else { return false }
-            let prereqRank = currentRanks[prereqID] ?? 0
-            guard prereqRank >= prereqNode.maxRanks else { return false }
-        }
+        guard prerequisitesSatisfied(for: node) else { return false }
 
         return true
     }
@@ -121,3 +102,4 @@ final class TalentTreeStore: ObservableObject {
         // Placeholder for persistence integration.
     }
 }
+
