@@ -43,19 +43,28 @@ struct StatsView: View {
 
     private var healthBarWeeklySummary: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("HealthBar IRL – Last 7 Days")
-                .font(.headline)
+            HStack(spacing: 8) {
+                Image(systemName: "chart.line.uptrend.xyaxis")
+                    .font(.subheadline)
+                    .foregroundStyle(.mint)
+                Text("HealthBar IRL – Last 7 Days")
+                    .font(.headline)
+            }
 
             if viewModel.last7Days.isEmpty {
                 Text("No recent HealthBar data yet.")
                     .foregroundStyle(.secondary)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(uiColor: .secondarySystemBackground).opacity(0.15))
+                    .cornerRadius(16)
             } else {
-                VStack(spacing: 10) {
+                VStack(spacing: 8) {
                     ForEach(viewModel.last7Days) { day in
                         healthDayRow(day)
                     }
                 }
-                .padding()
+                .padding(12)
                 .background(Color(uiColor: .secondarySystemBackground).opacity(0.15))
                 .cornerRadius(16)
             }
@@ -199,32 +208,85 @@ struct StatsView: View {
     }
 
     private func healthDayRow(_ day: HealthDaySummary) -> some View {
-        HStack(alignment: .top) {
-            VStack(alignment: .leading, spacing: 4) {
+        VStack(spacing: 10) {
+            // Header row with date and HP
+            HStack(alignment: .firstTextBaseline) {
                 Text(viewModel.label(for: day.date))
                     .font(.subheadline.bold())
-                Text("Avg \(Int(day.averageHP.rounded())) / 100 HP")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Spacer()
+                HStack(spacing: 4) {
+                    Image(systemName: "heart.fill")
+                        .font(.caption2)
+                        .foregroundStyle(.red)
+                    Text("\(Int(day.averageHP.rounded())) HP")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
             }
-
-            Spacer()
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text("💧 \(day.hydrationCount)")
-                Text("✨ \(day.selfCareCount)")
-                Text("⚡️ \(day.focusCount)")
+            
+            // Activity metrics grid
+            HStack(spacing: 12) {
+                // Hydration
+                HStack(spacing: 6) {
+                    Image(systemName: "drop.fill")
+                        .font(.caption)
+                        .foregroundStyle(.blue)
+                    Text("\(day.hydrationOunces) oz")
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(.primary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                // Self-care sessions
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles")
+                        .font(.caption)
+                        .foregroundStyle(.cyan)
+                    Text("\(day.selfCareCount) session\(day.selfCareCount == 1 ? "" : "s")")
+                        .font(.caption)
+                        .foregroundStyle(.primary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .font(.caption)
-
-            Spacer()
-
-            VStack(alignment: .trailing, spacing: 6) {
-                Text("Gut: \(gutLabel(for: day.lastGut))")
-                Text("Mood: \(moodLabel(for: day.lastMood))")
+            
+            HStack(spacing: 12) {
+                // Focus sessions
+                HStack(spacing: 6) {
+                    Image(systemName: "bolt.fill")
+                        .font(.caption)
+                        .foregroundStyle(.mint)
+                    Text("\(day.focusCount) session\(day.focusCount == 1 ? "" : "s")")
+                        .font(.caption)
+                        .foregroundStyle(.primary)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                // Gut & Mood status
+                HStack(spacing: 8) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "heart.text.square.fill")
+                            .font(.caption)
+                            .foregroundStyle(.orange)
+                        Text(gutLabel(for: day.lastGut))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    HStack(spacing: 4) {
+                        Image(systemName: "face.smiling.fill")
+                            .font(.caption)
+                            .foregroundStyle(.green)
+                        Text(moodLabel(for: day.lastMood))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .trailing)
             }
-            .font(.caption)
         }
+        .padding(12)
+        .background(Color(uiColor: .tertiarySystemBackground).opacity(0.5))
+        .cornerRadius(12)
     }
 
     private func gutLabel(for status: GutStatus) -> String {

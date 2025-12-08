@@ -50,8 +50,8 @@ struct HealthBarCardView: View {
 
             HStack(spacing: 8) {
                 StatPill(icon: "drop.fill", label: "Hydration", value: "\(viewModel.inputs.hydrationCount)x")
-                StatPill(icon: "figure.mind.and.body", label: "Comfort bev.", value: "\(viewModel.inputs.selfCareSessions)")
-                StatPill(icon: "bolt.fill", label: "Focus", value: "\(viewModel.inputs.focusSprints)")
+                StatPill(icon: "figure.mind.and.body", label: "Self-care sessions", value: "\(viewModel.inputs.selfCareSessions)")
+                StatPill(icon: "bolt.fill", label: "Focus sessions", value: "\(viewModel.inputs.focusSprints)")
             }
 
             HStack(alignment: .top, spacing: 12) {
@@ -121,12 +121,12 @@ struct StatPill: View {
         HStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.subheadline)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(label)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+            HStack(spacing: 4) {
                 Text(value)
                     .font(.subheadline.weight(.semibold))
+                Text(label)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
         }
         .padding(.vertical, 8)

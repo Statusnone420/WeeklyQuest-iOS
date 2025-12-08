@@ -80,7 +80,7 @@ final class HealthBarViewModel: ObservableObject {
         save()
     }
 
-    func logFocusSprint() {
+    func logFocusSession() {
         inputs.focusSprints += 1
         recalculate()
         save()
@@ -189,9 +189,9 @@ final class HealthBarViewModel: ObservableObject {
     }
 
     var staminaLabel: String {
-        let sprints = inputs.focusSprints
+        let sessions = inputs.focusSprints
 
-        switch sprints {
+        switch sessions {
         case 0...1: return "Warming up"
         case 2...3: return "In the zone"
         default:    return "Overcharged"

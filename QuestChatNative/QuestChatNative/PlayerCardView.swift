@@ -1018,7 +1018,7 @@ struct PlayerCardView: View {
         UIImpactFeedbackGenerator(style: .rigid).impactOccurred()
         addAura(.orange.opacity(0.35))
         // Register a focus sprint to reflect stamina energy in your existing model.
-        healthBarViewModel.logFocusSprint()
+        healthBarViewModel.logFocusSession()
         // Also let quests know something fun happened via existing event hooks if available.
         DependencyContainer.shared.questsViewModel.syncQuestProgress()
         DispatchQueue.main.asyncAfter(deadline: .now() + 25) {

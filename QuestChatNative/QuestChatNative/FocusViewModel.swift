@@ -1748,7 +1748,7 @@ final class FocusViewModel: ObservableObject {
     func logStaminaPotionTapped() {
         guard let healthBarViewModel else { return }
 
-        healthBarViewModel.logFocusSprint()
+        healthBarViewModel.logFocusSession()
     }
     
     // Added method to show sip feedback with auto-dismiss

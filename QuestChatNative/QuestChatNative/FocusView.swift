@@ -96,7 +96,7 @@ struct FocusView: View {
         _statsStore = ObservedObject(wrappedValue: viewModel.statsStore)
 
         viewModel.onSessionComplete = { [weak healthBarViewModel] in
-            healthBarViewModel?.logFocusSprint()
+            healthBarViewModel?.logFocusSession()
         }
     }
 
