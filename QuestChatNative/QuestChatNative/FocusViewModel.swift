@@ -2926,7 +2926,9 @@ extension FocusViewModel {
 
     func debugFireHydrationReminder() {
         #if DEBUG
-        hydrationReminderManager.scheduleDebugHydrationNudgeNow()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            self?.triggerReminder(for: .hydration, at: Date(), bypassCadence: true)
+        }
         #endif
     }
 
