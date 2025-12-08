@@ -73,14 +73,23 @@ final class QuestsViewModel: ObservableObject {
         let id: String
         let date: Date
     }
+    struct ChainEntry: Codable, Equatable {
+        let id: String
+        let date: Date
+    }
 
     private var lastCompletionKey: String { "last-completion-\(completionKey)" }
     private var dailyActiveKey: String { "daily-active-\(completionKey)" }
-
+    
     @Published var dailyQuests: [Quest] = []
     @Published var weeklyQuests: [Quest] = []
     @Published private(set) var hasUsedRerollToday: Bool = false
     @Published var hasQuestChestReady: Bool = false
+    
+    @Published private(set) var mysteryQuestID: String? = nil
+
+    private var mysteryKey: String { "mystery-\(completionKey)" }
+    private var chainHistoryKey: String { "chain-history-\(completionKey)" }
 
     private var isSyncScheduled = false
 
@@ -186,6 +195,17 @@ final class QuestsViewModel: ObservableObject {
             userDefaults.set(data, forKey: lastCompletionKey)
         }
     }
+    
+    private func loadChainHistory() -> [ChainEntry] {
+        guard let data = userDefaults.data(forKey: chainHistoryKey) else { return [] }
+        return (try? JSONDecoder().decode([ChainEntry].self, from: data)) ?? []
+    }
+
+    private func saveChainHistory(_ entries: [ChainEntry]) {
+        if let data = try? JSONEncoder().encode(entries) {
+            userDefaults.set(data, forKey: chainHistoryKey)
+        }
+    }
 
     init(
         statsStore: SessionStatsStore = DependencyContainer.shared.sessionStatsStore,
@@ -218,6 +238,17 @@ final class QuestsViewModel: ObservableObject {
         }
         // Persist the active board for the day
         userDefaults.set(dailyQuests.map { $0.id }, forKey: dailyActiveKey)
+        
+        // Seed/load Mystery Buff quest for the day
+        if let storedMystery = userDefaults.string(forKey: mysteryKey) {
+            mysteryQuestID = storedMystery
+        } else {
+            // Pick a random quest from today's active board
+            mysteryQuestID = dailyQuests.randomElement()?.id
+            if let id = mysteryQuestID {
+                userDefaults.set(id, forKey: mysteryKey)
+            }
+        }
 
         #if DEBUG
         let dateKey = Self.dateKey(for: dayReference, calendar: calendar)
@@ -871,12 +902,36 @@ extension QuestsViewModel {
         checkQuestChestRewardIfNeeded()
         statsStore.updateDailyQuestsCompleted(completedQuestsCount, totalQuests: dailyQuests.count)
 
+        // Mystery Buff: grant bonus XP when the mystery quest is completed
+        if let mysteryId = mysteryQuestID, mysteryId == id {
+            statsStore.registerQuestCompleted(id: "DAILY_MYSTERY_BONUS", xp: 15)
+        }
+
         if !hadCompletedQuests && id != "DAILY_EASY_FIRST_QUEST" {
             completeQuestIfNeeded(id: "DAILY_EASY_FIRST_QUEST")
         }
 
         // Update last completion (must be after marking this quest complete)
         saveLastDailyCompletion(LastDailyCompletion(id: id, date: now))
+
+        // Update chain history and evaluate three-chain
+        var history = loadChainHistory()
+        history.append(ChainEntry(id: id, date: now))
+        if history.count > 4 { history.removeFirst(history.count - 4) }
+        saveChainHistory(history)
+
+        // Check for 3 different quests within 30 minutes
+        let window: TimeInterval = 30 * 60
+        let recent = history.filter { now.timeIntervalSince($0.date) <= window }
+        let distinctIDs = Array(Set(recent.map { $0.id }))
+        if distinctIDs.count >= 3 {
+            // Only trigger if the three-chain quest is on the board and not already completed
+            if let chainIndex = dailyQuests.firstIndex(where: { $0.id == "DAILY_EASY_THREE_CHAIN" }) {
+                if !dailyQuests[chainIndex].isCompleted {
+                    completeQuestIfNeeded(id: "DAILY_EASY_THREE_CHAIN")
+                }
+            }
+        }
 
         // Trigger chain quest if conditions met
         if shouldTriggerChain {
@@ -1294,4 +1349,8 @@ extension QuestsViewModel {
     static let weeklyDailyQuestCompletionTarget = 20
     static let weeklyFocusMinutesTarget = 120
     static let weeklyFocusSessionTarget = 15
+    
+    func isMysteryQuest(_ quest: Quest) -> Bool {
+        return quest.id == mysteryQuestID
+    }
 }

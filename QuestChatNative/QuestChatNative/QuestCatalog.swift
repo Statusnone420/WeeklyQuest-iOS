@@ -398,7 +398,7 @@ enum QuestCatalog {
             type: .daily,
             category: .easyWin,
             difficulty: .easy,
-            xpReward: 20,
+            xpReward: 15,
             title: "Two-Quest Chain",
             subtitle: "Complete 2 quests within a short window.",
             isOncePerDay: true,
@@ -609,6 +609,17 @@ enum QuestCatalog {
             xpReward: 15,
             title: "Quest Chain",
             subtitle: "Complete 2 quests within 10 minutes.",
+            isOncePerDay: true,
+            tier: .bonus
+        ),
+        QuestDefinition(
+            id: "DAILY_EASY_THREE_CHAIN",
+            type: .daily,
+            category: .easyWin,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "Triple Chain",
+            subtitle: "Complete 3 different quests within 30 minutes.",
             isOncePerDay: true,
             tier: .bonus
         )
@@ -1000,3 +1011,4 @@ enum QuestCatalog {
         "WEEK_SLEEP_SENTINEL"
     ]
 }
+

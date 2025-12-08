@@ -47,6 +47,7 @@ private extension QuestsView {
                             tierColor: tierColor(for: quest.tier),
                             isBouncing: bouncingQuestIDs.contains(quest.id),
                             isShowingXPBoost: showingXPBoostIDs.contains(quest.id),
+                            isMystery: viewModel.isMysteryQuest(quest),
                             onTap: isEventDriven ? nil : {
                                 viewModel.toggleQuest(quest)
                             }
@@ -98,6 +99,7 @@ private extension QuestsView {
                             tierColor: tierColor(for: quest.tier),
                             isBouncing: bouncingQuestIDs.contains(quest.id),
                             isShowingXPBoost: showingXPBoostIDs.contains(quest.id),
+                            isMystery: false,
                             onTap: isEventDriven ? nil : {
                                 viewModel.toggleWeeklyQuest(quest)
                             }
@@ -338,6 +340,7 @@ private struct QuestCardView: View {
     let tierColor: Color
     let isBouncing: Bool
     let isShowingXPBoost: Bool
+    let isMystery: Bool
     let onTap: (() -> Void)?
 
     var body: some View {
@@ -400,6 +403,19 @@ private struct QuestCardView: View {
                         .offset(y: -12)
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .animation(.easeOut(duration: 0.4), value: isShowingXPBoost)
+                }
+                if isMystery && !quest.isCompleted {
+                    HStack(spacing: 6) {
+                        Image(systemName: "star.fill").foregroundStyle(.yellow)
+                        Text("Mystery")
+                            .font(.caption2.bold())
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.yellow.opacity(0.18))
+                    .clipShape(Capsule())
+                    .offset(x: -8, y: -8)
+                    .transition(.opacity.combined(with: .scale))
                 }
             }
         }
