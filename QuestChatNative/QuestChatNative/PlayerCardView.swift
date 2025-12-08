@@ -672,8 +672,10 @@ struct PlayerCardView: View {
     private var headerCard: some View {
         VStack(alignment: .leading, spacing: 16) {
             let style = avatarStyles[max(0, min(avatarStyleIndex, avatarStyles.count - 1))]
+            let avatarScale: CGFloat = 2.0
+            let avatarSize: CGFloat = 56 * avatarScale
 
-            HStack(alignment: .center, spacing: 16) {
+            HStack(alignment: .top, spacing: 16) {
                 ZStack {
                     Circle()
                         .fill(
@@ -683,40 +685,33 @@ struct PlayerCardView: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: 56, height: 56)
+                        .frame(width: avatarSize, height: avatarSize)
 
                     Image(systemName: style.symbolName)
-                        .font(.title2.weight(.semibold))
+                        .font(.system(size: avatarSize * 0.42, weight: .semibold))
                         .foregroundColor(.white)
                         .rotationEffect(.degrees(avatarSpin))
                         .scaleEffect(avatarSpin == 0 ? 1 : 1.06)
                 }
+                .onTapGesture { randomizeAvatar() }
                 .overlay(alignment: .topTrailing) {
                     Button {
-                        let newIndex = nextRandomAvatarIndex()
-                        avatarStyleIndex = newIndex
-                        // Record selection in recent history state
-                        var state = loadShuffleState()
-                        state.recent.append(newIndex)
-                        if state.recent.count > recentWindowSize { state.recent.removeFirst(state.recent.count - recentWindowSize) }
-                        saveShuffleState(state)
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
-                            avatarSpin += 360
-                        }
-                        // reset spin to avoid precision drift
-                        if avatarSpin >= 36000 { avatarSpin = 0 }
+                        randomizeAvatar()
                     } label: {
                         Image(systemName: "dice.fill")
-                            .font(.caption2.bold())
+                            .font(.system(size: max(14, avatarSize * 0.15), weight: .bold))
                             .foregroundStyle(.white)
-                            .padding(6)
+                            .padding(max(8, avatarSize * 0.055))
                             .background(Color.black.opacity(0.35))
                             .clipShape(Circle())
                             .shadow(radius: 4)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .contentShape(Circle())
+                            .accessibilityLabel("Randomize avatar")
+                            .accessibilityHint("Generates a new avatar style")
                     }
                     .buttonStyle(.plain)
-                    .offset(x: 6, y: -6)
+                    .offset(x: max(6, avatarSize * 0.075), y: -max(6, avatarSize * 0.075))
                 }
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -1032,6 +1027,20 @@ struct PlayerCardView: View {
         .background(Color(uiColor: .secondarySystemBackground).opacity(0.18))
         .cornerRadius(16)
     }
+    
+    private func randomizeAvatar() {
+        let newIndex = nextRandomAvatarIndex()
+        avatarStyleIndex = newIndex
+        var state = loadShuffleState()
+        state.recent.append(newIndex)
+        if state.recent.count > recentWindowSize { state.recent.removeFirst(state.recent.count - recentWindowSize) }
+        saveShuffleState(state)
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
+            avatarSpin += 360
+        }
+        if avatarSpin >= 36000 { avatarSpin = 0 }
+    }
 }
 
 /// Shared sliders for daily vitals (mood, gut, sleep, activity) used across the app and onboarding
@@ -1143,4 +1152,3 @@ struct DailyVitalsSlidersView: View {
 }
 
 // Avatar now uses a UUID-based rolled SF Symbol + gradient style.
-

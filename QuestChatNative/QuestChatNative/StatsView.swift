@@ -7,6 +7,7 @@ struct StatsView: View {
     @ObservedObject var healthBarViewModel: HealthBarViewModel
     @ObservedObject var focusViewModel: FocusViewModel
     @State private var selectedScope: StatsScope = .today
+    @State private var isShowingDailySetup = false
 
     private var focusMinutes: Int { store.focusSeconds / 60 }
     private var selfCareMinutes: Int { store.selfCareSeconds / 60 }
@@ -79,6 +80,7 @@ struct StatsView: View {
             )
 
             dailyGoalCard
+            reopenDailySetupButton
             weeklyPathCard
             achievementsSection
             healthBarWeeklySummary
@@ -95,6 +97,26 @@ struct StatsView: View {
             }
 #endif
         }
+    }
+
+    private var reopenDailySetupButton: some View {
+        Button {
+            isShowingDailySetup = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "sun.max.circle.fill")
+                    .foregroundStyle(.mint)
+                Text("Re-open Daily Setup for today")
+                    .font(.subheadline.bold())
+                Spacer(minLength: 0)
+            }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.mint.opacity(0.18))
+            .foregroundStyle(.mint)
+            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
 
     private var yesterdayContent: some View {
@@ -155,6 +177,17 @@ struct StatsView: View {
             .onChange(of: selectedScope) { newScope in
                 questsViewModel.handleQuestEvent(.statsViewed(scope: newScope))
             }
+        }
+        .sheet(isPresented: $isShowingDailySetup) {
+            DailySetupSheet(
+                initialFocusArea: store.todayPlan?.focusArea ?? .work,
+                initialEnergyLevel: store.todayPlan?.energyLevel ?? .medium
+            ) { focusArea, energyLevel in
+                store.completeDailyConfig(focusArea: focusArea, energyLevel: energyLevel)
+                questsViewModel.markCoreQuests(for: focusArea)
+            }
+            .presentationDetents([.medium])
+            .interactiveDismissDisabled()
         }
     }
 

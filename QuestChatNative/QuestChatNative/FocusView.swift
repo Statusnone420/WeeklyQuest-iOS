@@ -860,7 +860,7 @@ private extension Color {
 
 }
 
-private struct DailySetupSheet: View {
+struct DailySetupSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     @State private var selectedFocusArea: FocusArea
