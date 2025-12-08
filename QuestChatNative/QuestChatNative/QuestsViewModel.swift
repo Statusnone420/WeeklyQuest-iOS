@@ -354,7 +354,6 @@ final class QuestsViewModel: ObservableObject {
         // 3. Make sure no UI tap handler toggles this quest directly.
         switch event {
         case .questsTabOpened:
-            completeQuestIfNeeded(id: "daily-checkin")
             completeQuestIfNeeded(id: "LOAD_QUEST_LOG")
         case .focusSessionStarted(let durationMinutes):
             guard durationMinutes >= 15 else { return }
@@ -366,6 +365,7 @@ final class QuestsViewModel: ObservableObject {
         case .timerCompleted(let category, let durationMinutes, let endedAt):
             handleTimerCompletion(category: category, durationMinutes: durationMinutes, endedAt: endedAt)
         case .focusMinutesUpdated(let totalMinutesToday):
+            // Legacy quest still in pool
             if totalMinutesToday >= 25 {
                 completeQuestIfNeeded(id: "focus-25-min")
             }
@@ -376,40 +376,35 @@ final class QuestsViewModel: ObservableObject {
             guard durationMinutes >= 10 else { return }
             completeQuestIfNeeded(id: "chore-blitz")
         case .hpCheckinCompleted:
-            completeQuestIfNeeded(id: "healthbar-checkin")
             completeQuestIfNeeded(id: "DAILY_HB_MORNING_CHECKIN")
             completeQuestIfNeeded(id: "DAILY_HB_GUT_CHECK")
             completeQuestIfNeeded(id: "DAILY_HB_SLEEP_LOG")
             registerHPCheckinDayIfNeeded()
-            completeGreenHealthBarIfNeeded(date: Date())
         case .hydrationLogged(_, let totalMlToday, let percentOfGoal):
             guard totalMlToday > 0 else { return }
             completeQuestIfNeeded(id: "hydrate-checkpoint")
             completeQuestIfNeeded(id: "DAILY_HB_FIRST_POTION")
-            if percentOfGoal >= 0.5 {
-                completeQuestIfNeeded(id: "DAILY_HB_HALF_HYDRATED")
-            }
+            // Removed references to DAILY_HB_HALF_HYDRATED (not in new pool)
             if totalMlToday >= 100 {
                 completeQuestIfNeeded(id: "DAILY_EASY_HYDRATION_SIP")
             }
         case .hydrationGoalReached:
             completeQuestIfNeeded(id: "hydration-goal")
-            completeQuestIfNeeded(id: "DAILY_HB_HYDRATION_COMPLETE")
+            // Removed reference to DAILY_HB_HYDRATION_COMPLETE (not in new pool)
             registerHydrationGoalDayIfNeeded()
-            completeGreenHealthBarIfNeeded(date: Date())
         case .hydrationGoalDayCompleted:
             registerHydrationGoalDayIfNeeded()
-            completeGreenHealthBarIfNeeded(date: Date())
         case .dailySetupCompleted:
             completeQuestIfNeeded(id: "DAILY_META_SETUP_COMPLETE")
-            completeQuestIfNeeded(id: "DAILY_META_CHOOSE_FOCUS")
+            // Removed reference to DAILY_META_CHOOSE_FOCUS (not in new pool)
             registerDailySetupDay()
         case .statsViewed(let scope):
             switch scope {
             case .today:
                 completeQuestIfNeeded(id: "DAILY_META_STATS_TODAY")
             case .yesterday:
-                completeQuestIfNeeded(id: "DAILY_META_REVIEW_YESTERDAY")
+                // Removed reference to DAILY_META_REVIEW_YESTERDAY (not in new pool)
+                break
             }
         case .hydrationReminderFired:
             completeQuestIfNeeded(id: "DAILY_EASY_HYDRATION_SIP")
@@ -616,8 +611,8 @@ final class QuestsViewModel: ObservableObject {
 extension QuestsViewModel {
     static let questChestBonusXP = 50
 
-    static let desiredDailyQuestCount = 5
-    static let maxTimerQuests = 2
+    static let desiredDailyQuestCount = 7  // Increased from 5 to show more variety
+    static let maxTimerQuests = 3  // Increased from 2 since we have fewer timer quests overall
 
     static var activeDailyQuestPool: [QuestDefinition] {
         QuestCatalog.allDailyQuests.filter { !disabledDailyQuestIDs.contains($0.id) && $0.completionMode == .automatic }
@@ -628,10 +623,11 @@ extension QuestsViewModel {
     }
 
     static let coreQuestIDs: [FocusArea: [String]] = [
-        .work: ["daily-checkin", "plan-focus-session", "healthbar-checkin", "finish-focus-session", "chore-blitz"],
-        .selfCare: ["daily-checkin", "plan-focus-session", "healthbar-checkin", "finish-focus-session", "quick-self-care"],
-        .chill: ["daily-checkin", "plan-focus-session", "healthbar-checkin", "finish-focus-session", "step-outside"],
-        .grind: ["daily-checkin", "plan-focus-session", "healthbar-checkin", "finish-focus-session", "chore-blitz"]
+        // Keep only new streamlined core quests; no legacy IDs
+        .work: ["DAILY_META_SETUP_COMPLETE", "DAILY_TIMER_QUICK_WORK", "DAILY_HB_MORNING_CHECKIN"],
+        .selfCare: ["DAILY_META_SETUP_COMPLETE", "DAILY_TIMER_MINDFUL_BREAK", "DAILY_EASY_ONE_NICE_THING"],
+        .chill: ["DAILY_META_SETUP_COMPLETE", "DAILY_TIMER_CHILL_CHOICE", "DAILY_EASY_ONE_NICE_THING"],
+        .grind: ["DAILY_META_SETUP_COMPLETE", "DAILY_TIMER_QUICK_WORK", "DAILY_EASY_TWO_CHAIN"]
     ]
 
     static func seedQuests(with completedIDs: Set<String>) -> [Quest] {
@@ -722,44 +718,29 @@ extension QuestsViewModel {
     func handleTimerCompletion(category: TimerCategory.Kind, durationMinutes: Int, endedAt: Date) {
         let startOfDay = calendar.startOfDay(for: endedAt)
 
+        // Updated to match new streamlined daily quests
         if isWorkCategory(category) {
-            if durationMinutes >= 15 { completeQuestIfNeeded(id: "DAILY_TIMER_QUICK_WORK") }
-            if durationMinutes >= 40 { completeQuestIfNeeded(id: "DAILY_TIMER_DEEP_WORK") }
-            if durationMinutes >= 60 { completeQuestIfNeeded(id: "DAILY_TIMER_BOSS_BATTLE") }
+            if durationMinutes >= 10 { completeQuestIfNeeded(id: "DAILY_TIMER_QUICK_WORK") }
             registerWorkTimerProgress(durationMinutes: durationMinutes)
         }
 
         if isChoresCategory(category) {
             if durationMinutes >= 3 { completeQuestIfNeeded(id: "DAILY_EASY_TINY_TIDY") }
-            if durationMinutes >= 10 { completeQuestIfNeeded(id: "DAILY_TIMER_CHORES_BURST") }
-            if durationMinutes >= 25 { completeQuestIfNeeded(id: "DAILY_TIMER_HOME_RESET") }
+            if durationMinutes >= 5 { completeQuestIfNeeded(id: "DAILY_TIMER_CHORES_BURST") }
             registerChoresProgress(durationMinutes: durationMinutes)
         }
 
         if isSelfCareCategory(category) {
-            if durationMinutes >= 5 { completeQuestIfNeeded(id: "DAILY_HB_GENTLE_MOVEMENT") }
-            if durationMinutes >= 10 { completeQuestIfNeeded(id: "DAILY_TIMER_MINDFUL_BREAK") }
-            if durationMinutes >= 20 { completeQuestIfNeeded(id: "DAILY_TIMER_SELF_CARE") }
+            if durationMinutes >= 5 { completeQuestIfNeeded(id: "DAILY_TIMER_MINDFUL_BREAK") }
             registerSelfCareDayIfNeeded(date: startOfDay, durationMinutes: durationMinutes)
         }
 
         if isChillCategory(category) {
-            if durationMinutes >= 20 { completeQuestIfNeeded(id: "DAILY_TIMER_CHILL_CHOICE") }
-        }
-
-        if !isChillCategory(category) && durationMinutes >= 20 {
-            completeQuestIfNeeded(id: "DAILY_TIMER_FOCUS_CHAIN")
+            if durationMinutes >= 10 { completeQuestIfNeeded(id: "DAILY_TIMER_CHILL_CHOICE") }
         }
 
         if durationMinutes >= 5 {
             completeQuestIfNeeded(id: "DAILY_EASY_ONE_NICE_THING")
-        }
-
-        if (isChoresCategory(category) || isSelfCareCategory(category)) && durationMinutes >= 15 {
-            if calendar.component(.hour, from: endedAt) >= 18 {
-                completeQuestIfNeeded(id: "DAILY_TIMER_EVENING_RESET")
-                registerEveningResetDayIfNeeded(date: startOfDay)
-            }
         }
 
         registerWeekendTimerIfNeeded(durationMinutes: durationMinutes, date: startOfDay)
@@ -1010,16 +991,8 @@ extension QuestsViewModel {
         persistHydrationGoalDays()
         updateWeeklyHydrationQuestCompletion()
         updateBalancedBarProgress()
-        completeGreenHealthBarIfNeeded(date: startOfDay)
 
         syncQuestProgress()
-    }
-
-    func completeGreenHealthBarIfNeeded(date: Date) {
-        let startOfDay = calendar.startOfDay(for: date)
-        guard hydrationGoalDaysThisWeek.contains(startOfDay) else { return }
-        guard hpCheckinDaysThisWeek.contains(startOfDay) else { return }
-        completeQuestIfNeeded(id: "DAILY_HB_GREEN_BAR")
     }
 
     func updateWeeklyHydrationQuestCompletion() {
@@ -1063,7 +1036,6 @@ extension QuestsViewModel {
         persistHPCheckinDays()
         updateWeeklyHPQuestCompletion()
         updateBalancedBarProgress()
-        completeGreenHealthBarIfNeeded(date: startOfDay)
 
         syncQuestProgress()
     }
@@ -1155,17 +1127,7 @@ extension QuestsViewModel {
 
     func loadHPCheckinDays() {
         let stored = userDefaults.array(forKey: hpCheckinDaysKey) as? [TimeInterval] ?? []
-        var combined = Set(stored.map { Date(timeIntervalSince1970: $0) })
-
-        if let startOfWeek = calendar.date(from: calendar.dateComponents([.weekOfYear, .yearForWeekOfYear], from: dayReference)) {
-            for offset in 0..<7 {
-                guard let date = calendar.date(byAdding: .day, value: offset, to: startOfWeek) else { continue }
-                let completedIDs = Self.completedQuestIDs(for: date, calendar: calendar, userDefaults: userDefaults)
-                if completedIDs.contains("healthbar-checkin") {
-                    combined.insert(date)
-                }
-            }
-        }
+        let combined = Set(stored.map { Date(timeIntervalSince1970: $0) })
 
         hpCheckinDaysThisWeek = combined
         persistHPCheckinDays()
@@ -1323,8 +1285,8 @@ extension QuestsViewModel {
         return String(format: "quests-%04d-%02d-%02d", year, month, day)
     }
 
-    static let requiredQuestIDs: [String] = ["daily-checkin"]
-    static let preferredQuestIDs: [String] = ["healthbar-checkin"]
+    static let requiredQuestIDs: [String] = []
+    static let preferredQuestIDs: [String] = []
     static let nonRerollableQuestIDs: Set<String> = []  // Changed to empty set
 
     static let weeklyHydrationGoalTarget = 4

@@ -69,7 +69,10 @@ struct QuestDefinition {
 
 
 enum QuestCatalog {
-    static let expandedDailyQuests: [QuestDefinition] = [
+    // BACKUP: Original expanded daily quests (commented for safety)
+    // Uncomment these and comment out expandedDailyQuestsV2 to revert
+    /*
+    static let expandedDailyQuestsBackup: [QuestDefinition] = [
         QuestDefinition(
             id: "DAILY_TIMER_DEEP_WORK",
             type: .daily,
@@ -409,6 +412,203 @@ enum QuestCatalog {
             xpReward: 20,
             title: "Open the Gates",
             subtitle: "Open the app after 20 hours away. (why do I even have this one)",
+            isOncePerDay: true,
+            tier: .bonus
+        )
+    ]
+    */
+
+    // NEW: Streamlined daily quests - trivial dopamine hits (10-20 XP)
+    // Only 17 quests focused on quick completions
+    static let expandedDailyQuests: [QuestDefinition] = [
+        // Timer category (4 quests) - quick, low-threshold completions
+        QuestDefinition(
+            id: "DAILY_TIMER_QUICK_WORK",
+            type: .daily,
+            category: .timer,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "Quick Focus Sprint",
+            subtitle: "Complete a focus timer for 10+ minutes.",
+            isOncePerDay: true,
+            tier: .habit
+        ),
+        QuestDefinition(
+            id: "DAILY_TIMER_CHORES_BURST",
+            type: .daily,
+            category: .timer,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "Chore Burst",
+            subtitle: "Complete a chores timer for 5+ minutes.",
+            isOncePerDay: true,
+            tier: .habit
+        ),
+        QuestDefinition(
+            id: "DAILY_TIMER_MINDFUL_BREAK",
+            type: .daily,
+            category: .timer,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "Mindful Moment",
+            subtitle: "Finish a Self-Care timer for 5+ minutes.",
+            isOncePerDay: true,
+            tier: .habit
+        ),
+        QuestDefinition(
+            id: "DAILY_TIMER_CHILL_CHOICE",
+            type: .daily,
+            category: .timer,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "Guilt-Free Chill",
+            subtitle: "Finish a Chill timer for 10+ minutes.",
+            isOncePerDay: true,
+            tier: .habit
+        ),
+        // HealthBar category (5 quests) - quick health tracking
+        QuestDefinition(
+            id: "DAILY_HB_MORNING_CHECKIN",
+            type: .daily,
+            category: .healthBar,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "Morning Check-In",
+            subtitle: "Log today's mood.",
+            isOncePerDay: true,
+            tier: .habit
+        ),
+        QuestDefinition(
+            id: "DAILY_HB_SLEEP_LOG",
+            type: .daily,
+            category: .healthBar,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "Sleep Log",
+            subtitle: "Log how you slept last night.",
+            isOncePerDay: true,
+            tier: .habit
+        ),
+        QuestDefinition(
+            id: "DAILY_HB_FIRST_POTION",
+            type: .daily,
+            category: .healthBar,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "First Potion",
+            subtitle: "Log your first Mana Potion (hydrate!) today.",
+            isOncePerDay: true,
+            tier: .habit
+        ),
+        QuestDefinition(
+            id: "DAILY_HB_POSTURE_CHECK",
+            type: .daily,
+            category: .healthBar,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "Posture Check",
+            subtitle: "Acknowledge one posture reminder.",
+            isOncePerDay: true,
+            tier: .habit
+        ),
+        QuestDefinition(
+            id: "DAILY_HB_GUT_CHECK",
+            type: .daily,
+            category: .healthBar,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "Gut Check-In",
+            subtitle: "Log today's gut health.",
+            isOncePerDay: true,
+            tier: .habit
+        ),
+        // Meta category (3 quests) - app engagement
+        QuestDefinition(
+            id: "DAILY_META_SETUP_COMPLETE",
+            type: .daily,
+            category: .meta,
+            difficulty: .easy,
+            xpReward: 20,
+            title: "Daily Setup",
+            subtitle: "Complete sleep + mood + hydration setup.",
+            isOncePerDay: true,
+            tier: .core
+        ),
+        QuestDefinition(
+            id: "DAILY_META_STATS_TODAY",
+            type: .daily,
+            category: .meta,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "Check Your Stats",
+            subtitle: "View your progress in the Stats tab.",
+            isOncePerDay: true,
+            tier: .core
+        ),
+        QuestDefinition(
+            id: "DAILY_META_PLAYER_CARD",
+            type: .daily,
+            category: .meta,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "Player Card",
+            subtitle: "Open your Player Card.",
+            isOncePerDay: true,
+            tier: .core
+        ),
+        // EasyWin category (5 quests) - instant gratification
+        QuestDefinition(
+            id: "DAILY_EASY_TINY_TIDY",
+            type: .daily,
+            category: .easyWin,
+            difficulty: .easy,
+            xpReward: 10,
+            title: "Tiny Tidy",
+            subtitle: "Complete a Chores timer for 3+ minutes.",
+            isOncePerDay: true,
+            tier: .bonus
+        ),
+        QuestDefinition(
+            id: "DAILY_EASY_ONE_NICE_THING",
+            type: .daily,
+            category: .easyWin,
+            difficulty: .easy,
+            xpReward: 10,
+            title: "One Nice Thing",
+            subtitle: "Complete any timer for 5+ minutes.",
+            isOncePerDay: true,
+            tier: .bonus
+        ),
+        QuestDefinition(
+            id: "DAILY_EASY_HYDRATION_SIP",
+            type: .daily,
+            category: .easyWin,
+            difficulty: .easy,
+            xpReward: 10,
+            title: "Hydration Sip",
+            subtitle: "Log at least 4oz of water.",
+            isOncePerDay: true,
+            tier: .bonus
+        ),
+        QuestDefinition(
+            id: "DAILY_EASY_FIRST_QUEST",
+            type: .daily,
+            category: .easyWin,
+            difficulty: .easy,
+            xpReward: 10,
+            title: "First Quest",
+            subtitle: "Complete your first quest today.",
+            isOncePerDay: true,
+            tier: .bonus
+        ),
+        QuestDefinition(
+            id: "DAILY_EASY_TWO_CHAIN",
+            type: .daily,
+            category: .easyWin,
+            difficulty: .easy,
+            xpReward: 15,
+            title: "Quest Chain",
+            subtitle: "Complete 2 quests within 10 minutes.",
             isOncePerDay: true,
             tier: .bonus
         )
