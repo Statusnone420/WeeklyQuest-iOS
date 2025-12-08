@@ -86,7 +86,8 @@ final class DependencyContainer {
         let resetter = GameDataResetter(
             healthStatsStore: healthStatsStore,
             xpStore: sessionStatsStore,
-            sessionStatsStore: sessionStatsStore
+            sessionStatsStore: sessionStatsStore,
+            dailyHealthRatingsStore: dailyHealthRatingsStore
         )
         settingsViewModel = SettingsViewModel(resetter: resetter)
     }

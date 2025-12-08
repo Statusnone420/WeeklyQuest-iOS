@@ -98,6 +98,14 @@ final class HealthBarIRLStatsStore: ObservableObject {
         guard days.count != originalCount else { return }
         save()
     }
+    
+    func deleteDay(_ day: Date) {
+        let target = calendar.startOfDay(for: day)
+        let originalCount = days.count
+        days.removeAll { calendar.isDate($0.date, inSameDayAs: target) }
+        guard days.count != originalCount else { return }
+        save()
+    }
 
     private func trimHistory() {
         let maxDays = 14

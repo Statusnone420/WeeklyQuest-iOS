@@ -77,4 +77,21 @@ final class DailyHealthRatingsStore: ObservableObject {
         }
         ratingsByDay = map
     }
+    
+    func delete(for date: Date) {
+        let day = calendar.startOfDay(for: date)
+        ratingsByDay.removeValue(forKey: day)
+        save()
+    }
+
+    func delete(in range: ClosedRange<Date>) {
+        let start = calendar.startOfDay(for: range.lowerBound)
+        let end = calendar.startOfDay(for: range.upperBound)
+        let keys = ratingsByDay.keys.filter { key in
+            let day = calendar.startOfDay(for: key)
+            return (start...end).contains(day)
+        }
+        for key in keys { ratingsByDay.removeValue(forKey: key) }
+        save()
+    }
 }

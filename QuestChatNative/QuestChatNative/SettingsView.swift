@@ -50,12 +50,16 @@ struct SettingsView: View {
                     pendingReset = nil
                 }
             }, message: {
-                if let pendingReset {
-                    switch pendingReset {
-                    case .full:
-                        Text("This will erase all locally stored progress and settings. The app may need to be fully restarted afterward.")
-                    default:
-                        Text("This will remove data recorded in the selected time window, including sessions, XP, and health logs.")
+                Group {
+                    if let pendingReset {
+                        switch pendingReset {
+                        case .full:
+                            Text("This will erase all locally stored progress and settings. The app may need to be fully restarted afterward.")
+                        case .today, .last7Days:
+                            Text("This will remove data recorded in the selected time window, including sessions, XP, health logs, daily ratings, and quest progress for the affected days.")
+                        }
+                    } else {
+                        Text("")
                     }
                 }
             })
@@ -317,10 +321,8 @@ struct SettingsView: View {
                 .foregroundStyle(.secondary)
 
             VStack(alignment: .leading, spacing: 12) {
-                resetButton(title: "Reset last 5 minutes", window: .last5Minutes)
-                resetButton(title: "Reset last hour", window: .lastHour)
-                resetButton(title: "Reset last day", window: .lastDay)
-                resetButton(title: "Reset last week", window: .lastWeek)
+                resetButton(title: "Reset today", window: .today)
+                resetButton(title: "Reset last 7 days", window: .last7Days)
                 resetButton(title: "Full reset", window: .full, role: .destructive)
             }
             .font(.subheadline)
@@ -380,11 +382,12 @@ private enum HapticsService {
         talentTreeStore: talentTreeStore
     )
 
-    return SettingsView(
+    SettingsView(
         viewModel: SettingsViewModel(resetter: GameDataResetter(
             healthStatsStore: HealthBarIRLStatsStore(),
             xpStore: statsStore,
-            sessionStatsStore: statsStore
+            sessionStatsStore: statsStore,
+            dailyHealthRatingsStore: DailyHealthRatingsStore()
         )),
         moreViewModel: MoreViewModel(
             hydrationSettingsStore: hydrationSettingsStore,
