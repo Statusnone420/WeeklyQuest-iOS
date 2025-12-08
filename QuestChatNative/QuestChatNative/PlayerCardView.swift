@@ -44,7 +44,7 @@ enum PlayerTitleConfig {
     }
 }
 
-private struct Buff: Identifiable, Equatable, Codable {
+struct Buff: Identifiable, Equatable, Codable {
     let id: UUID
     let name: String
     let description: String
@@ -128,7 +128,9 @@ private struct Buff: Identifiable, Equatable, Codable {
     }
 }
 
-private final class PotionManager: ObservableObject {
+final class PotionManager: ObservableObject {
+    static let shared = PotionManager()
+
     @Published var activeBuffs: [Buff] = []
     @Published var isHealthOnCooldown: Bool = false
     @Published var isManaOnCooldown: Bool = false
@@ -164,8 +166,15 @@ private final class PotionManager: ObservableObject {
                 // Migrate old names to new aliases to avoid duplicates
                 for i in filtered.indices {
                     if let newName = PotionManager.buffNameAliases[filtered[i].name] {
-                        // Recreate buff with new name but keep other properties
-                        let migrated = Buff(name: newName, description: filtered[i].description, icon: filtered[i].icon, color: filtered[i].color, duration: filtered[i].remaining, startedAt: Date().addingTimeInterval(-filtered[i].duration + filtered[i].remaining))
+                        // Recreate buff with new name but preserve original duration and start time so remaining stays correct
+                        let migrated = Buff(
+                            name: newName,
+                            description: filtered[i].description,
+                            icon: filtered[i].icon,
+                            color: filtered[i].color,
+                            duration: filtered[i].duration,
+                            startedAt: filtered[i].startedAt
+                        )
                         filtered[i] = migrated
                     }
                 }
@@ -262,7 +271,7 @@ private final class PotionManager: ObservableObject {
     }
 }
 
-private struct BuffBarView: View {
+struct BuffBarView: View {
     @ObservedObject var manager: PotionManager
 
     var body: some View {

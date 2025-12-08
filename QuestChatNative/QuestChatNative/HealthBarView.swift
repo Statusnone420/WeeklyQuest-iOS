@@ -9,6 +9,8 @@ struct HealthBarView: View {
     @EnvironmentObject var questsViewModel: QuestsViewModel
     @ObservedObject var dailyRatingsStore: DailyHealthRatingsStore = DependencyContainer.shared.dailyHealthRatingsStore
     @State private var showPlayerCard = false
+    @State private var buffsVersion: Int = 0
+    @ObservedObject private var potionManager = PotionManager.shared
 
     init(viewModel: HealthBarViewModel, focusViewModel: FocusViewModel, statsStore: SessionStatsStore, statsViewModel: StatsViewModel, selectedTab: Binding<MainTab>) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -73,6 +75,16 @@ struct HealthBarView: View {
                     questsViewModel.handleQuestEvent(.playerCardViewed)
                 }
             }
+            .onAppear { potionManager.start() }
+            .onReceive(potionManager.$activeBuffs) { _ in
+                buffsVersion &+= 1
+            }
+            .onChange(of: potionManager.activeBuffs.count) { _ in
+                buffsVersion &+= 1
+            }
+            .onChange(of: showPlayerCard) { isShowing in
+                if !isShowing { buffsVersion &+= 1 }
+            }
         }
     }
 
@@ -109,6 +121,12 @@ struct HealthBarView: View {
                 Text("\(viewModel.currentHP) / \(viewModel.maxHP) HP")
                     .font(.caption.bold())
                     .foregroundStyle(.secondary)
+            }
+
+            if !potionManager.activeBuffs.isEmpty {
+                BuffBarView(manager: potionManager)
+                    .id(buffsVersion)
+                    .padding(.top, 4)
             }
 
             VStack(alignment: .leading, spacing: 6) {

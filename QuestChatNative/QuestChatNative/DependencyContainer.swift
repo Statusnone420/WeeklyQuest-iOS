@@ -17,6 +17,7 @@ final class DependencyContainer {
     let seasonAchievementsStore: SeasonAchievementsStore
     let talentTreeStore: TalentTreeStore
     let questEngine: QuestEngine
+    let potionManager: PotionManager
 
     let focusViewModel: FocusViewModel
     let healthBarViewModel: HealthBarViewModel
@@ -44,6 +45,8 @@ final class DependencyContainer {
         dailyHealthRatingsStore = DailyHealthRatingsStore()
         seasonAchievementsStore = SeasonAchievementsStore()
         questEngine = QuestEngine()
+        potionManager = PotionManager.shared
+        potionManager.start()
 
         // View models that depend on stores
         healthBarViewModel = HealthBarViewModel(
