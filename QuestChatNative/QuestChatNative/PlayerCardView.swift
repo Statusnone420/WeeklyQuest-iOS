@@ -134,6 +134,12 @@ private final class PotionManager: ObservableObject {
     @Published var isManaOnCooldown: Bool = false
     @Published var isStaminaOnCooldown: Bool = false
     
+    private static let buffNameAliases: [String: String] = [
+        "Regeneration": "Full AF",
+        "Clarity": "Hydrated",
+        "Second Wind": "Energized"
+    ]
+    
     @Published var healthReadyAt: Date? = nil
     @Published var manaReadyAt: Date? = nil
     @Published var staminaReadyAt: Date? = nil
@@ -154,7 +160,28 @@ private final class PotionManager: ObservableObject {
         if let data = defaults.data(forKey: buffsKey) {
             if let decoded = try? JSONDecoder().decode([Buff].self, from: data) {
                 // Drop expired buffs on load
-                self.activeBuffs = decoded.filter { $0.remaining > 0 }
+                var filtered = decoded.filter { $0.remaining > 0 }
+                // Migrate old names to new aliases to avoid duplicates
+                for i in filtered.indices {
+                    if let newName = PotionManager.buffNameAliases[filtered[i].name] {
+                        // Recreate buff with new name but keep other properties
+                        let migrated = Buff(name: newName, description: filtered[i].description, icon: filtered[i].icon, color: filtered[i].color, duration: filtered[i].remaining, startedAt: Date().addingTimeInterval(-filtered[i].duration + filtered[i].remaining))
+                        filtered[i] = migrated
+                    }
+                }
+                // If migration changed anything, dedupe by name keeping the latest remaining duration
+                var seen: [String: Buff] = [:]
+                for b in filtered {
+                    if let existing = seen[b.name] {
+                        // Keep the one with more remaining time
+                        seen[b.name] = (b.remaining >= existing.remaining) ? b : existing
+                    } else {
+                        seen[b.name] = b
+                    }
+                }
+                self.activeBuffs = Array(seen.values)
+                // Persist migrated state
+                saveState()
             }
         }
         if let data = defaults.data(forKey: cooldownsKey) {
@@ -214,7 +241,16 @@ private final class PotionManager: ObservableObject {
     }
     
     func upsertBuff(name: String, description: String, icon: String, color: Color, duration: TimeInterval) {
-        if let idx = activeBuffs.firstIndex(where: { $0.name == name }) {
+        // Match by either the new name or any old alias that maps to this name
+        let aliasMatches: (Buff) -> Bool = { buff in
+            if buff.name == name { return true }
+            // If this incoming name is a canonical new name, check if buff has any old alias that maps to it
+            for (old, new) in PotionManager.buffNameAliases where new == name {
+                if buff.name == old { return true }
+            }
+            return false
+        }
+        if let idx = activeBuffs.firstIndex(where: aliasMatches) {
             // Refresh by replacing with a new instance that restarts the timer
             let refreshed = Buff(name: name, description: description, icon: icon, color: color, duration: duration)
             activeBuffs[idx] = refreshed
@@ -295,6 +331,9 @@ struct PlayerCardView: View {
     @AppStorage("playerDisplayName") private var playerDisplayName: String = QuestChatStrings.PlayerCard.defaultName
     @AppStorage("playerId") private var playerIdString: String = UUID().uuidString
     @AppStorage("playerAvatarStyleIndex") private var avatarStyleIndex: Int = -1
+    
+    @AppStorage("playerAvatarShuffleBag") private var avatarShuffleBagData: Data = Data()
+    @AppStorage("playerAvatarRecentHistory") private var avatarRecentHistoryData: Data = Data()
 
     private struct AvatarStyle {
         let symbolName: String
@@ -302,15 +341,104 @@ struct PlayerCardView: View {
     }
 
     private let avatarStyles: [AvatarStyle] = [
-        AvatarStyle(symbolName: "atom",                colors: [.cyan, .blue]),
-        AvatarStyle(symbolName: "bolt.fill",           colors: [.orange, .pink]),
-        AvatarStyle(symbolName: "brain.head.profile",  colors: [.purple, .indigo]),
-        AvatarStyle(symbolName: "sparkles",            colors: [.teal, .cyan]),
-        AvatarStyle(symbolName: "flame.fill",          colors: [.red, .orange]),
+        // Science & Tech
+        AvatarStyle(symbolName: "atom", colors: [.cyan, .blue]),
+        AvatarStyle(symbolName: "cpu.fill", colors: [.indigo, .purple]),
+        AvatarStyle(symbolName: "antenna.radiowaves.left.and.right", colors: [.teal, .blue]),
+        AvatarStyle(symbolName: "bolt.horizontal.circle.fill", colors: [.yellow, .orange]),
+
+        // Magic & Fantasy
+        AvatarStyle(symbolName: "sparkles", colors: [.teal, .cyan]),
+        AvatarStyle(symbolName: "wand.and.stars", colors: [.purple, .pink]),
+        AvatarStyle(symbolName: "moon.stars.fill", colors: [.indigo, .purple]),
+        AvatarStyle(symbolName: "sun.max.fill", colors: [.orange, .red]),
+
+        // Nature & Elements
+        AvatarStyle(symbolName: "leaf.fill", colors: [.green, .teal]),
+        AvatarStyle(symbolName: "flame.fill", colors: [.red, .orange]),
+        AvatarStyle(symbolName: "drop.fill", colors: [.cyan, .blue]),
+        AvatarStyle(symbolName: "wind", colors: [.mint, .teal]),
+
+        // Gaming & Fun
         AvatarStyle(symbolName: "gamecontroller.fill", colors: [.mint, .teal]),
-        AvatarStyle(symbolName: "moon.stars.fill",     colors: [.indigo, .purple]),
-        AvatarStyle(symbolName: "leaf.fill",           colors: [.green, .teal]),
+        AvatarStyle(symbolName: "die.face.5.fill", colors: [.pink, .purple]),
+        AvatarStyle(symbolName: "gamecontroller", colors: [.blue, .indigo]),
+
+        // Health & Mind
+        AvatarStyle(symbolName: "brain.head.profile", colors: [.purple, .indigo]),
+        AvatarStyle(symbolName: "heart.fill", colors: [.red, .pink]),
+        AvatarStyle(symbolName: "bolt.fill", colors: [.orange, .pink]),
+
+        // Space & Adventure
+        AvatarStyle(symbolName: "globe.americas.fill", colors: [.blue, .green]),
+        AvatarStyle(symbolName: "paperplane.fill", colors: [.teal, .cyan]),
+        AvatarStyle(symbolName: "airplane.circle.fill", colors: [.pink, .orange]),
+
+        // Tools & Craft
+        AvatarStyle(symbolName: "hammer.fill", colors: [.gray, .orange]),
+        AvatarStyle(symbolName: "wrench.fill", colors: [.blue, .gray]),
+        AvatarStyle(symbolName: "paintbrush.pointed.fill", colors: [.pink, .teal]),
+
+        // Music & Vibes
+        AvatarStyle(symbolName: "music.note", colors: [.purple, .blue]),
+        AvatarStyle(symbolName: "headphones", colors: [.indigo, .teal]),
+        AvatarStyle(symbolName: "waveform", colors: [.red, .purple]),
+
+        // Sports & Movement
+        AvatarStyle(symbolName: "figure.walk", colors: [.green, .mint]),
+        AvatarStyle(symbolName: "bicycle", colors: [.teal, .indigo]),
+        AvatarStyle(symbolName: "figure.run", colors: [.orange, .red]),
+
+        // Learning & Growth
+        AvatarStyle(symbolName: "book.fill", colors: [.blue, .purple]),
+        AvatarStyle(symbolName: "graduationcap.fill", colors: [.indigo, .teal]),
+        AvatarStyle(symbolName: "lightbulb.fill", colors: [.yellow, .orange]),
     ]
+
+    // MARK: Avatar randomization helpers
+    private struct ShuffleState: Codable {
+        var bag: [Int] = []
+        var recent: [Int] = []
+    }
+
+    private var recentWindowSize: Int { max(2, min(4, avatarStyles.count / 2)) }
+
+    private func loadShuffleState() -> ShuffleState {
+        if let decoded = try? JSONDecoder().decode(ShuffleState.self, from: avatarShuffleBagData),
+           let recent = try? JSONDecoder().decode([Int].self, from: avatarRecentHistoryData) {
+            return ShuffleState(bag: decoded.bag, recent: Array(recent.suffix(recentWindowSize)))
+        }
+        return ShuffleState(bag: [], recent: [])
+    }
+
+    private func saveShuffleState(_ state: ShuffleState) {
+        if let bagData = try? JSONEncoder().encode(ShuffleState(bag: state.bag, recent: [])) {
+            avatarShuffleBagData = bagData
+        }
+        if let recentData = try? JSONEncoder().encode(Array(state.recent.suffix(recentWindowSize))) {
+            avatarRecentHistoryData = recentData
+        }
+    }
+
+    private func refillBag(excluding recent: [Int]) -> [Int] {
+        let all = Array(0..<avatarStyles.count)
+        let filtered = all.filter { !recent.contains($0) }
+        // If filtering removes everything (small list), fall back to all
+        return filtered.isEmpty ? all.shuffled() : filtered.shuffled()
+    }
+
+    private func nextRandomAvatarIndex() -> Int {
+        var state = loadShuffleState()
+        if state.bag.isEmpty {
+            state.bag = refillBag(excluding: state.recent)
+        }
+        guard let next = state.bag.first else { return Int.random(in: 0..<avatarStyles.count) }
+        state.bag.removeFirst()
+        state.recent.append(next)
+        if state.recent.count > recentWindowSize { state.recent.removeFirst(state.recent.count - recentWindowSize) }
+        saveShuffleState(state)
+        return next
+    }
 
     private func deterministicAvatarIndex(from id: UUID) -> Int {
         let scalars = id.uuidString.unicodeScalars
@@ -350,9 +478,20 @@ struct PlayerCardView: View {
 
         // Initialize persistent avatar style index once
         if avatarStyleIndex < 0 || avatarStyleIndex >= avatarStyles.count {
-            // Prefer a deterministic choice from playerId; fallback to a random index if needed
-            let baseIndex = deterministicAvatarIndex(from: UUID(uuidString: playerIdString) ?? UUID())
-            avatarStyleIndex = baseIndex
+            // Seed shuffle state once and pick a non-repeating random index
+            var state = loadShuffleState()
+            if state.bag.isEmpty { state.bag = refillBag(excluding: state.recent) }
+            if let first = state.bag.first {
+                state.bag.removeFirst()
+                state.recent.append(first)
+                if state.recent.count > recentWindowSize { state.recent.removeFirst(state.recent.count - recentWindowSize) }
+                saveShuffleState(state)
+                avatarStyleIndex = first
+            } else {
+                // Fallback to deterministic index if needed
+                let baseIndex = deterministicAvatarIndex(from: UUID(uuidString: playerIdString) ?? UUID())
+                avatarStyleIndex = baseIndex
+            }
         }
     }
 
@@ -374,7 +513,7 @@ struct PlayerCardView: View {
                     useHealthPotion()
                 }
                 .popover(isPresented: $showHealthPopover, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
-                    potionPopover(title: "Regeneration", subtitle: "Food time! A good meal heals over time and leaves you feeling refreshed.", color: .green, icon: "leaf.fill")
+                    potionPopover(title: "Full AF", subtitle: "Food time! A good meal heals over time and leaves you feeling refreshed.", color: .green, icon: "leaf.fill")
                         .presentationCompactAdaptation(.none)
                         .onDisappear {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { suppressNextTap = false }
@@ -385,7 +524,7 @@ struct PlayerCardView: View {
                     useManaPotion()
                 }
                 .popover(isPresented: $showManaPopover, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
-                    potionPopover(title: "Clarity", subtitle: "Logs hydration and boosts clarity for a short while.", color: .cyan, icon: "sparkles")
+                    potionPopover(title: "Hydrated", subtitle: "Logs hydration and boosts clarity for a short while.", color: .cyan, icon: "sparkles")
                         .presentationCompactAdaptation(.none)
                         .onDisappear {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { suppressNextTap = false }
@@ -396,7 +535,7 @@ struct PlayerCardView: View {
                     useStaminaPotion()
                 }
                 .popover(isPresented: $showStaminaPopover, attachmentAnchor: .rect(.bounds), arrowEdge: .top) {
-                    potionPopover(title: "Second Wind", subtitle: "A burst of energy that helps you push through.", color: .orange, icon: "bolt.fill")
+                    potionPopover(title: "Energized", subtitle: "A burst of energy that helps you push through.", color: .orange, icon: "bolt.fill")
                         .presentationCompactAdaptation(.none)
                         .onDisappear {
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { suppressNextTap = false }
@@ -545,8 +684,13 @@ struct PlayerCardView: View {
                 }
                 .overlay(alignment: .topTrailing) {
                     Button {
-                        let newIndex = Int.random(in: 0..<avatarStyles.count)
+                        let newIndex = nextRandomAvatarIndex()
                         avatarStyleIndex = newIndex
+                        // Record selection in recent history state
+                        var state = loadShuffleState()
+                        state.recent.append(newIndex)
+                        if state.recent.count > recentWindowSize { state.recent.removeFirst(state.recent.count - recentWindowSize) }
+                        saveShuffleState(state)
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                             avatarSpin += 360
@@ -798,7 +942,7 @@ struct PlayerCardView: View {
     private func useHealthPotion() {
         guard !potionManager.isHealthOnCooldown else { return }
         // Refresh the buff duration instead of stacking
-        potionManager.upsertBuff(name: "Regeneration", description: "Heals over time.", icon: "leaf.fill", color: .green, duration: defaultBuffDuration)
+        potionManager.upsertBuff(name: "Full AF", description: "Heals over time.", icon: "leaf.fill", color: .green, duration: defaultBuffDuration)
         potionManager.isHealthOnCooldown = true
         if potionManager.healthReadyAt == nil { potionManager.healthReadyAt = Date().addingTimeInterval(healthCooldown) }
         // Persist state
@@ -819,7 +963,7 @@ struct PlayerCardView: View {
     private func useManaPotion() {
         guard !potionManager.isManaOnCooldown else { return }
         // Refresh the buff duration instead of stacking
-        potionManager.upsertBuff(name: "Clarity", description: "Hydration boost + focus.", icon: "sparkles", color: .cyan, duration: defaultBuffDuration)
+        potionManager.upsertBuff(name: "Hydrated", description: "Hydration boost + focus.", icon: "sparkles", color: .cyan, duration: defaultBuffDuration)
         potionManager.isManaOnCooldown = true
         if potionManager.manaReadyAt == nil { potionManager.manaReadyAt = Date().addingTimeInterval(manaCooldown) }
         // Persist state
@@ -837,7 +981,7 @@ struct PlayerCardView: View {
     private func useStaminaPotion() {
         guard !potionManager.isStaminaOnCooldown else { return }
         // Refresh the buff duration instead of stacking
-        potionManager.upsertBuff(name: "Second Wind", description: "Temporary stamina surge.", icon: "bolt.fill", color: .orange, duration: defaultBuffDuration)
+        potionManager.upsertBuff(name: "Energized", description: "Temporary stamina surge.", icon: "bolt.fill", color: .orange, duration: defaultBuffDuration)
         potionManager.isStaminaOnCooldown = true
         if potionManager.staminaReadyAt == nil { potionManager.staminaReadyAt = Date().addingTimeInterval(staminaCooldown) }
         // Persist state
