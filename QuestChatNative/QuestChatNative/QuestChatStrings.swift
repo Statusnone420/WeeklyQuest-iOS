@@ -21,6 +21,11 @@ enum QuestChatStrings {
         static let moveSubtitle = "Dance, gym, walk, VR—just move your body."
     }
 
+    enum ReminderCopy {
+        /// Unified hydration reminder body used for both test nudges and scheduled notifications.
+        static let hydrationShort = "Grab something that isn’t just caffeine or vibes."
+    }
+
     enum FocusTimerModeTitles {
         static let focus = "Deep Focus"
         static let selfCare = "Self Care"
@@ -62,7 +67,7 @@ enum QuestChatStrings {
         static let timerCompleteBody = "Hydrate and check your posture. Your session just wrapped up!"
 
         static let hydrateReminderTitle = "Hydration break"
-        static let hydrateReminderBody = "Grab something that isn’t just caffeine or vibes."
+        static let hydrateReminderBody = ReminderCopy.hydrationShort
 
         static let hydrateNudgeTitle = "Hydrate + posture check"
     }
@@ -79,7 +84,7 @@ enum QuestChatStrings {
         static let endHourLabel = "End"
         static let focusOnlyLabel = "Only during focus sessions"
         static let focusOnlyDescription = "Skip posture nudges when the Focus timer isn’t running."
-        static let hydrationBody = "Grab water and stretch for a minute."
+        static let hydrationBody = ReminderCopy.hydrationShort
         static let postureBody = "Unclench your shoulders and reset your posture."
     }
 
@@ -290,7 +295,7 @@ enum QuestChatStrings {
         static let postureSnoozeHint = "Can’t move right now? Snooze it and come back to un-pretzel later."
 
         static let hydrateReminderTitle = "Hydration break"
-        static let hydrateReminderBody = "Grab something that isn’t just caffeine or vibes."
+        static let hydrateReminderBody = ReminderCopy.hydrationShort
         static let hydratePostureInfoTitle = "Hydrate + posture when the timer ends"
         static let hydratePostureInfoBody = "Reminders stay on this device for now. Your body still gets the buff."
     }

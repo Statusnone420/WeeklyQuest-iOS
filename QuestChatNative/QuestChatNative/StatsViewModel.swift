@@ -152,7 +152,7 @@ final class StatsViewModel: ObservableObject {
     var hydrationProgress: Double {
         let goal = hydrationSettingsStore.dailyWaterGoalOunces
         guard goal > 0 else { return 0 }
-        let intake = (todaySummary?.hydrationCount ?? 0) * hydrationSettingsStore.ouncesPerWaterTap
+        let intake = todaySummary?.hydrationOunces ?? 0
         return clampProgress(Double(intake) / Double(goal))
     }
 
@@ -195,8 +195,7 @@ final class StatsViewModel: ObservableObject {
         guard hasActivity(on: yesterday, progress: progress) else { return nil }
 
         let daySummary = healthStore.days.first { calendar.isDate($0.date, inSameDayAs: yesterday) }
-        let hydrationCount = daySummary?.hydrationCount ?? 0
-        let hydrationOunces = hydrationCount * hydrationSettingsStore.ouncesPerWaterTap
+        let hydrationOunces = daySummary?.hydrationOunces ?? 0
         let hydrationGoalOunces = hydrationSettingsStore.dailyWaterGoalOunces
         let mood = daySummary?.lastMood
         let sleepQuality = yesterdaysSleepQuality
