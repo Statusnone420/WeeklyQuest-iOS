@@ -94,6 +94,7 @@ struct ContentView: View {
                 .transition(.opacity.combined(with: .scale))
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: statsStore.pendingLevelUp)
         .safeAreaInset(edge: .top) {
             if let event = focusViewModel.activeReminderEvent,
                let message = focusViewModel.activeReminderMessage {
