@@ -418,16 +418,16 @@ enum QuestCatalog {
     ]
     */
 
-    // NEW: Streamlined daily quests - trivial dopamine hits (10-20 XP)
+    // NEW: Streamlined daily quests - restored to original XP values (15-20 XP)
     // Only 17 quests focused on quick completions
     static let expandedDailyQuests: [QuestDefinition] = [
-        // Timer category (4 quests) - quick, low-threshold completions
+        // Timer category (5 quests) - quick, low-threshold completions
         QuestDefinition(
             id: "DAILY_TIMER_QUICK_WORK",
             type: .daily,
             category: .timer,
             difficulty: .easy,
-            xpReward: 15,
+            xpReward: 20,
             title: "Self Care Aficionado",
             subtitle: "Complete a Create, Self-Care, or Move session for 10 or more minutes.",
             isOncePerDay: true,
@@ -438,7 +438,7 @@ enum QuestCatalog {
             type: .daily,
             category: .timer,
             difficulty: .easy,
-            xpReward: 15,
+            xpReward: 20,
             title: "Chore Burst",
             subtitle: "Complete a chores timer for 5+ minutes.",
             isOncePerDay: true,
@@ -449,7 +449,7 @@ enum QuestCatalog {
             type: .daily,
             category: .timer,
             difficulty: .easy,
-            xpReward: 15,
+            xpReward: 20,
             title: "Mindful Moment",
             subtitle: "Finish a Self-Care timer for 5+ minutes.",
             isOncePerDay: true,
@@ -460,7 +460,7 @@ enum QuestCatalog {
             type: .daily,
             category: .timer,
             difficulty: .easy,
-            xpReward: 15,
+            xpReward: 20,
             title: "Nerd Time",
             subtitle: "Complete a 10 or more minute gaming session timer.",
             isOncePerDay: true,
@@ -471,7 +471,7 @@ enum QuestCatalog {
             type: .daily,
             category: .timer,
             difficulty: .easy,
-            xpReward: 15,
+            xpReward: 20,
             title: "Guilt-Free Gaming",
             subtitle: "Complete a 5 or more minute gaming session timer.",
             isOncePerDay: true,
@@ -516,7 +516,7 @@ enum QuestCatalog {
             type: .daily,
             category: .healthBar,
             difficulty: .easy,
-            xpReward: 15,
+            xpReward: 20,
             title: "Posture Check",
             subtitle: "Acknowledge one posture reminder.",
             isOncePerDay: true,
@@ -527,7 +527,7 @@ enum QuestCatalog {
             type: .daily,
             category: .healthBar,
             difficulty: .easy,
-            xpReward: 15,
+            xpReward: 20,
             title: "Gut Check-In",
             subtitle: "Log today's gut health.",
             isOncePerDay: true,
@@ -567,13 +567,13 @@ enum QuestCatalog {
             isOncePerDay: true,
             tier: .core
         ),
-        // EasyWin category (5 quests) - instant gratification
+        // EasyWin category (6 quests) - instant gratification
         QuestDefinition(
             id: "DAILY_EASY_TINY_TIDY",
             type: .daily,
             category: .easyWin,
             difficulty: .easy,
-            xpReward: 10,
+            xpReward: 15,
             title: "Tiny Tidy",
             subtitle: "Complete a Chores timer for 3+ minutes.",
             isOncePerDay: true,
@@ -584,7 +584,7 @@ enum QuestCatalog {
             type: .daily,
             category: .easyWin,
             difficulty: .easy,
-            xpReward: 10,
+            xpReward: 15,
             title: "One Nice Thing",
             subtitle: "Complete any timer for 5+ minutes.",
             isOncePerDay: true,
@@ -595,7 +595,7 @@ enum QuestCatalog {
             type: .daily,
             category: .easyWin,
             difficulty: .easy,
-            xpReward: 10,
+            xpReward: 15,
             title: "Hydration Sip",
             subtitle: "Log at least 4oz of water.",
             isOncePerDay: true,
@@ -606,7 +606,7 @@ enum QuestCatalog {
             type: .daily,
             category: .easyWin,
             difficulty: .easy,
-            xpReward: 10,
+            xpReward: 15,
             title: "First Quest",
             subtitle: "Complete your first quest today.",
             isOncePerDay: true,
@@ -628,7 +628,7 @@ enum QuestCatalog {
             type: .daily,
             category: .easyWin,
             difficulty: .easy,
-            xpReward: 15,
+            xpReward: 20,
             title: "Triple Chain",
             subtitle: "Complete 3 different quests within 30 minutes.",
             isOncePerDay: true,
