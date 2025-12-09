@@ -1347,6 +1347,7 @@ final class FocusViewModel: ObservableObject {
     private var isLoadingSleepData = false
     private var hasLoggedActivityToday = false
     private var isLoadingActivityData = false
+    @Published private(set) var isRestoringFromLiveActivity = false  // 🎯 Flag to suppress animations during restoration
 
     init(
         statsStore: SessionStatsStore = DependencyContainer.shared.sessionStatsStore,
@@ -2063,19 +2064,31 @@ final class FocusViewModel: ObservableObject {
             
             // ✅ Restore the category from the Live Activity
             let restoredCategory = TimerCategory.Kind(rawValue: contentState.category) ?? .focusMode
+            
+            // 🎯 Set flag to suppress view animations during restoration
+            await MainActor.run {
+                self.isRestoringFromLiveActivity = true
+            }
 
             if isPaused {
                 // Paused session: just restore remaining seconds and paused state
                 remaining = contentState.remainingSeconds
-                timerState = .paused
-                self.state = .paused
-                currentSession = nil
                 
-                // ✅ Set the restored category
+                // ✅ Batch all state updates together without animation
                 await MainActor.run {
-                    self.selectedCategory = restoredCategory
-                    self.selectedMode = restoredCategory.mode
-                    self.activeSessionCategory = restoredCategory
+                    var transaction = Transaction()
+                    transaction.disablesAnimations = true
+                    withTransaction(transaction) {
+                        self.timerState = .paused
+                        self.state = .paused
+                        self.currentSession = nil
+                        self.selectedCategory = restoredCategory
+                        self.selectedMode = restoredCategory.mode
+                        self.activeSessionCategory = restoredCategory
+                        self.activeSessionDuration = totalDuration
+                        self.pausedRemainingSeconds = remaining
+                        self.remainingSeconds = remaining
+                    }
                 }
             } else {
                 // Running session: compute remaining based on endDate
@@ -2090,43 +2103,63 @@ final class FocusViewModel: ObservableObject {
                         startDate: contentState.startDate,
                         category: restoredCategory
                     )
-                    currentSession = session
-                    timerState = .running
-                    self.state = .running
                     
-                    // ✅ Set the restored category
+                    // ✅ Batch all state updates together without animation
                     await MainActor.run {
-                        self.selectedCategory = restoredCategory
-                        self.selectedMode = restoredCategory.mode
-                        self.activeSessionCategory = restoredCategory
+                        var transaction = Transaction()
+                        transaction.disablesAnimations = true
+                        withTransaction(transaction) {
+                            self.currentSession = session
+                            self.timerState = .running
+                            self.state = .running
+                            self.selectedCategory = restoredCategory
+                            self.selectedMode = restoredCategory.mode
+                            self.activeSessionCategory = restoredCategory
+                            self.activeSessionDuration = totalDuration
+                            self.remainingSeconds = remaining
+                        }
                     }
                     
                     startUITimer()
                 } else {
                     // ⛔️ Timer already finished while the app was gone.
                     // End the Live Activity so it doesn't stick around.
-                    timerState = .idle
-                    self.state = .idle
-                    remaining = 0
+                    await MainActor.run {
+                        var transaction = Transaction()
+                        transaction.disablesAnimations = true
+                        withTransaction(transaction) {
+                            self.timerState = .idle
+                            self.state = .idle
+                            self.remainingSeconds = 0
+                        }
+                    }
 
                     await activity.end(nil, dismissalPolicy: .immediate)
                     await MainActor.run {
                         self.liveActivity = nil
                     }
                     print("[FocusLiveActivity] Ended stale activity \(activity.id)")
+                    
+                    // Reset flag
+                    await MainActor.run {
+                        self.isRestoringFromLiveActivity = false
+                    }
                     return
                 }
             }
-
-            // Keep internal state in sync with whatever we restored
-            activeSessionDuration = totalDuration
-            pausedRemainingSeconds = isPaused ? remaining : pausedRemainingSeconds
-            remainingSeconds = remaining
 
             await MainActor.run {
                 self.liveActivity = activity
             }
             print("[FocusLiveActivity] Restored existing activity \(activity.id) paused=\(isPaused) remaining=\(remaining) category=\(restoredCategory)")
+            
+            // 🎯 Reset flag after a short delay to allow views to settle
+            Task {
+                try? await Task.sleep(for: .milliseconds(100))
+                await MainActor.run {
+                    self.isRestoringFromLiveActivity = false
+                }
+            }
         }
     }
 

@@ -151,6 +151,9 @@ struct FocusView: View {
             viewModel.handleScenePhaseChange(scenePhase)
         }
         .onChange(of: viewModel.selectedCategory) {
+            // Skip animations during Live Activity restoration
+            guard !viewModel.isRestoringFromLiveActivity else { return }
+            
             heroCardScale = 0.98
             heroCardOpacity = 0.92
             withAnimation(.spring(response: 0.45, dampingFraction: 0.78)) {
