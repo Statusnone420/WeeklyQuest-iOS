@@ -160,7 +160,7 @@ private extension QuestsView {
 
     var headerCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .top, spacing: 8) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(selectedScope == .daily ? QuestChatStrings.QuestsView.headerTitle : "Weekly quests")
                         .font(.title2.bold())
@@ -188,7 +188,44 @@ private extension QuestsView {
                             .foregroundStyle(.secondary)
                     }
                 }
-                Spacer()
+                
+                Spacer(minLength: 8)
+                
+                // XP Boost pill in top right
+                if let label = DependencyContainer.shared.statsViewModel.xpBoostLabel {
+                    HStack(spacing: 4) {
+                        Image(systemName: "sparkles")
+                            .font(.caption2)
+                        
+                        Text(label)
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .lineLimit(1)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.cyan.opacity(0.7),
+                                        Color.purple.opacity(0.7)
+                                    ]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                    )
+                    .overlay(
+                        Capsule()
+                            .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
+                    )
+                    .foregroundColor(.white)
+                    .fixedSize(horizontal: true, vertical: true)
+                    .transition(.scale.combined(with: .opacity))
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: label)
+                }
             }
 
             if selectedScope == .daily {

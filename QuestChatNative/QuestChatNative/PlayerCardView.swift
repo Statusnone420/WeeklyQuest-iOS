@@ -719,10 +719,11 @@ struct PlayerCardView: View {
                         .textFieldStyle(.plain)
                         .layoutPriority(1)
 
-                    HStack(spacing: 8) {
+                    HStack(spacing: 0) {
                         Text("Level \(store.level)")
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: true, vertical: false)
 
                         if let label = statsViewModel.xpBoostLabel {
                             HStack(spacing: 4) {
@@ -732,8 +733,7 @@ struct PlayerCardView: View {
                                 Text(label)
                                     .font(.caption2)
                                     .fontWeight(.semibold)
-                                    .lineLimit(1)              // never wrap
-                                    .minimumScaleFactor(0.9)   // tiny shrink instead of wrapping if needed
+                                    .lineLimit(1)
                             }
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
@@ -755,15 +755,20 @@ struct PlayerCardView: View {
                                     .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
                             )
                             .foregroundColor(.white)
-                            .fixedSize(horizontal: true, vertical: true) // size just to its content
+                            .fixedSize(horizontal: true, vertical: true)
+                            .padding(.leading, 8)
+                            .transition(.scale.combined(with: .opacity))
                         }
 
-                        Spacer()
+                        Spacer(minLength: 8)
 
                         Text("\(healthBarViewModel.currentHP) / \(healthBarViewModel.maxHP) HP")
                             .font(.caption.bold())
                             .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: true, vertical: false)
                     }
+                    .frame(height: 24)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: statsViewModel.xpBoostLabel != nil)
 
                     RPGStatBar(
                         iconName: "heart.fill",

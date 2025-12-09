@@ -537,7 +537,7 @@ struct StatsView: View {
     private var summaryTiles: some View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
-                statCard(title: QuestChatStrings.StatsView.summaryXPTileTitle, value: "\(store.xp)", icon: "sparkles", tint: .mint)
+                statCardWithBoost(title: QuestChatStrings.StatsView.summaryXPTileTitle, value: "\(store.xp)", icon: "sparkles", tint: .mint, boostLabel: viewModel.xpBoostLabel)
                 statCard(title: QuestChatStrings.StatsView.summarySessionsTileTitle, value: "\(store.sessionsCompleted)", icon: "clock.badge.checkmark", tint: .cyan)
             }
 
@@ -617,6 +617,61 @@ struct StatsView: View {
             Label(title, systemImage: icon)
                 .font(.headline)
                 .foregroundStyle(tint)
+            Text(value)
+                .font(.largeTitle.bold())
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color(uiColor: .secondarySystemBackground).opacity(0.16))
+        .cornerRadius(14)
+    }
+    
+    private func statCardWithBoost(title: String, value: String, icon: String, tint: Color, boostLabel: String?) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 0) {
+                Label(title, systemImage: icon)
+                    .font(.headline)
+                    .foregroundStyle(tint)
+                    .fixedSize(horizontal: true, vertical: false)
+                
+                if let label = boostLabel {
+                    HStack(spacing: 4) {
+                        Image(systemName: "sparkles")
+                            .font(.caption2)
+                        
+                        Text(label)
+                            .font(.caption2)
+                            .fontWeight(.semibold)
+                            .lineLimit(1)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [
+                                        Color.cyan.opacity(0.7),
+                                        Color.purple.opacity(0.7)
+                                    ]),
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                    )
+                    .overlay(
+                        Capsule()
+                            .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
+                    )
+                    .foregroundColor(.white)
+                    .fixedSize(horizontal: true, vertical: true)
+                    .padding(.leading, 6)
+                    .transition(.scale.combined(with: .opacity))
+                }
+            }
+            .frame(height: 20)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: boostLabel != nil)
+            
             Text(value)
                 .font(.largeTitle.bold())
         }
