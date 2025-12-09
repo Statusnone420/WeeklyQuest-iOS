@@ -461,8 +461,8 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .easy,
             xpReward: 15,
-            title: "Guilt-Free Chill",
-            subtitle: "Complete a 10-minute Gaming, Self-Care, or Move session.",
+            title: "Nerd Time",
+            subtitle: "Complete a 10 or more minute gaming session timer.",
             isOncePerDay: true,
             tier: .habit
         ),
