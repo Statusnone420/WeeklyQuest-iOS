@@ -428,8 +428,8 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .easy,
             xpReward: 20,
-            title: "Self Care Aficionado",
-            subtitle: "Complete a Create, Self-Care, or Move session for 10 or more minutes.",
+            title: "Duality",
+            subtitle: "Complete a Create session or a Focus Mode session for 10+ minutes. (why not both!)",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -440,7 +440,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 20,
             title: "Chore Burst",
-            subtitle: "Complete a chores timer for 5+ minutes.",
+            subtitle: "Complete a Chores session for 5+ minutes. Stop living out of the basket.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -451,7 +451,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 20,
             title: "Mindful Moment",
-            subtitle: "Finish a Self-Care timer for 5+ minutes.",
+            subtitle: "Complete a Self-Care session for 5+ minutes. Take care of you first.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -462,7 +462,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 20,
             title: "Nerd Time",
-            subtitle: "Complete a 10 or more minute gaming session timer.",
+            subtitle: "Complete a Gaming session for 10+ minutes. Your inner geek will thank you. ",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -473,7 +473,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 20,
             title: "Guilt-Free Gaming",
-            subtitle: "Complete a 5 or more minute gaming session timer.",
+            subtitle: "Complete a Gaming session for 5+ minutes. Check your Farmville plants or some shit.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -485,7 +485,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 15,
             title: "Morning Check-In",
-            subtitle: "Log today's mood.",
+            subtitle: "Log today's mood. (even if it's shitty.)",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -496,7 +496,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 15,
             title: "Sleep Log",
-            subtitle: "Log how you slept last night.",
+            subtitle: "Log how you slept last night. Your HP loves sleep.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -518,7 +518,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 20,
             title: "Posture Check",
-            subtitle: "Acknowledge one posture reminder.",
+            subtitle: "Acknowledge one posture reminder. Un-fuck your spine.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -529,7 +529,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 20,
             title: "Gut Check-In",
-            subtitle: "Log today's gut health.",
+            subtitle: "Log today's gut health. Your booty appreciates it.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -541,7 +541,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 20,
             title: "Daily Setup",
-            subtitle: "Complete sleep + mood + hydration setup.",
+            subtitle: "Complete sleep + mood + hydration setup. (before the Boss Battle)",
             isOncePerDay: true,
             tier: .core
         ),
@@ -552,7 +552,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 15,
             title: "Check Your Stats",
-            subtitle: "View your progress in the Stats tab.",
+            subtitle: "View your progress in the Stats tab. Try and do 1% better than yesterday.",
             isOncePerDay: true,
             tier: .core
         ),
@@ -563,7 +563,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 15,
             title: "Player Card",
-            subtitle: "Open your Player Card.",
+            subtitle: "Open your Player Card. (Roll the avatar dice because it's my favorite feature.)",
             isOncePerDay: true,
             tier: .core
         ),
@@ -575,7 +575,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 15,
             title: "Tiny Tidy",
-            subtitle: "Complete a Chores timer for 3+ minutes.",
+            subtitle: "Complete a Chores timer for 3+ minutes. Your full ass sink will stop screaming.",
             isOncePerDay: true,
             tier: .bonus
         ),
@@ -585,8 +585,8 @@ enum QuestCatalog {
             category: .easyWin,
             difficulty: .easy,
             xpReward: 15,
-            title: "One Nice Thing",
-            subtitle: "Complete any timer for 5+ minutes.",
+            title: "Don't Boss Me Around",
+            subtitle: "Complete any timer for 5+ minutes. Cause no one tells you what to do.",
             isOncePerDay: true,
             tier: .bonus
         ),
@@ -597,7 +597,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 15,
             title: "Hydration Sip",
-            subtitle: "Log at least 4oz of water.",
+            subtitle: "Log at least 4oz of water. I mean, it's the least you can do.",
             isOncePerDay: true,
             tier: .bonus
         ),
@@ -607,8 +607,8 @@ enum QuestCatalog {
             category: .easyWin,
             difficulty: .easy,
             xpReward: 15,
-            title: "First Quest",
-            subtitle: "Complete your first quest today.",
+            title: "Easy Experience",
+            subtitle: "Complete your first quest today. EASY MONEY XP!",
             isOncePerDay: true,
             tier: .bonus
         ),
@@ -618,8 +618,8 @@ enum QuestCatalog {
             category: .easyWin,
             difficulty: .easy,
             xpReward: 15,
-            title: "Quest Chain",
-            subtitle: "Complete 2 quests within 10 minutes.",
+            title: "Chain Lightning",
+            subtitle: "Complete 2 quests within 10 minutes. (C-C-...)",
             isOncePerDay: true,
             tier: .bonus
         ),
@@ -630,7 +630,7 @@ enum QuestCatalog {
             difficulty: .easy,
             xpReward: 20,
             title: "Triple Chain",
-            subtitle: "Complete 3 different quests within 30 minutes.",
+            subtitle: "Complete 3 different quests within 30 minutes. (C-C-Combo!)",
             isOncePerDay: true,
             tier: .bonus
         )
@@ -644,7 +644,7 @@ enum QuestCatalog {
             difficulty: .tiny,
             xpReward: 10,
             title: "Load today’s quest log",
-            subtitle: "Open the quest log and feel accomplished today.",
+            subtitle: "Open the quest log and feel accomplished today. Also the reward chest is sick.",
             isOncePerDay: true,
             tier: .core
         ),
@@ -654,7 +654,7 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .medium,
             xpReward: 35,
-            title: "Plan one focus session",
+            title: "Running up the clock",
             subtitle: "Start a session timer that runs for at least 15 minutes today.",
             isOncePerDay: true,
             tier: .core
@@ -665,8 +665,8 @@ enum QuestCatalog {
             category: .healthBar,
             difficulty: .medium,
             xpReward: 35,
-            title: "HealthBar check-in",
-            subtitle: "Update your mood, gut, and sleep before you go heads-down.",
+            title: "Check-In Time",
+            subtitle: "Update your mood, gut, and sleep before you hit the hay tonight.",
             isOncePerDay: true,
             tier: .core
         ),
@@ -676,8 +676,8 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .medium,
             xpReward: 35,
-            title: "Chore blitz",
-            subtitle: "Run a Chores timer for at least 10 minutes to clear a small dungeon.",
+            title: "Dungeon Complete",
+            subtitle: "Complete a Chores session for 10+ minutes to clear your first dungeon.",
             isOncePerDay: true,
             tier: .core
         ),
@@ -687,8 +687,8 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .medium,
             xpReward: 35,
-            title: "Finish one focus session",
-            subtitle: "Complete a session timer that lasts 25 minutes or longer.",
+            title: "25 Minutes?!",
+            subtitle: "Complete a session for 25+ minutes. Time for serious shit.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -698,7 +698,7 @@ enum QuestCatalog {
             category: .timer,
             difficulty: .big,
             xpReward: 60,
-            title: "Hit 25 focus minutes today",
+            title: "Hit 25 total minutes of session time.",
             subtitle: "Accumulate at least 25 minutes of session time.",
             isOncePerDay: true,
             tier: .bonus
@@ -710,7 +710,7 @@ enum QuestCatalog {
             difficulty: .small,
             xpReward: 20,
             title: "Hydrate checkpoint",
-            subtitle: "Drink at least 16 oz of water before a session starts.",
+            subtitle: "Drink at least 16 oz (2 cups, ya dorks) of water before a session starts.",
             isOncePerDay: true,
             tier: .habit
         ),
@@ -721,7 +721,7 @@ enum QuestCatalog {
             difficulty: .big,
             xpReward: 60,
             title: "Hit your hydration goal today",
-            subtitle: "Stay on top of water throughout the day.",
+            subtitle: "Set a hydration goal and actually hit it because I don't care, your body does though.",
             isOncePerDay: true,
             tier: .bonus
         ),
@@ -732,7 +732,7 @@ enum QuestCatalog {
             difficulty: .small,
             xpReward: 20,
             title: "IRL patch update",
-            subtitle: "Stretch for 2 minutes and do a posture check.",
+            subtitle: "Patch release for your spine. Acknowledge a posture check.",
             isOncePerDay: true,
             tier: .habit
         ),
