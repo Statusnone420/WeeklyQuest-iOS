@@ -335,7 +335,7 @@ struct FocusSessionLiveActivityWidget: Widget {
                                     .monospacedDigit()
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.9)
-                                    .padding(.horizontal, 3)
+                                    .padding(.horizontal, 5)
                                     .frame(width: 40, alignment: .center)
                                 }
                                 .frame(width: 40, height: 40)
