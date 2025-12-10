@@ -19,6 +19,7 @@
 		D846BF842EE8A28F00E5A440 /* LottieView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D846BF832EE8A28F00E5A440 /* LottieView.swift */; };
 		D846BF872EE8A30D00E5A440 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = D846BF862EE8A30D00E5A440 /* Lottie */; };
 		D846BF892EE8A4C900E5A440 /* TreasureChest.json in Resources */ = {isa = PBXBuildFile; fileRef = D846BF882EE8A4C900E5A440 /* TreasureChest.json */; };
+		D846C0352EE90B1100E5A440 /* sakura_branch.json in Resources */ = {isa = PBXBuildFile; fileRef = D846C0342EE90B1100E5A440 /* sakura_branch.json */; };
 		D87C18822EDFA74B00438C3A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D87C182B2EDF9B6F00438C3A /* WidgetKit.framework */; };
 		D87C18832EDFA74B00438C3A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D87C182D2EDF9B6F00438C3A /* SwiftUI.framework */; };
 		D87C18942EDFA74C00438C3A /* QuestChatLiveActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D87C18812EDFA74B00438C3A /* QuestChatLiveActivityExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -112,6 +113,7 @@
 		D83AE0012EE38504000217E6 /* SleepHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepHistoryStore.swift; sourceTree = "<group>"; };
 		D846BF832EE8A28F00E5A440 /* LottieView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LottieView.swift; sourceTree = "<group>"; };
 		D846BF882EE8A4C900E5A440 /* TreasureChest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TreasureChest.json; sourceTree = "<group>"; };
+		D846C0342EE90B1100E5A440 /* sakura_branch.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = sakura_branch.json; sourceTree = "<group>"; };
 		D87C182B2EDF9B6F00438C3A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D87C182D2EDF9B6F00438C3A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		D87C18812EDFA74B00438C3A /* QuestChatLiveActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = QuestChatLiveActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -266,7 +268,6 @@
 				D8A1A01B2EDE07B400A6A01B /* DurationWheelPickerView.swift */,
 				D87C18BB2EDFB72100438C3A /* FocusLiveActivityManager.swift */,
 				D8F1C0022F0A2F1B00D6C8EA /* FocusSharedComponents.swift */,
-				D846BF882EE8A4C900E5A440 /* TreasureChest.json */,
 				D8A1A0122EDE07B400A6A012 /* FocusTimerLiveActivity.swift */,
 				D8A1A0032EDE07B400A6A003 /* FocusView.swift */,
 				D8A1A01C2EDE07B400A6A01C /* FocusViewModel.swift */,
@@ -280,9 +281,10 @@
 				D8A1A00A2EDE07B400A6A00A /* HealthBarViewModel.swift */,
 				D8F0A1032F12345000AAAAAA /* HealthRatingMapper.swift */,
 				D8A1A0102EDE07B400A6A010 /* HealthTrackingStorageKeys.swift */,
-				D8A1A0192EDE07B400A6A019 /* HydrationSettingsStore.swift */,
 				D8F1D4002F2B000100D6C8EB /* HydrationReminderManager.swift */,
+				D8A1A0192EDE07B400A6A019 /* HydrationSettingsStore.swift */,
 				D8A1A00E2EDE07B400A6A00E /* LevelUpModalView.swift */,
+				D846BF832EE8A28F00E5A440 /* LottieView.swift */,
 				D8A1A0072EDE07B400A6A007 /* MoreView.swift */,
 				D8A1A0052EDE07B400A6A005 /* MoreViewModel.swift */,
 				D8A1A0222EDE07B400A6A022 /* OnboardingView.swift */,
@@ -302,6 +304,7 @@
 				D8F0A1052F12345000AAAAAA /* RatingSliderRow.swift */,
 				D8F1B0002F0A2F1B00D6C8E9 /* ReminderModels.swift */,
 				D8A1A0012EDE07B400A6A001 /* RPGStatBar.swift */,
+				D846C0342EE90B1100E5A440 /* sakura_branch.json */,
 				76CAEBCF8CD8432DA6BB0E0E /* SeasonAchievement.swift */,
 				3F7C807E72624B1B8A7D9214 /* SeasonAchievementBadgeView.swift */,
 				D8F0A4102F12400000AAAAAA /* SeasonAchievementDetailView.swift */,
@@ -316,7 +319,7 @@
 				D8D444A72EE4C65F00CA06DE /* TalentTreeModels.swift */,
 				D8D444A82EE4C65F00CA06DE /* TalentTreeStore.swift */,
 				D8A1A0162EDE07B400A6A016 /* TodaySummaryView.swift */,
-				D846BF832EE8A28F00E5A440 /* LottieView.swift */,
+				D846BF882EE8A4C900E5A440 /* TreasureChest.json */,
 			);
 			path = QuestChatNative;
 			sourceTree = "<group>";
@@ -422,6 +425,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D846BF892EE8A4C900E5A440 /* TreasureChest.json in Resources */,
+				D846C0352EE90B1100E5A440 /* sakura_branch.json in Resources */,
 				D8A200202EDE07B400A6A001 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -534,7 +538,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.6.3;
+				MARKETING_VERSION = 1.6.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.statusnone.QuestChatNative.QuestChatLiveActivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -565,7 +569,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.6.3;
+				MARKETING_VERSION = 1.6.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.statusnone.QuestChatNative.QuestChatLiveActivity;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

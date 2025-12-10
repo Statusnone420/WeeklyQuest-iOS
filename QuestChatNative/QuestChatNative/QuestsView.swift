@@ -11,6 +11,7 @@ struct QuestsView: View {
     @State private var showingRerollPicker = false
     @State private var selectedScope: QuestScope = .daily
     @State private var chestAnimationTrigger = UUID()
+    @State private var sakuraTrigger = UUID()
 
     enum QuestScope {
         case daily
@@ -161,117 +162,134 @@ private extension QuestsView {
     }
 
     var headerCard: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 8) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(selectedScope == .daily ? QuestChatStrings.QuestsView.headerTitle : "Weekly quests")
-                        .font(.title2.bold())
-                    if selectedScope == .daily {
-                        Text(QuestChatStrings.QuestsView.headerSubtitle(completed: viewModel.completedQuestsCount, total: viewModel.totalQuestsCount, totalXP: viewModel.totalDailyXP))
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                        
-                        #if DEBUG
-                        if let mystery = viewModel.mysteryQuestID, !mystery.isEmpty {
-                            HStack(spacing: 6) {
-                                Image(systemName: "star.fill").foregroundStyle(.yellow)
-                                Text("Mystery quest: \(mystery)")
-                                    .font(.caption.bold())
+        ZStack(alignment: .topTrailing) {
+            // 🌸 background animation
+            LottieView(
+                animationName: "sakura_branch",
+                loopMode: .loop,
+                animationSpeed: 1.0,
+                contentMode: .scaleAspectFill,
+                animationTrigger: sakuraTrigger,
+                freezeOnLastFrame: false
+            )
+            .frame(height: 120)
+            .opacity(0.3)
+            .offset(x: 24, y: -8)
+            .allowsHitTesting(false)
+            
+            // 🧾 header content
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(selectedScope == .daily ? QuestChatStrings.QuestsView.headerTitle : "Weekly quests")
+                            .font(.title2.bold())
+                        if selectedScope == .daily {
+                            Text(QuestChatStrings.QuestsView.headerSubtitle(completed: viewModel.completedQuestsCount, total: viewModel.totalQuestsCount, totalXP: viewModel.totalDailyXP))
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            
+                            #if DEBUG
+                            if let mystery = viewModel.mysteryQuestID, !mystery.isEmpty {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "star.fill").foregroundStyle(.yellow)
+                                    Text("Mystery quest: \(mystery)")
+                                        .font(.caption.bold())
+                                }
+                                .padding(8)
+                                .background(Color.yellow.opacity(0.16))
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                             }
-                            .padding(8)
-                            .background(Color.yellow.opacity(0.16))
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                            #endif
+                            
+                        } else {
+                            Text("\(viewModel.weeklyCompletedCount) / \(viewModel.weeklyTotalCount) weekly quests complete")
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
                         }
-                        #endif
-                        
+                    }
+                    
+                    Spacer(minLength: 8)
+                    
+                    // XP Boost pill in top right
+                    if let label = DependencyContainer.shared.statsViewModel.xpBoostLabel {
+                        HStack(spacing: 4) {
+                            Image(systemName: "sparkles")
+                                .font(.caption2)
+                            
+                            Text(label)
+                                .font(.caption2)
+                                .fontWeight(.semibold)
+                                .lineLimit(1)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 6)
+                        .background(
+                            Capsule()
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            Color.cyan.opacity(0.7),
+                                            Color.purple.opacity(0.7)
+                                        ]),
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                        )
+                        .overlay(
+                            Capsule()
+                                .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
+                        )
+                        .foregroundColor(.white)
+                        .fixedSize(horizontal: true, vertical: true)
+                        .transition(.scale.combined(with: .opacity))
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: label)
+                    }
+                }
+
+                if selectedScope == .daily {
+                    if viewModel.hasQuestChestReady {
+                        Button {
+                            QuestHaptics.rigid()
+                            viewModel.claimQuestChest()
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "gift.fill")
+                                    .foregroundStyle(.yellow)
+                                Text(QuestChatStrings.QuestsView.questChestReady)
+                                    .font(.subheadline.weight(.semibold))
+                            }
+                            .padding(10)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.yellow.opacity(0.15))
+                            .foregroundStyle(.yellow)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                    } else if !viewModel.allQuestsComplete {
+                        Text(viewModel.allCoreDailyQuestsCompleted ? "Core quests complete – finish habits for extra XP." : QuestChatStrings.QuestsView.chestProgress(viewModel.remainingQuestsUntilChest))
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     } else {
-                        Text("\(viewModel.weeklyCompletedCount) / \(viewModel.weeklyTotalCount) weekly quests complete")
-                            .font(.subheadline)
+                        Text(QuestChatStrings.QuestsView.chestClaimed)
+                            .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
-                }
-                
-                Spacer(minLength: 8)
-                
-                // XP Boost pill in top right
-                if let label = DependencyContainer.shared.statsViewModel.xpBoostLabel {
-                    HStack(spacing: 4) {
-                        Image(systemName: "sparkles")
-                            .font(.caption2)
-                        
-                        Text(label)
-                            .font(.caption2)
-                            .fontWeight(.semibold)
-                            .lineLimit(1)
+                    
+                    #if DEBUG
+                    // Temporary: Test treasure chest animation
+                    Button("🎁 Test Chest Animation") {
+                        viewModel.hasQuestChestReady = true
                     }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color.cyan.opacity(0.7),
-                                        Color.purple.opacity(0.7)
-                                    ]),
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                    )
-                    .overlay(
-                        Capsule()
-                            .stroke(Color.white.opacity(0.3), lineWidth: 0.5)
-                    )
-                    .foregroundColor(.white)
-                    .fixedSize(horizontal: true, vertical: true)
-                    .transition(.scale.combined(with: .opacity))
-                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: label)
+                    .font(.caption)
+                    .padding(8)
+                    .background(Color.orange.opacity(0.2))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    #endif
                 }
             }
-
-            if selectedScope == .daily {
-                if viewModel.hasQuestChestReady {
-                    Button {
-                        QuestHaptics.rigid()
-                        viewModel.claimQuestChest()
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "gift.fill")
-                                .foregroundStyle(.yellow)
-                            Text(QuestChatStrings.QuestsView.questChestReady)
-                                .font(.subheadline.weight(.semibold))
-                        }
-                        .padding(10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.yellow.opacity(0.15))
-                        .foregroundStyle(.yellow)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                } else if !viewModel.allQuestsComplete {
-                    Text(viewModel.allCoreDailyQuestsCompleted ? "Core quests complete – finish habits for extra XP." : QuestChatStrings.QuestsView.chestProgress(viewModel.remainingQuestsUntilChest))
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                } else {
-                    Text(QuestChatStrings.QuestsView.chestClaimed)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                }
-                
-                #if DEBUG
-                // Temporary: Test treasure chest animation
-                Button("🎁 Test Chest Animation") {
-                    viewModel.hasQuestChestReady = true
-                }
-                .font(.caption)
-                .padding(8)
-                .background(Color.orange.opacity(0.2))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                #endif
-            }
+            .padding()
         }
-        .padding()
         .background(Color(uiColor: .secondarySystemBackground).opacity(0.18))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }

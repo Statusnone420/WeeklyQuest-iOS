@@ -7,19 +7,22 @@ struct LottieView: UIViewRepresentable {
     let animationSpeed: CGFloat
     let contentMode: UIView.ContentMode
     let animationTrigger: UUID
+    let freezeOnLastFrame: Bool
     
     init(
         animationName: String,
         loopMode: LottieLoopMode = .playOnce,
         animationSpeed: CGFloat = 1.0,
         contentMode: UIView.ContentMode = .scaleAspectFit,
-        animationTrigger: UUID = UUID()
+        animationTrigger: UUID = UUID(),
+        freezeOnLastFrame: Bool = true
     ) {
         self.animationName = animationName
         self.loopMode = loopMode
         self.animationSpeed = animationSpeed
         self.contentMode = contentMode
         self.animationTrigger = animationTrigger
+        self.freezeOnLastFrame = freezeOnLastFrame
     }
     
     func makeUIView(context: Context) -> UIView {
@@ -47,7 +50,7 @@ struct LottieView: UIViewRepresentable {
         
         // Play and stop on last frame
         animationView.play { finished in
-            if finished {
+            if finished && freezeOnLastFrame && loopMode == .playOnce {
                 // Keep showing the last frame (chest open)
                 animationView.currentProgress = 1.0
             }
@@ -63,8 +66,10 @@ struct LottieView: UIViewRepresentable {
             
             // Find and replay the animation
             if let animationView = uiView.subviews.first as? LottieAnimationView {
+                animationView.loopMode = loopMode
+                animationView.animationSpeed = animationSpeed
                 animationView.play { finished in
-                    if finished {
+                    if finished && freezeOnLastFrame && loopMode == .playOnce {
                         animationView.currentProgress = 1.0
                     }
                 }
