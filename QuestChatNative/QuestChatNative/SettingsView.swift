@@ -289,13 +289,16 @@ struct SettingsView: View {
             .buttonStyle(.plain)
 
             Button {
-                let stats = DependencyContainer.shared.sessionStatsStore
-                stats.grantXP(500, source: "DEBUG_XP_GRANT")
+                // 5-second delay to allow navigation to other views
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    let stats = DependencyContainer.shared.sessionStatsStore
+                    stats.grantXP(500, source: "DEBUG_XP_GRANT")
+                }
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "plus.circle.fill")
                         .foregroundStyle(.mint)
-                    Text("Grant +500 XP")
+                    Text("Grant +500 XP (5s delay)")
                         .font(.subheadline.bold())
                     Spacer()
                 }
@@ -308,13 +311,16 @@ struct SettingsView: View {
             .buttonStyle(.plain)
 
             Button {
-                let stats = DependencyContainer.shared.sessionStatsStore
-                stats.grantXP(50, source: "DEBUG_XP_GRANT")
+                // 5-second delay to allow navigation to other views
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    let stats = DependencyContainer.shared.sessionStatsStore
+                    stats.grantXP(50, source: "DEBUG_XP_GRANT")
+                }
             } label: {
                 HStack(spacing: 8) {
                     Image(systemName: "plus.circle")
                         .foregroundStyle(.mint)
-                    Text("Grant +50 XP")
+                    Text("Grant +50 XP (5s delay)")
                         .font(.subheadline.bold())
                     Spacer()
                 }

@@ -115,9 +115,10 @@ struct LevelUpModalView: View {
                                 .font(subtitleFont)
                                 .foregroundColor(.white.opacity(0.85))
                                 .multilineTextAlignment(.center)
-                                .lineLimit(levelUp.tier == .jackpot ? 2 : 1)
+                                .lineLimit(1)
                                 .allowsTightening(true)
-                                .minimumScaleFactor(levelUp.tier == .jackpot ? 0.9 : 0.8)
+                                .minimumScaleFactor(0.6)
+                                .truncationMode(.middle)
                                 .padding(.horizontal, 24)
 
                             // Talent / Perk preview
