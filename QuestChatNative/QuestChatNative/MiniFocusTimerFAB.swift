@@ -52,7 +52,7 @@ struct MiniFocusTimerFAB: View {
                             lineWidth: 2
                         )
                 )
-                .shadow(color: .black.opacity(0.35), radius: 10, x: 0, y: 6)
+                .shadow(color: .black.opacity(0.45), radius: 12, x: 0, y: 7)
                 .shadow(color: .mint.opacity(0.3), radius: 8, x: 0, y: 2)
 
             // Lottie pulse/rings (matching main timer settings)
@@ -85,7 +85,7 @@ struct MiniFocusTimerFAB: View {
             }
             .frame(width: diameter - 6, height: diameter - 6) // Closer to edge
             .allowsHitTesting(false)
-
+            
             // Remaining time label (bigger to match main timer's scale)
             Text(viewModel.remainingTimeLabel)
                 .font(.system(size: 18, weight: .black, design: .rounded))
@@ -121,6 +121,7 @@ struct MiniFocusTimerFAB: View {
         }
         .accessibilityLabel("Active focus timer")
         .accessibilityValue(viewModel.remainingTimeLabel)
+        .accessibilityHint("Double-tap to open Focus. Drag to move.")
     }
 }
 
@@ -166,3 +167,4 @@ private extension Color {
         .padding(.bottom, 24)
     }
 }
+

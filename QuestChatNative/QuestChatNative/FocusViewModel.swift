@@ -1306,6 +1306,11 @@ final class FocusViewModel: ObservableObject {
     @Published var state: TimerState = .idle
 
     @Published private(set) var notificationAuthorized: Bool = false
+    @Published var showMiniFAB: Bool {
+        didSet {
+            userDefaults.set(showMiniFAB, forKey: "show_mini_fab")
+        }
+    }
     let statsStore: SessionStatsStore
     let playerStateStore: PlayerStateStore
     let playerTitleStore: PlayerTitleStore
@@ -1383,6 +1388,10 @@ final class FocusViewModel: ObservableObject {
         self.activityHistoryStore = activityHistoryStore
         self.currentHP = healthStatsStore.currentHP
         hpCheckinQuestSentDate = userDefaults.object(forKey: HealthTrackingStorageKeys.hpCheckinQuestDate) as? Date
+        
+        // Initialize Mini FAB visibility setting (default: true)
+        self.showMiniFAB = userDefaults.object(forKey: "show_mini_fab") as? Bool ?? true
+        
         // Defer syncing player HP until after initialization completes to avoid using self too early.
         let initialHP = healthStatsStore.currentHP
 

@@ -17,6 +17,8 @@ struct SettingsView: View {
                     VStack(spacing: 16) {
                         remindersCard
 
+                        miniFABSettingsCard
+
                         hydrationSettingsCard
 
                         aboutWeeklyQuestCard
@@ -180,6 +182,31 @@ struct SettingsView: View {
         .onChange(of: selection.wrappedValue) { _ in
             HapticsService.selectionChanged()
         }
+    }
+
+    private var miniFABSettingsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Mini Timer")
+                    .font(.headline)
+                    .foregroundStyle(.secondary)
+                Text("Always show the floating mini-timer button when a session is active. Tap to open Focus, drag to move.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Toggle(isOn: $moreViewModel.showMiniFocusFAB) {
+                HStack(spacing: 8) {
+                    Image(systemName: "timer")
+                    Text("Show mini timer FAB")
+                }
+            }
+            .tint(.mint)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color(uiColor: .secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private var hydrationSettingsCard: some View {

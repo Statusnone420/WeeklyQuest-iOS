@@ -35,6 +35,9 @@ struct ContentView: View {
     @StateObject private var healthBarViewModel = DependencyContainer.shared.healthBarViewModel
     @StateObject private var focusViewModel = DependencyContainer.shared.focusViewModel
     @StateObject private var questsViewModel = DependencyContainer.shared.questsViewModel
+    @AppStorage("showMiniFocusFAB") private var showMiniFocusFAB: Bool = true
+    @AppStorage("miniFABOffsetX") private var miniFABOffsetX: Double = 0
+    @AppStorage("miniFABOffsetY") private var miniFABOffsetY: Double = 0
     @State private var miniTimerOffset: CGSize = .zero
     @Environment(\.scenePhase) private var scenePhase
 
@@ -114,7 +117,7 @@ struct ContentView: View {
             }
             
             // Mini Focus Timer FAB overlay on all tabs
-            if focusViewModel.state == .running || focusViewModel.state == .paused, focusViewModel.remainingSeconds > 0 {
+            if showMiniFocusFAB, focusViewModel.state == .running || focusViewModel.state == .paused, focusViewModel.remainingSeconds > 0 {
                 VStack { Spacer() }
                     .overlay(
                         MiniFocusTimerFAB(
@@ -241,6 +244,12 @@ struct ContentView: View {
         }
         .onAppear {
             focusViewModel.updateScenePhase(scenePhase)
+            // Restore saved FAB offset
+            miniTimerOffset = CGSize(width: miniFABOffsetX, height: miniFABOffsetY)
+        }
+        .onChange(of: miniTimerOffset) { oldValue, newValue in
+            miniFABOffsetX = newValue.width
+            miniFABOffsetY = newValue.height
         }
     }
     
@@ -330,3 +339,4 @@ struct ContentView: View {
     ContentView()
         .environmentObject(AppCoordinator())
 }
+

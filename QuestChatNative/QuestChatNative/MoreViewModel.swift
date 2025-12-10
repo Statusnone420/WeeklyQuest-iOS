@@ -7,14 +7,23 @@ final class MoreViewModel: ObservableObject {
     @Published var dailyWaterGoalOunces: Int
     @Published var hydrationReminderSettings: ReminderSettings
     @Published var postureReminderSettings: ReminderSettings
+    @Published var showMiniFocusFAB: Bool
 
     private let hydrationSettingsStore: HydrationSettingsStore
     private let reminderSettingsStore: ReminderSettingsStore
     private var cancellables = Set<AnyCancellable>()
+    private let userDefaults: UserDefaults
+    private let fabToggleKey = "showMiniFocusFAB"
 
-    init(hydrationSettingsStore: HydrationSettingsStore, reminderSettingsStore: ReminderSettingsStore) {
+    init(hydrationSettingsStore: HydrationSettingsStore, reminderSettingsStore: ReminderSettingsStore, userDefaults: UserDefaults = .standard) {
         self.hydrationSettingsStore = hydrationSettingsStore
         self.reminderSettingsStore = reminderSettingsStore
+        self.userDefaults = userDefaults
+        // Initialize FAB toggle from storage (default: true)
+        if userDefaults.object(forKey: fabToggleKey) == nil {
+            userDefaults.set(true, forKey: fabToggleKey)
+        }
+        showMiniFocusFAB = userDefaults.bool(forKey: fabToggleKey)
         ouncesPerWaterTap = hydrationSettingsStore.ouncesPerWaterTap
         ouncesPerComfortTap = hydrationSettingsStore.ouncesPerComfortTap
         dailyWaterGoalOunces = hydrationSettingsStore.dailyWaterGoalOunces
@@ -39,6 +48,13 @@ final class MoreViewModel: ObservableObject {
         $postureReminderSettings
             .sink { [weak self] settings in
                 self?.reminderSettingsStore.updateSettings(settings, for: .posture)
+            }
+            .store(in: &cancellables)
+
+        $showMiniFocusFAB
+            .removeDuplicates()
+            .sink { [weak self] newValue in
+                self?.userDefaults.set(newValue, forKey: self?.fabToggleKey ?? "showMiniFocusFAB")
             }
             .store(in: &cancellables)
     }

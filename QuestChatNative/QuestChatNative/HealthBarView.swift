@@ -13,6 +13,10 @@ struct HealthBarView: View {
     @State private var buffsVersion: Int = 0
     @State private var hpWaveTrigger = UUID()
     @ObservedObject private var potionManager = PotionManager.shared
+    @AppStorage("showMiniFocusFAB") private var showMiniFocusFAB: Bool = true
+    @AppStorage("miniFABOffsetX") private var miniFABOffsetX: Double = 0
+    @AppStorage("miniFABOffsetY") private var miniFABOffsetY: Double = 0
+    @State private var miniTimerOffsetSheet: CGSize = .zero
 
     init(viewModel: HealthBarViewModel, focusViewModel: FocusViewModel, statsStore: SessionStatsStore, statsViewModel: StatsViewModel, selectedTab: Binding<MainTab>) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -43,14 +47,36 @@ struct HealthBarView: View {
             .background(Color.black.ignoresSafeArea())
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showPlayerCard) {
-                PlayerCardView(
-                    store: statsStore,
-                    statsViewModel: statsViewModel,
-                    healthBarViewModel: viewModel,
-                    focusViewModel: focusViewModel
-                )
+                ZStack {
+                    PlayerCardView(
+                        store: statsStore,
+                        statsViewModel: statsViewModel,
+                        healthBarViewModel: viewModel,
+                        focusViewModel: focusViewModel
+                    )
+
+                    if showMiniFocusFAB, (focusViewModel.state == .running || focusViewModel.state == .paused), focusViewModel.remainingSeconds > 0 {
+                        MiniFocusTimerFAB(
+                            viewModel: focusViewModel,
+                            selectedTab: $selectedTab,
+                            dragOffset: $miniTimerOffsetSheet
+                        )
+                        .padding(.trailing, 16)
+                        .padding(.bottom, 24)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+                        .transition(.move(edge: .trailing).combined(with: .opacity))
+                        .zIndex(20)
+                    }
+                }
                 .onAppear {
                     questsViewModel.handleQuestEvent(.playerCardViewed)
+                    // Restore saved FAB offset inside the sheet as well
+                    miniTimerOffsetSheet = CGSize(width: miniFABOffsetX, height: miniFABOffsetY)
+                }
+                .onChange(of: miniTimerOffsetSheet) { _, newValue in
+                    // Persist FAB offset changes made while the sheet is open
+                    miniFABOffsetX = newValue.width
+                    miniFABOffsetY = newValue.height
                 }
             }
             .onAppear { potionManager.start() }
