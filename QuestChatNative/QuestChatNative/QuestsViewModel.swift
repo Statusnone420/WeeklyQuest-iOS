@@ -598,9 +598,9 @@ final class QuestsViewModel: ObservableObject {
         }
         
         let remainingIncomplete = dailyQuests.filter { !$0.isCompleted }.count
-        if remainingIncomplete <= 1 {
+        if remainingIncomplete < 1 {
             #if DEBUG
-            print("DailyQuestStore: reroll blocked — only \(remainingIncomplete) incomplete quest(s) remain")
+            print("DailyQuestStore: reroll blocked — no incomplete quests remain")
             #endif
             return
         }
