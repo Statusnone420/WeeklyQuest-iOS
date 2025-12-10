@@ -10,8 +10,9 @@ struct MiniFocusTimerFAB: View {
     // Transient drag during gesture; accumulated position stored in dragOffset
     @State private var tempDrag: CGSize = .zero
     @State private var focusRingsTrigger = UUID()
+    @State private var isPressed: Bool = false
 
-    private let diameter: CGFloat = 77.5 // 1.25x bigger (62 * 1.25)
+    private let diameter: CGFloat = 68.0 // Sized to sit comfortably above the tab bar
     private let ringLineWidth: CGFloat = 5 // Proportionally increased
 
     private var clampedProgress: CGFloat { CGFloat(min(max(viewModel.progress, 0), 1)) }
@@ -31,29 +32,76 @@ struct MiniFocusTimerFAB: View {
             baseColor.blended(withFraction: warningFraction, of: warningColor)
         }
     }
-
-    var body: some View {
+    
+    private var fabContent: some View {
         ZStack {
-            // Background with 3D effect
+            // Cyan glow halo behind the button
             Circle()
-                .fill(.ultraThinMaterial)
+                .fill(Color.clear)
+                .shadow(color: Color.cyan.opacity(0.35), radius: 16, x: 0, y: 0)
+                .shadow(color: Color.cyan.opacity(0.18), radius: 30, x: 0, y: 0)
+                .allowsHitTesting(false)
+
+            // Coin base with vertical gradient and subtle rim
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.20, green: 0.22, blue: 0.25), // slightly lighter top
+                            Color(red: 0.08, green: 0.09, blue: 0.11)  // darker bottom
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
                 .overlay(
                     Circle()
                         .stroke(
                             LinearGradient(
                                 colors: [
-                                    Color.white.opacity(0.3),
-                                    Color.white.opacity(0.05),
-                                    Color.black.opacity(0.1)
+                                    Color.white.opacity(0.25),
+                                    Color.black.opacity(0.40)
                                 ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 1.5
+                        )
+                )
+                .shadow(color: .black.opacity(0.55), radius: 14, x: 0, y: 10)
+                .allowsHitTesting(false)
+
+            // Inner gradient plate with top highlight to fake depth
+            Circle()
+                .inset(by: 5)
+                .fill(
+                    RadialGradient(
+                        gradient: Gradient(colors: [
+                            Color.cyan.opacity(0.18),
+                            Color.black.opacity(0.85)
+                        ]),
+                        center: .center,
+                        startRadius: 2,
+                        endRadius: diameter
+                    )
+                )
+                .overlay(
+                    // Top highlight ring
+                    Circle()
+                        .inset(by: 7)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.45),
+                                    Color.white.opacity(0.0)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
                             ),
                             lineWidth: 2
                         )
                 )
-                .shadow(color: .black.opacity(0.45), radius: 12, x: 0, y: 7)
-                .shadow(color: .mint.opacity(0.3), radius: 8, x: 0, y: 2)
+                .allowsHitTesting(false)
 
             // Lottie pulse/rings (matching main timer settings)
             LottieView(
@@ -64,7 +112,7 @@ struct MiniFocusTimerFAB: View {
                 animationTrigger: focusRingsTrigger,
                 freezeOnLastFrame: false
             )
-            .frame(width: 120, height: 120) // Sized so outer pulse hits inner edge of progress ring
+            .frame(width: 100, height: 100)
             .opacity(0.6)
             .allowsHitTesting(false)
 
@@ -83,9 +131,9 @@ struct MiniFocusTimerFAB: View {
                     .animation(.easeInOut(duration: 0.2), value: clampedProgress)
                     .animation(.easeInOut(duration: 0.3), value: warningFraction)
             }
-            .frame(width: diameter - 6, height: diameter - 6) // Closer to edge
+            .frame(width: diameter - 6, height: diameter - 6)
             .allowsHitTesting(false)
-            
+
             // Remaining time label (bigger to match main timer's scale)
             Text(viewModel.remainingTimeLabel)
                 .font(.system(size: 18, weight: .black, design: .rounded))
@@ -100,28 +148,42 @@ struct MiniFocusTimerFAB: View {
         .frame(width: diameter, height: diameter)
         .clipShape(Circle())
         .contentShape(Circle())
-        .offset(x: dragOffset.width + tempDrag.width, y: dragOffset.height + tempDrag.height)
-        .gesture(
-            DragGesture()
-                .onChanged { value in
-                    tempDrag = value.translation
+    }
+
+    var body: some View {
+        fabContent
+            .scaleEffect(isPressed ? 0.96 : 1)
+            .animation(.spring(response: 0.28, dampingFraction: 0.75), value: isPressed)
+            .offset(x: dragOffset.width + tempDrag.width, y: dragOffset.height + tempDrag.height)
+            .gesture(
+                DragGesture()
+                    .onChanged { value in
+                        tempDrag = value.translation
+                    }
+                    .onEnded { value in
+                        dragOffset.width += value.translation.width
+                        dragOffset.height += value.translation.height
+                        tempDrag = .zero
+                    }
+            )
+            .onTapGesture {
+                // Light haptic and navigate to Focus tab
+                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                withAnimation(.spring(response: 0.28, dampingFraction: 0.75)) {
+                    isPressed = true
                 }
-                .onEnded { value in
-                    dragOffset.width += value.translation.width
-                    dragOffset.height += value.translation.height
-                    tempDrag = .zero
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                    withAnimation(.spring(response: 0.28, dampingFraction: 0.75)) {
+                        isPressed = false
+                    }
                 }
-        )
-        .onTapGesture {
-            // Light haptic and navigate to Focus tab
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            withAnimation(.easeInOut(duration: 0.2)) {
-                selectedTab = .focus
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    selectedTab = .focus
+                }
             }
-        }
-        .accessibilityLabel("Active focus timer")
-        .accessibilityValue(viewModel.remainingTimeLabel)
-        .accessibilityHint("Double-tap to open Focus. Drag to move.")
+            .accessibilityLabel("Active focus timer")
+            .accessibilityValue(viewModel.remainingTimeLabel)
+            .accessibilityHint("Double-tap to open Focus. Drag to move.")
     }
 }
 
@@ -167,4 +229,3 @@ private extension Color {
         .padding(.bottom, 24)
     }
 }
-
