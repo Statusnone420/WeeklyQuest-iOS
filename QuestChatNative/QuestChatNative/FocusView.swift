@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Lottie
 
 private struct SipFeedbackOverlay: View {
     let text: String
@@ -36,6 +37,7 @@ struct FocusView: View {
     @State private var heroCardScale: CGFloat = 0.98
     @State private var heroCardOpacity: Double = 0.92
     @State private var isShowingSettings = false
+    @State private var focusRingsTrigger = UUID()
 
     @Namespace private var categoryAnimation
 
@@ -508,7 +510,22 @@ struct FocusView: View {
     private var timerRing: some View {
         VStack(spacing: 8) {
             ZStack {
-                Circle()
+                // 🔵 Lottie rings in the back
+                LottieView(
+                    animationName: "FocusRings",
+                    loopMode: .loop,
+                    animationSpeed: 0.5,
+                    contentMode: .scaleAspectFit,
+                    animationTrigger: focusRingsTrigger,
+                    freezeOnLastFrame: false
+                )
+                .frame(width: 330, height: 330)
+                .opacity(0.6)
+                .allowsHitTesting(false)
+                
+                // 🕒 Your existing timer circle + text
+                ZStack {
+                    Circle()
                     .stroke(Color.gray.opacity(0.35), lineWidth: 18)
 
                 Circle()
@@ -550,11 +567,12 @@ struct FocusView: View {
                             )
                     }
 
-                Text(formattedTime)
-                    .font(.system(size: 64, weight: .black, design: .rounded))
-                    .monospacedDigit()
+                    Text(formattedTime)
+                        .font(.system(size: 64, weight: .black, design: .rounded))
+                        .monospacedDigit()
+                }
+                .frame(width: 220, height: 220)
             }
-            .frame(width: 220, height: 220)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
