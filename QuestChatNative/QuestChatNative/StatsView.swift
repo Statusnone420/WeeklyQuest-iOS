@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftUI
 import Lottie
 
 struct StatsView: View {
@@ -131,17 +130,31 @@ struct StatsView: View {
                 currentStreakDays: store.currentStreakDays
             )
 
-            // Hero Lottie Section
-            LottieView(
-                animationName: "HeroDogSword",
-                loopMode: .loop,
-                animationSpeed: 0.5,
-                contentMode: .scaleAspectFit
-            )
-            .frame(maxWidth: .infinity)
-            .frame(height: 220)
-            .scaleEffect(1.2)
-            .padding(.vertical, 8)
+            // Hero + Nameplate Section
+            VStack(spacing: 12) {
+                // CENTERED NAMEPLATE
+                HStack {
+                    Spacer()
+                    PlayerNameplateView(
+                        name: (UserDefaults.standard.string(forKey: "playerDisplayName") ?? "Player One"),
+                        level: store.level,
+                        badgeSymbol: nil
+                    )
+                    Spacer()
+                }
+
+                // HERO LOTTIE
+                LottieView(
+                    animationName: "HeroDogSword",
+                    loopMode: .loop,
+                    animationSpeed: 0.5,
+                    contentMode: .scaleAspectFit
+                )
+                .frame(maxWidth: CGFloat.infinity)
+                .frame(height: 220)
+                .scaleEffect(1.2)
+            }
+            .padding(.vertical, 12)
 
             dailyGoalCard
             reopenDailySetupButton
@@ -935,4 +948,69 @@ struct StatsView: View {
         healthBarViewModel: container.healthBarViewModel,
         focusViewModel: container.focusViewModel
     )
+}
+
+private struct PlayerNameplateView: View {
+    let name: String
+    let level: Int
+    let badgeSymbol: String? // placeholder for real badge later
+
+    private var displayName: String {
+        name.isEmpty ? "Player One" : name
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            // Level badge on the left
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color.teal, Color.purple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 30, height: 30)
+
+                Text("\(level)")
+                    .font(.system(size: 14, weight: .black, design: .rounded))
+                    .foregroundColor(.white)
+            }
+
+            // Player name
+            Text(displayName)
+                .font(.system(size: 17, weight: .semibold, design: .rounded))
+                .foregroundColor(.white)
+                .lineLimit(1)
+
+            // Optional badge icon on the right (will be real badge later)
+            if let badgeSymbol {
+                Image(systemName: badgeSymbol)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundColor(.white.opacity(0.9))
+            }
+        }
+        .padding(.horizontal, 18)
+        .padding(.vertical, 8)
+        .background(
+            Capsule()
+                .fill(Color.black.opacity(0.85))
+                .overlay(
+                    Capsule()
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.teal.opacity(0.9),
+                                    Color.purple.opacity(0.9)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .shadow(color: Color.black.opacity(0.7), radius: 16, x: 0, y: 8)
+    }
 }
