@@ -198,7 +198,7 @@ struct SettingsView: View {
             Toggle(isOn: $moreViewModel.showMiniFocusFAB) {
                 HStack(spacing: 8) {
                     Image(systemName: "timer")
-                    Text("Show mini timer FAB")
+                    Text("Show Floating/Moveable Mini Timer")
                 }
             }
             .tint(.mint)
