@@ -131,6 +131,18 @@ struct StatsView: View {
                 currentStreakDays: store.currentStreakDays
             )
 
+            // Hero Lottie Section
+            LottieView(
+                animationName: "HeroDogSword",
+                loopMode: .loop,
+                animationSpeed: 0.5,
+                contentMode: .scaleAspectFit
+            )
+            .frame(maxWidth: .infinity)
+            .frame(height: 220)
+            .scaleEffect(1.2)
+            .padding(.vertical, 8)
+
             dailyGoalCard
             reopenDailySetupButton
             weeklyPathCard

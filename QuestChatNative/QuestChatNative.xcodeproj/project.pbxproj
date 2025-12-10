@@ -31,6 +31,7 @@
 		D87C18942EDFA74C00438C3A /* QuestChatLiveActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D87C18812EDFA74B00438C3A /* QuestChatLiveActivityExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D87C18BC2EDFB72100438C3A /* FocusLiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D87C18BB2EDFB72100438C3A /* FocusLiveActivityManager.swift */; };
 		D899A6D22EDF6D6500F90F46 /* PlayerStatusBarsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D899A6D12EDF6D6500F90F46 /* PlayerStatusBarsView.swift */; };
+		D89D84DC2EEA17E2008BA3A4 /* HeroDogSword.json in Resources */ = {isa = PBXBuildFile; fileRef = D89D84DB2EEA17E2008BA3A4 /* HeroDogSword.json */; };
 		D8A200012EDE07B400A6A001 /* RPGStatBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A0012EDE07B400A6A001 /* RPGStatBar.swift */; };
 		D8A200022EDE07B400A6A001 /* HealthBarModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A0022EDE07B400A6A002 /* HealthBarModels.swift */; };
 		D8A200032EDE07B400A6A001 /* FocusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8A1A0032EDE07B400A6A003 /* FocusView.swift */; };
@@ -132,6 +133,7 @@
 		D87C18BB2EDFB72100438C3A /* FocusLiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusLiveActivityManager.swift; sourceTree = "<group>"; };
 		D881CF932EDD1BC200A8A09F /* QuestChatNative.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuestChatNative.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D899A6D12EDF6D6500F90F46 /* PlayerStatusBarsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerStatusBarsView.swift; sourceTree = "<group>"; };
+		D89D84DB2EEA17E2008BA3A4 /* HeroDogSword.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = HeroDogSword.json; sourceTree = "<group>"; };
 		D8A1A0012EDE07B400A6A001 /* RPGStatBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RPGStatBar.swift; sourceTree = "<group>"; };
 		D8A1A0022EDE07B400A6A002 /* HealthBarModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthBarModels.swift; sourceTree = "<group>"; };
 		D8A1A0032EDE07B400A6A003 /* FocusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusView.swift; sourceTree = "<group>"; };
@@ -280,6 +282,7 @@
 				D8A1A01B2EDE07B400A6A01B /* DurationWheelPickerView.swift */,
 				D87C18BB2EDFB72100438C3A /* FocusLiveActivityManager.swift */,
 				D846C0382EE911CE00E5A440 /* FocusRings.json */,
+				D89D84DB2EEA17E2008BA3A4 /* HeroDogSword.json */,
 				D8F1C0022F0A2F1B00D6C8EA /* FocusSharedComponents.swift */,
 				D8A1A0122EDE07B400A6A012 /* FocusTimerLiveActivity.swift */,
 				D8A1A0032EDE07B400A6A003 /* FocusView.swift */,
@@ -442,6 +445,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D89D84DC2EEA17E2008BA3A4 /* HeroDogSword.json in Resources */,
 				D846BF892EE8A4C900E5A440 /* TreasureChest.json in Resources */,
 				D846C0352EE90B1100E5A440 /* sakura_branch.json in Resources */,
 				D846C0392EE911CE00E5A440 /* FocusRings.json in Resources */,
