@@ -6,6 +6,7 @@ import UIKit
 struct LevelUpModalView: View {
     let levelUp: PendingLevelUp
     let onDismiss: () -> Void
+    let onOpenTalents: (() -> Void)?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pulseScale: CGFloat = 0.9
@@ -13,6 +14,21 @@ struct LevelUpModalView: View {
     @State private var flashOpacity: Double = 0.0
     @State private var iconScale: CGFloat = 0.0
     @State private var iconRotation: Double = 0.0
+    @State private var showLevelBadge: Bool = false
+    
+    // Randomized once and persisted for the lifetime of this modal
+    @State private var randomHeadline: String
+    @State private var randomGradient: LinearGradient
+    
+    init(levelUp: PendingLevelUp, onDismiss: @escaping () -> Void, onOpenTalents: (() -> Void)? = nil) {
+        self.levelUp = levelUp
+        self.onDismiss = onDismiss
+        self.onOpenTalents = onOpenTalents
+        
+        // Roll once; persist via @State so it doesn't change during re-renders
+        _randomHeadline = State(initialValue: Self.rollHeadline(for: levelUp.tier))
+        _randomGradient = State(initialValue: Self.rollGradient())
+    }
 
     var body: some View {
         ZStack {
@@ -28,6 +44,7 @@ struct LevelUpModalView: View {
             }
 
             ZStack {
+                // Randomized gradient glow ring
                 RadialGradient(
                     gradient: Gradient(colors: [gradientColor.opacity(gradientOpacity), Color.clear]),
                     center: .center,
@@ -39,6 +56,15 @@ struct LevelUpModalView: View {
                 .opacity(pulseOpacity)
                 .blur(radius: gradientBlur)
                 .allowsHitTesting(false)
+                
+                // Secondary randomized gradient for extra flair
+                randomGradient
+                    .opacity(0.15)
+                    .frame(width: gradientSize * 0.8, height: gradientSize * 0.8)
+                    .blur(radius: 40)
+                    .scaleEffect(pulseScale * 0.9)
+                    .opacity(pulseOpacity * 0.7)
+                    .allowsHitTesting(false)
 
                 VStack(spacing: tierSpacing) {
                     // Tier-specific icon
@@ -51,16 +77,27 @@ struct LevelUpModalView: View {
                             .shadow(color: iconColor.opacity(0.5), radius: 10)
                     }
 
-                    Text("\(QuestChatStrings.FocusView.levelUpTitlePrefix)\(levelUp.level)")
+                    // Randomized headline
+                    Text(randomHeadline)
                         .font(.system(size: titleSize, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                         .shadow(color: shadowColor, radius: shadowRadius)
+
+                    // Level badge (separate, polished)
+                    levelBadgeView
+                        .padding(.top, 2)
 
                     Text(tierSubtitle)
                         .font(subtitleFont)
                         .foregroundColor(.white.opacity(0.85))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 24)
+
+                    // Talent / Perk preview
+                    if grantsTalentPoint || !levelMeaning.isEmpty {
+                        talentPreviewCard
+                            .padding(.horizontal, 8)
+                    }
 
                     Button(action: onDismiss) {
                         Text(QuestChatStrings.FocusView.levelUpButtonTitle)
@@ -78,10 +115,16 @@ struct LevelUpModalView: View {
                 .padding(.vertical, 32)
                 .padding(.horizontal, 24)
                 .background(
-                    RoundedRectangle(cornerRadius: 28, style: .continuous)
-                        .fill(Color.black.opacity(0.9))
-                        .shadow(color: cardShadowColor,
-                                radius: cardShadowRadius, x: 0, y: 10)
+                    ZStack {
+                        // Subtle gradient behind the card
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .fill(randomGradient.opacity(0.12))
+                        
+                        RoundedRectangle(cornerRadius: 28, style: .continuous)
+                            .fill(Color.black.opacity(0.9))
+                    }
+                    .shadow(color: cardShadowColor,
+                            radius: cardShadowRadius, x: 0, y: 10)
                 )
                 .padding(.horizontal, 24)
                 .transition(.scale.combined(with: .opacity))
@@ -93,6 +136,9 @@ struct LevelUpModalView: View {
             animateIcon()
             if levelUp.tier == .jackpot {
                 triggerFlash()
+            }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                showLevelBadge = true
             }
         }
         .animation(.spring(response: 0.5,
@@ -366,4 +412,206 @@ struct LevelUpModalView: View {
             }
         }
     }
+    
+    // MARK: - Level Badge
+
+    @ViewBuilder
+    private var levelBadgeView: some View {
+        HStack(spacing: 0) {
+            Text("Level \(levelUp.level)")
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(
+                    Capsule()
+                        .fill(Color(uiColor: .secondarySystemBackground).opacity(0.22))
+                )
+                .overlay(
+                    Capsule()
+                        .stroke(
+                            levelUp.tier == .normal
+                            ? LinearGradient(colors: [Color.accentColor.opacity(0.8), Color.accentColor.opacity(0.4)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                            : iconGradient,
+                            lineWidth: 1
+                        )
+                        .opacity(0.9)
+                )
+                .shadow(color: shadowColor.opacity(0.35), radius: 6, x: 0, y: 3)
+                .scaleEffect(showLevelBadge ? 1 : 0.95)
+                .opacity(showLevelBadge ? 1 : 0)
+        }
+    }
+    
+    // MARK: - Talent / Perk Preview
+
+    /// Whether this level grants a talent point. Example policy: every 5 levels.
+    private var grantsTalentPoint: Bool { true }
+
+    /// Short blurb describing what this level means. Expand as needed.
+    private var levelMeaning: String {
+        switch levelUp.level {
+        case 1: return "Welcome to the grind!"
+        case 5: return "Talent tier unlocked — start specializing."
+        case 10: return "Big milestone: new cosmetic and bonus XP events."
+        case 15: return "Elite challenges appear more often."
+        case 20: return "Mastery perks unlocked — pick a path."
+        default:
+            if levelUp.level % 10 == 0 {
+                return "Major milestone — exclusive rewards available."
+            } else if levelUp.level % 5 == 0 {
+                return "New talent point available."
+            } else {
+                return "Stats up, rewards improve, keep going!"
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var talentPreviewCard: some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 10) {
+                Image(systemName: "tree.fill")
+                    .font(.title3.bold())
+                    .foregroundStyle(.mint)
+                    .frame(width: 28, height: 28)
+                    .background(Color.mint.opacity(0.18))
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(grantsTalentPoint ? "New talent point available" : "Perk update")
+                        .font(.subheadline.weight(.semibold))
+                    Text(levelMeaning)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 0)
+            }
+
+            if grantsTalentPoint, onOpenTalents != nil {
+                Button(action: { onOpenTalents?() }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "wand.and.stars")
+                        Text("Tap to spend it")
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 10)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.mint)
+            }
+        }
+        .padding(12)
+        .background(Color(uiColor: .secondarySystemBackground).opacity(0.18))
+        .cornerRadius(14)
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Color.white.opacity(0.08), lineWidth: 1)
+        )
+    }
+    
+    // MARK: - Randomization (Phase 3)
+    
+    /// Roll for a random headline based on tier
+    private static func rollHeadline(for tier: LevelUpTier) -> String {
+        switch tier {
+        case .normal:
+            let options = [
+                "DING!",
+                "Level Up!",
+                "You Leveled Up!",
+                "XP Unlocked!",
+                "New Power Unlocked!",
+                "Big XP Energy!",
+                "You're Unstoppable!",
+                "Grind Rewarded!",
+                "Quest Progress!"
+            ]
+            return options.randomElement() ?? "Level Up!"
+            
+        case .milestone:
+            let options = [
+                "Milestone Reached! 🎯",
+                "Major Level Up!",
+                "Halfway Checkpoint!",
+                "Your Grind Pays Off!",
+                "Power Spike Achieved!",
+                "Elite Status Unlocked!",
+                "Milestone Crushed! ⭐"
+            ]
+            return options.randomElement() ?? "Milestone Reached!"
+            
+        case .jackpot:
+            let options = [
+                "JACKPOT! 💎",
+                "LEGENDARY! 👑",
+                "MAX POWER! ⚡",
+                "YOU'RE A LEGEND!",
+                "EPIC LEVEL UNLOCKED!",
+                "CRITICAL HIT! 🔥",
+                "UNSTOPPABLE! 💪",
+                "OMEGA LEVEL! ✨"
+            ]
+            return options.randomElement() ?? "JACKPOT!"
+        }
+    }
+    
+    /// Roll for a random background gradient
+    private static func rollGradient() -> LinearGradient {
+        let gradients: [LinearGradient] = [
+            // Purple vibes
+            .init(
+                colors: [.purple, .blue],
+                startPoint: .top,
+                endPoint: .bottom
+            ),
+            // Sunset
+            .init(
+                colors: [.orange, .pink],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            // Cool mint
+            .init(
+                colors: [.mint, .blue],
+                startPoint: .leading,
+                endPoint: .trailing
+            ),
+            // Warm gold
+            .init(
+                colors: [.yellow, .orange],
+                startPoint: .topTrailing,
+                endPoint: .bottomLeading
+            ),
+            // Cyber pink
+            .init(
+                colors: [.pink, .purple],
+                startPoint: .bottom,
+                endPoint: .top
+            ),
+            // Forest green
+            .init(
+                colors: [.green, .mint],
+                startPoint: .bottomLeading,
+                endPoint: .topTrailing
+            ),
+            // Fire
+            .init(
+                colors: [.red, .orange],
+                startPoint: .leading,
+                endPoint: .trailing
+            ),
+            // Ocean
+            .init(
+                colors: [.cyan, .blue],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        ]
+        
+        return gradients.randomElement() ?? gradients[0]
+    }
 }
+

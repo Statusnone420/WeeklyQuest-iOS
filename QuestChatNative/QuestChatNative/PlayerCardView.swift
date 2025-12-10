@@ -1,6 +1,10 @@
 import SwiftUI
 import Combine
 
+extension Notification.Name {
+    static let openTalentsTabRequested = Notification.Name("openTalentsTabRequested")
+}
+
 struct LevelTitleDefinition {
     let minLevel: Int
     let title: String
@@ -595,11 +599,20 @@ struct PlayerCardView: View {
 
             // Level-up overlay when Player Card is presented as a sheet
             if let levelUp = store.pendingLevelUp {
-                LevelUpModalView(levelUp: levelUp) {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        store.pendingLevelUp = nil
+                LevelUpModalView(
+                    levelUp: levelUp,
+                    onDismiss: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            store.pendingLevelUp = nil
+                        }
+                    },
+                    onOpenTalents: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            store.pendingLevelUp = nil
+                        }
+                        NotificationCenter.default.post(name: .openTalentsTabRequested, object: nil)
                     }
-                }
+                )
                 .zIndex(100)
                 .transition(.opacity.combined(with: .scale))
             }
@@ -1234,5 +1247,4 @@ struct DailyVitalsSlidersView: View {
 }
 
 // Avatar now uses a UUID-based rolled SF Symbol + gradient style.
-
 

@@ -85,13 +85,28 @@ struct ContentView: View {
             .background(Color.black)
             
             if let levelUp = statsStore.pendingLevelUp {
-                LevelUpModalView(levelUp: levelUp) {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        statsStore.pendingLevelUp = nil
+                LevelUpModalView(
+                    levelUp: levelUp,
+                    onDismiss: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            statsStore.pendingLevelUp = nil
+                        }
+                    },
+                    onOpenTalents: {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            selectedTab = .talents
+                            statsStore.pendingLevelUp = nil
+                        }
                     }
-                }
+                )
                 .zIndex(100)
                 .transition(.opacity.combined(with: .scale))
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openTalentsTabRequested)) { _ in
+            withAnimation(.easeInOut(duration: 0.25)) {
+                selectedTab = .talents
+                statsStore.pendingLevelUp = nil
             }
         }
         .animation(.easeInOut(duration: 0.3), value: statsStore.pendingLevelUp != nil)
@@ -161,3 +176,4 @@ struct ContentView: View {
     ContentView()
         .environmentObject(AppCoordinator())
 }
+
