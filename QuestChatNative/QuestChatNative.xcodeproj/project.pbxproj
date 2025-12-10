@@ -22,6 +22,7 @@
 		D846C0352EE90B1100E5A440 /* sakura_branch.json in Resources */ = {isa = PBXBuildFile; fileRef = D846C0342EE90B1100E5A440 /* sakura_branch.json */; };
 		D846C0392EE911CE00E5A440 /* FocusRings.json in Resources */ = {isa = PBXBuildFile; fileRef = D846C0382EE911CE00E5A440 /* FocusRings.json */; };
 		D846C03F2EE920FF00E5A440 /* WaveLoop.json in Resources */ = {isa = PBXBuildFile; fileRef = D846C03E2EE920FF00E5A440 /* WaveLoop.json */; };
+		D846C0542EE9308D00E5A440 /* LevelUpTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = D846C0532EE9308D00E5A440 /* LevelUpTier.swift */; };
 		D87C18822EDFA74B00438C3A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D87C182B2EDF9B6F00438C3A /* WidgetKit.framework */; };
 		D87C18832EDFA74B00438C3A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D87C182D2EDF9B6F00438C3A /* SwiftUI.framework */; };
 		D87C18942EDFA74C00438C3A /* QuestChatLiveActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D87C18812EDFA74B00438C3A /* QuestChatLiveActivityExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -118,6 +119,7 @@
 		D846C0342EE90B1100E5A440 /* sakura_branch.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = sakura_branch.json; sourceTree = "<group>"; };
 		D846C0382EE911CE00E5A440 /* FocusRings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = FocusRings.json; sourceTree = "<group>"; };
 		D846C03E2EE920FF00E5A440 /* WaveLoop.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = WaveLoop.json; sourceTree = "<group>"; };
+		D846C0532EE9308D00E5A440 /* LevelUpTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LevelUpTier.swift; sourceTree = "<group>"; };
 		D87C182B2EDF9B6F00438C3A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D87C182D2EDF9B6F00438C3A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		D87C18812EDFA74B00438C3A /* QuestChatLiveActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = QuestChatLiveActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -320,6 +322,7 @@
 				D83AE0012EE38504000217E6 /* SleepHistoryStore.swift */,
 				D8A1A01A2EDE07B400A6A01A /* StatsView.swift */,
 				D8A1A00F2EDE07B400A6A00F /* StatsViewModel.swift */,
+				D846C0532EE9308D00E5A440 /* LevelUpTier.swift */,
 				07ABB3956AAA4BF8A7FC1CE0 /* TalentsView.swift */,
 				DCA726367C92483F9DBAEF65 /* TalentsViewModel.swift */,
 				D8D444A72EE4C65F00CA06DE /* TalentTreeModels.swift */,
@@ -512,6 +515,7 @@
 				D8F0A2032F12345000AAAAAA /* HealthRatingMapper.swift in Sources */,
 				D8F0A2052F12345000AAAAAA /* RatingSliderRow.swift in Sources */,
 				1B7E1189235249C2ACB10CF1 /* SeasonAchievementsStore.swift in Sources */,
+				D846C0542EE9308D00E5A440 /* LevelUpTier.swift in Sources */,
 				D8F0A4112F12400000AAAAAA /* SeasonAchievementDetailView.swift in Sources */,
 				62AF60BC4FB94EEE88C1F25F /* SeasonAchievementBadgeView.swift in Sources */,
 			);

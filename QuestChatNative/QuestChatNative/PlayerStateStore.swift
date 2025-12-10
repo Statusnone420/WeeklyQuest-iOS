@@ -13,7 +13,7 @@ final class PlayerStateStore: ObservableObject {
     @Published var sleepQuality: Int
     @Published var activeDebuffs: [String]
     @Published var activeBuffs: [String]
-    @Published var pendingLevelUp: Int?
+    @Published var pendingLevelUp: PendingLevelUp?
 
     private let userDefaults: UserDefaults
     private let calendar = Calendar.current
@@ -179,7 +179,8 @@ private extension PlayerStateStore {
         persistProgress()
 
         if level > previousLevel {
-            pendingLevelUp = level
+            let tier = LevelUpTier.compute(oldLevel: previousLevel, newLevel: level)
+            pendingLevelUp = PendingLevelUp(level: level, tier: tier)
         }
     }
 

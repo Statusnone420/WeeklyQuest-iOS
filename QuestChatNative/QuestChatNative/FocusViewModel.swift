@@ -341,7 +341,7 @@ final class SessionStatsStore: ObservableObject {
     @Published private(set) var sessionsCompleted: Int
     @Published private(set) var sessionHistory: [SessionRecord]
     @Published private(set) var totalFocusSecondsToday: Int
-    @Published var pendingLevelUp: Int?
+    @Published var pendingLevelUp: PendingLevelUp?
     @Published private(set) var dailyPlan: DailyPlan?
     @Published private(set) var dailyProgressHistory: [DailyProgress]
     @Published var shouldShowDailySetup: Bool = false
@@ -666,7 +666,8 @@ final class SessionStatsStore: ObservableObject {
         if level > previousLevel {
             let result = LevelUpResult(oldLevel: previousLevel, newLevel: level)
             lastLevelUp = result
-            pendingLevelUp = level
+            let tier = LevelUpTier.compute(oldLevel: previousLevel, newLevel: level)
+            pendingLevelUp = PendingLevelUp(level: level, tier: tier)
         } else {
             lastLevelUp = nil
             pendingLevelUp = nil

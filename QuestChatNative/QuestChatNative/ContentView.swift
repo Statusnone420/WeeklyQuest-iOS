@@ -85,7 +85,7 @@ struct ContentView: View {
             .background(Color.black)
             
             if let levelUp = statsStore.pendingLevelUp {
-                LevelUpModalView(level: levelUp) {
+                LevelUpModalView(levelUp: levelUp) {
                     withAnimation(.easeInOut(duration: 0.25)) {
                         statsStore.pendingLevelUp = nil
                     }
@@ -94,7 +94,7 @@ struct ContentView: View {
                 .transition(.opacity.combined(with: .scale))
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: statsStore.pendingLevelUp)
+        .animation(.easeInOut(duration: 0.3), value: statsStore.pendingLevelUp != nil)
         .safeAreaInset(edge: .top) {
             if let event = focusViewModel.activeReminderEvent,
                let message = focusViewModel.activeReminderMessage {

@@ -595,7 +595,7 @@ struct PlayerCardView: View {
 
             // Level-up overlay when Player Card is presented as a sheet
             if let levelUp = store.pendingLevelUp {
-                LevelUpModalView(level: levelUp) {
+                LevelUpModalView(levelUp: levelUp) {
                     withAnimation(.easeInOut(duration: 0.25)) {
                         store.pendingLevelUp = nil
                     }

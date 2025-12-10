@@ -306,6 +306,25 @@ struct SettingsView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
             .buttonStyle(.plain)
+
+            Button {
+                let stats = DependencyContainer.shared.sessionStatsStore
+                stats.grantXP(50, source: "DEBUG_XP_GRANT")
+            } label: {
+                HStack(spacing: 8) {
+                    Image(systemName: "plus.circle")
+                        .foregroundStyle(.mint)
+                    Text("Grant +50 XP")
+                        .font(.subheadline.bold())
+                    Spacer()
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.mint.opacity(0.18))
+                .foregroundStyle(.mint)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+            .buttonStyle(.plain)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()

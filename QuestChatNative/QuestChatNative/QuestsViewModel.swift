@@ -1513,7 +1513,8 @@ extension SessionStatsStore {
         // Belt-and-suspenders: if level increased but pendingLevelUp wasn't set by the underlying logic,
         // set it here so the celebration overlay appears.
         if self.level > previousLevel && self.pendingLevelUp == nil {
-            self.pendingLevelUp = self.level
+            let tier = LevelUpTier.compute(oldLevel: previousLevel, newLevel: self.level)
+            self.pendingLevelUp = PendingLevelUp(level: self.level, tier: tier)
         }
     }
 }
