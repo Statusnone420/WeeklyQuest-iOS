@@ -563,52 +563,79 @@ struct StatsView: View {
     }
 
     private var achievementsSection: some View {
-        ZStack(alignment: .topTrailing) {
-            // 🌸 Sakura background animation
-            LottieView(
-                animationName: "sakura_branch",
-                loopMode: .loop,
-                animationSpeed: 1.0,
-                contentMode: .scaleAspectFill,
-                animationTrigger: sakuraTrigger,
-                freezeOnLastFrame: false
-            )
-            .frame(height: 120)
-            .opacity(0.25)
-            .offset(x: 16, y: -8)
-            .allowsHitTesting(false)
-            
-            // 🏆 Achievements content
-            VStack(alignment: .leading, spacing: 12) {
-                Text("Season Achievements")
-                    .font(.headline)
-
-                if viewModel.seasonAchievements.isEmpty {
-                    Text("No achievements available yet.")
+        VStack(alignment: .leading, spacing: 12) {
+            // 🌸 Proper header card with Sakura (Quests-style)
+            ZStack(alignment: .topLeading) {
+                // Sakura background animation
+                LottieView(
+                    animationName: "sakura_branch",
+                    loopMode: .loop,
+                    animationSpeed: 0.4,
+                    contentMode: .scaleAspectFill,
+                    animationTrigger: sakuraTrigger,
+                    freezeOnLastFrame: false
+                )
+                .frame(height: 90)
+                .opacity(0.25)
+                .allowsHitTesting(false)
+                
+                // Header content
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Season Achievements")
+                        .font(.title3.bold())
+                        .foregroundStyle(.primary)
+                    
+                    Text("Track your long-term progress and unlock rewards")
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
-                } else {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 16) {
-                        ForEach(viewModel.seasonAchievements) { item in
-                            Button {
-                                selectAchievement(item)
-                            } label: {
-                                SeasonAchievementBadgeView(
-                                    title: item.title,
-                                    iconName: item.iconName,
-                                    isUnlocked: item.isUnlocked,
-                                    progressFraction: CGFloat(item.progressFraction)
-                                )
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.vertical, 8)
                 }
+                .padding()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(uiColor: .secondarySystemBackground).opacity(0.45))
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(
+                        LinearGradient(
+                            colors: [Color.mint.opacity(0.5), Color.cyan.opacity(0.35), Color.purple.opacity(0.2)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            
+            // 🏆 Achievements grid
+            if viewModel.seasonAchievements.isEmpty {
+                Text("No achievements available yet.")
+                    .foregroundStyle(.secondary)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(uiColor: .secondarySystemBackground).opacity(0.15))
+                    .cornerRadius(12)
+            } else {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 16) {
+                    ForEach(viewModel.seasonAchievements) { item in
+                        Button {
+                            selectAchievement(item)
+                        } label: {
+                            SeasonAchievementBadgeView(
+                                title: item.title,
+                                iconName: item.iconName,
+                                isUnlocked: item.isUnlocked,
+                                progressFraction: CGFloat(item.progressFraction)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color(uiColor: .secondarySystemBackground).opacity(0.15))
+                .cornerRadius(12)
             }
         }
-        .padding()
-        .background(Color(uiColor: .secondarySystemBackground).opacity(0.15))
-        .cornerRadius(16)
     }
 
     private var sessionHistorySection: some View {
