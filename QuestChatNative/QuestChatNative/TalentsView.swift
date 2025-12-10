@@ -1,10 +1,12 @@
 import SwiftUI
 import UIKit
+import Lottie
 
 struct TalentsView: View {
     @StateObject var viewModel: TalentsViewModel
     @State private var isShowingRespecConfirm = false
     @State private var tileFrames: [String: CGRect] = [:]
+    @State private var sakuraTrigger = UUID()
 
     private let columns: [GridItem] = Array(
         repeating: GridItem(.flexible(), spacing: 12, alignment: .top),
@@ -197,45 +199,62 @@ struct TalentsView: View {
     }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("IRL Talent Tree")
-                    .font(.largeTitle.bold())
+        ZStack(alignment: .topLeading) {
+            // 🌸 Sakura background animation
+            LottieView(
+                animationName: "sakura_branch",
+                loopMode: .loop,
+                animationSpeed: 1.0,
+                contentMode: .scaleAspectFill,
+                animationTrigger: sakuraTrigger,
+                freezeOnLastFrame: false
+            )
+            .frame(height: 140)
+            .opacity(0.25)
+            .offset(x: -16, y: -12)
+            .allowsHitTesting(false)
+            
+            // 🌳 Header content
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("IRL Talent Tree")
+                        .font(.largeTitle.bold())
 
-                Spacer()
+                    Spacer()
 
-                Button("Respec") {
-                    isShowingRespecConfirm = true
-                }
-                .font(.footnote.bold())
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(Color.secondary.opacity(0.2))
-                .clipShape(Capsule())
-
-                Text("Lvl \(viewModel.level)")
-                    .font(.footnote)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(.thinMaterial)
+                    Button("Respec") {
+                        isShowingRespecConfirm = true
+                    }
+                    .font(.footnote.bold())
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(Color.secondary.opacity(0.2))
                     .clipShape(Capsule())
-            }
 
-            HStack(spacing: 16) {
-                HStack(spacing: 4) {
-                    Text("Points:")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Text("\(viewModel.availablePoints)")
-                        .font(.subheadline).bold()
-                }
+                    Text("Lvl \(viewModel.level)")
+                        .font(.footnote)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(.thinMaterial)
+                        .clipShape(Capsule())
+                    }
 
-                HStack(spacing: 4) {
-                    Text("Spent:")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Text("\(viewModel.pointsSpent)")
-                        .font(.subheadline)
+                HStack(spacing: 16) {
+                    HStack(spacing: 4) {
+                        Text("Points:")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Text("\(viewModel.availablePoints)")
+                            .font(.subheadline).bold()
+                    }
+
+                    HStack(spacing: 4) {
+                        Text("Spent:")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        Text("\(viewModel.pointsSpent)")
+                            .font(.subheadline)
+                    }
                 }
             }
         }

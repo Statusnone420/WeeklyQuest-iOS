@@ -1,4 +1,6 @@
 import SwiftUI
+import SwiftUI
+import Lottie
 
 struct StatsView: View {
     @ObservedObject var store: SessionStatsStore
@@ -9,6 +11,7 @@ struct StatsView: View {
     @State private var selectedScope: StatsScope = .today
     @State private var selectedAchievement: SeasonAchievement?
     @State private var isShowingDailySetup = false
+    @State private var sakuraTrigger = UUID()
 #if DEBUG
     @State private var shouldPostAchievementNotifications = false
 #endif
@@ -560,30 +563,47 @@ struct StatsView: View {
     }
 
     private var achievementsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Season Achievements")
-                .font(.headline)
+        ZStack(alignment: .topTrailing) {
+            // 🌸 Sakura background animation
+            LottieView(
+                animationName: "sakura_branch",
+                loopMode: .loop,
+                animationSpeed: 1.0,
+                contentMode: .scaleAspectFill,
+                animationTrigger: sakuraTrigger,
+                freezeOnLastFrame: false
+            )
+            .frame(height: 120)
+            .opacity(0.25)
+            .offset(x: 16, y: -8)
+            .allowsHitTesting(false)
+            
+            // 🏆 Achievements content
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Season Achievements")
+                    .font(.headline)
 
-            if viewModel.seasonAchievements.isEmpty {
-                Text("No achievements available yet.")
-                    .foregroundStyle(.secondary)
-            } else {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 16) {
-                    ForEach(viewModel.seasonAchievements) { item in
-                        Button {
-                            selectAchievement(item)
-                        } label: {
-                            SeasonAchievementBadgeView(
-                                title: item.title,
-                                iconName: item.iconName,
-                                isUnlocked: item.isUnlocked,
-                                progressFraction: CGFloat(item.progressFraction)
-                            )
+                if viewModel.seasonAchievements.isEmpty {
+                    Text("No achievements available yet.")
+                        .foregroundStyle(.secondary)
+                } else {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 16) {
+                        ForEach(viewModel.seasonAchievements) { item in
+                            Button {
+                                selectAchievement(item)
+                            } label: {
+                                SeasonAchievementBadgeView(
+                                    title: item.title,
+                                    iconName: item.iconName,
+                                    isUnlocked: item.isUnlocked,
+                                    progressFraction: CGFloat(item.progressFraction)
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
+                    .padding(.vertical, 8)
                 }
-                .padding(.vertical, 8)
             }
         }
         .padding()
