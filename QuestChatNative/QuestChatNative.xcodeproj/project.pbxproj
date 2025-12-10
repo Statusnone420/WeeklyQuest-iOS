@@ -21,6 +21,7 @@
 		D846BF892EE8A4C900E5A440 /* TreasureChest.json in Resources */ = {isa = PBXBuildFile; fileRef = D846BF882EE8A4C900E5A440 /* TreasureChest.json */; };
 		D846C0352EE90B1100E5A440 /* sakura_branch.json in Resources */ = {isa = PBXBuildFile; fileRef = D846C0342EE90B1100E5A440 /* sakura_branch.json */; };
 		D846C0392EE911CE00E5A440 /* FocusRings.json in Resources */ = {isa = PBXBuildFile; fileRef = D846C0382EE911CE00E5A440 /* FocusRings.json */; };
+		D846C03F2EE920FF00E5A440 /* WaveLoop.json in Resources */ = {isa = PBXBuildFile; fileRef = D846C03E2EE920FF00E5A440 /* WaveLoop.json */; };
 		D87C18822EDFA74B00438C3A /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D87C182B2EDF9B6F00438C3A /* WidgetKit.framework */; };
 		D87C18832EDFA74B00438C3A /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D87C182D2EDF9B6F00438C3A /* SwiftUI.framework */; };
 		D87C18942EDFA74C00438C3A /* QuestChatLiveActivityExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D87C18812EDFA74B00438C3A /* QuestChatLiveActivityExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -116,6 +117,7 @@
 		D846BF882EE8A4C900E5A440 /* TreasureChest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = TreasureChest.json; sourceTree = "<group>"; };
 		D846C0342EE90B1100E5A440 /* sakura_branch.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = sakura_branch.json; sourceTree = "<group>"; };
 		D846C0382EE911CE00E5A440 /* FocusRings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = FocusRings.json; sourceTree = "<group>"; };
+		D846C03E2EE920FF00E5A440 /* WaveLoop.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = WaveLoop.json; sourceTree = "<group>"; };
 		D87C182B2EDF9B6F00438C3A /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		D87C182D2EDF9B6F00438C3A /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		D87C18812EDFA74B00438C3A /* QuestChatLiveActivityExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = QuestChatLiveActivityExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -303,6 +305,7 @@
 				D80A60BC2EE1397D003C5262 /* QuestEngine.swift */,
 				D8EDD5282EE1F14B00922DCF /* QuestEvent.swift */,
 				D8A1A01D2EDE07B400A6A01D /* QuestsView.swift */,
+				D846C03E2EE920FF00E5A440 /* WaveLoop.json */,
 				D8A1A0082EDE07B400A6A008 /* QuestsViewModel.swift */,
 				D8F0A1052F12345000AAAAAA /* RatingSliderRow.swift */,
 				D8F1B0002F0A2F1B00D6C8E9 /* ReminderModels.swift */,
@@ -431,6 +434,7 @@
 				D846C0352EE90B1100E5A440 /* sakura_branch.json in Resources */,
 				D846C0392EE911CE00E5A440 /* FocusRings.json in Resources */,
 				D8A200202EDE07B400A6A001 /* Assets.xcassets in Resources */,
+				D846C03F2EE920FF00E5A440 /* WaveLoop.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

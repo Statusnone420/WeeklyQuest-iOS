@@ -38,6 +38,7 @@ struct FocusView: View {
     @State private var heroCardOpacity: Double = 0.92
     @State private var isShowingSettings = false
     @State private var focusRingsTrigger = UUID()
+    @State private var momentumWaveTrigger = UUID()
 
     @Namespace private var categoryAnimation
 
@@ -264,27 +265,44 @@ struct FocusView: View {
     }
 
     private var momentumCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Label(QuestChatStrings.StatsView.momentumLabel, systemImage: "bolt.fill")
-                    .font(.headline.weight(.semibold))
-                    .foregroundStyle(.yellow)
-                Spacer()
-                Text(momentumLabel)
-                    .font(.caption.bold())
+        ZStack {
+            // Back: wave Lottie animation
+            LottieView(
+                animationName: "WaveLoop",
+                loopMode: .loop,
+                animationSpeed: 0.5,
+                contentMode: .scaleAspectFill,
+                animationTrigger: momentumWaveTrigger,
+                freezeOnLastFrame: false,
+                tintColor: UIColor.systemPurple
+            )
+            .frame(height: 110)
+            .opacity(0.25)
+            .allowsHitTesting(false)
+            
+            // Front: momentum content
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .firstTextBaseline) {
+                    Label(QuestChatStrings.StatsView.momentumLabel, systemImage: "bolt.fill")
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(.yellow)
+                    Spacer()
+                    Text(momentumLabel)
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                }
+
+                ProgressView(value: momentumProgress, total: 1)
+                    .tint(.yellow)
+                    .progressViewStyle(.linear)
+
+                Text(momentumDescription)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
-
-            ProgressView(value: momentumProgress, total: 1)
-                .tint(.yellow)
-                .progressViewStyle(.linear)
-
-            Text(momentumDescription)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(uiColor: .secondarySystemBackground).opacity(0.45))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }

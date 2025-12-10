@@ -12,6 +12,7 @@ struct StatsView: View {
     @State private var selectedAchievement: SeasonAchievement?
     @State private var isShowingDailySetup = false
     @State private var sakuraTrigger = UUID()
+    @State private var statsWaveTrigger = UUID()
 #if DEBUG
     @State private var shouldPostAchievementNotifications = false
 #endif
@@ -81,6 +82,40 @@ struct StatsView: View {
         }
         .pickerStyle(.segmented)
     }
+    
+    private var statsHeaderWithWave: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Text("Stats")
+                    .font(.largeTitle.bold())
+                    .foregroundColor(.white)
+                Spacer()
+            }
+            
+            ZStack {
+                LottieView(
+                    animationName: "WaveLoop",
+                    loopMode: .loop,
+                    animationSpeed: 0.5,
+                    contentMode: .scaleAspectFill,
+                    animationTrigger: statsWaveTrigger,
+                    freezeOnLastFrame: false,
+                    tintColor: UIColor(red: 0.3, green: 0.7, blue: 1.0, alpha: 1.0)
+                )
+                .frame(height: 70)
+                .opacity(0.22)
+                .allowsHitTesting(false)
+                
+                scopePicker
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .fill(Color(uiColor: .secondarySystemBackground))
+            )
+        }
+    }
 
     private var todayContent: some View {
         VStack(spacing: 18) {
@@ -144,17 +179,8 @@ struct StatsView: View {
             ZStack {
                 ScrollView (.vertical, showsIndicators: false) {
                     VStack(spacing: 18) {
-                        HStack {
-                            Text("Stats")
-                                .font(.largeTitle.bold())
-                                .foregroundColor(.white)
-                            Spacer()
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 8)
-                        .padding(.bottom, 12)
-
-                        scopePicker
+                        statsHeaderWithWave
+                        
                         if selectedScope == .today {
                             todayContent
                         } else {

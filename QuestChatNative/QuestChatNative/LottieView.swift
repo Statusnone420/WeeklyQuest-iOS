@@ -1,6 +1,18 @@
 import SwiftUI
 import Lottie
 
+// MARK: - UIColor Extension for Lottie
+private extension UIColor {
+    var lottieColorValue: LottieColor {
+        var r: CGFloat = 1
+        var g: CGFloat = 1
+        var b: CGFloat = 1
+        var a: CGFloat = 1
+        getRed(&r, green: &g, blue: &b, alpha: &a)
+        return LottieColor(r: Double(r), g: Double(g), b: Double(b), a: Double(a))
+    }
+}
+
 struct LottieView: UIViewRepresentable {
     let animationName: String
     let loopMode: LottieLoopMode
@@ -8,6 +20,14 @@ struct LottieView: UIViewRepresentable {
     let contentMode: UIView.ContentMode
     let animationTrigger: UUID
     let freezeOnLastFrame: Bool
+    let renderingEngine: RenderingEngineOption
+    let tintColor: UIColor?
+    
+    enum RenderingEngineOption {
+        case automatic
+        case mainThread
+        case coreAnimation
+    }
     
     init(
         animationName: String,
@@ -15,7 +35,9 @@ struct LottieView: UIViewRepresentable {
         animationSpeed: CGFloat = 1.0,
         contentMode: UIView.ContentMode = .scaleAspectFit,
         animationTrigger: UUID = UUID(),
-        freezeOnLastFrame: Bool = true
+        freezeOnLastFrame: Bool = true,
+        renderingEngine: RenderingEngineOption = .automatic,
+        tintColor: UIColor? = nil
     ) {
         self.animationName = animationName
         self.loopMode = loopMode
@@ -23,18 +45,42 @@ struct LottieView: UIViewRepresentable {
         self.contentMode = contentMode
         self.animationTrigger = animationTrigger
         self.freezeOnLastFrame = freezeOnLastFrame
+        self.renderingEngine = renderingEngine
+        self.tintColor = tintColor
     }
     
     func makeUIView(context: Context) -> UIView {
         let containerView = UIView()
         containerView.backgroundColor = .clear
         
-        let animationView = LottieAnimationView(name: animationName)
+        // Configure rendering engine based on option
+        let configuration: LottieConfiguration
+        switch renderingEngine {
+        case .automatic:
+            configuration = LottieConfiguration(renderingEngine: .automatic)
+        case .mainThread:
+            configuration = LottieConfiguration(renderingEngine: .mainThread)
+        case .coreAnimation:
+            configuration = LottieConfiguration(renderingEngine: .coreAnimation)
+        }
+        
+        let animationView = LottieAnimationView(name: animationName, configuration: configuration)
         animationView.loopMode = loopMode
         animationView.animationSpeed = animationSpeed
         animationView.contentMode = contentMode
         animationView.backgroundBehavior = .pauseAndRestore
         animationView.translatesAutoresizingMaskIntoConstraints = false
+        
+        // Apply tint color if provided
+        if let tintColor {
+            let keypath = AnimationKeypath(keypath: "**.Color")
+            let provider = ColorValueProvider(tintColor.lottieColorValue)
+            animationView.setValueProvider(provider, keypath: keypath)
+        }
+        
+        // Ensure colors are rendered properly (not grayscale)
+        animationView.shouldRasterizeWhenIdle = false
+        animationView.layer.shouldRasterize = false
         
         // Store reference to animation view for updates
         containerView.tag = animationTrigger.hashValue

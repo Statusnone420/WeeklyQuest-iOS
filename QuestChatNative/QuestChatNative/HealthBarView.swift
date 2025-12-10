@@ -1,4 +1,5 @@
 import SwiftUI
+import Lottie
 
 struct HealthBarView: View {
     @StateObject var viewModel: HealthBarViewModel
@@ -10,6 +11,7 @@ struct HealthBarView: View {
     @ObservedObject var dailyRatingsStore: DailyHealthRatingsStore = DependencyContainer.shared.dailyHealthRatingsStore
     @State private var showPlayerCard = false
     @State private var buffsVersion: Int = 0
+    @State private var hpWaveTrigger = UUID()
     @ObservedObject private var potionManager = PotionManager.shared
 
     init(viewModel: HealthBarViewModel, focusViewModel: FocusViewModel, statsStore: SessionStatsStore, statsViewModel: StatsViewModel, selectedTab: Binding<MainTab>) {
@@ -24,6 +26,7 @@ struct HealthBarView: View {
         NavigationStack {
             ScrollView(.vertical, showsIndicators: false) {
                 VStack(spacing: 20) {
+                    hpHeaderWithWave
                     healthHeaderCard
                     vitalsCard
                     if questsViewModel.dailyQuests.first != nil {
@@ -38,32 +41,7 @@ struct HealthBarView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
             .background(Color.black.ignoresSafeArea())
-            .navigationTitle("HP")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Color.black, for: .navigationBar)
-            .toolbarColorScheme(.dark, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showPlayerCard = true
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "atom")
-                                .font(.headline)
-                            Text("Player Card")
-                                .font(.subheadline.weight(.semibold))
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(
-                            Capsule()
-                                .fill(Color.white.opacity(0.08))
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(.primary)
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showPlayerCard) {
                 PlayerCardView(
                     store: statsStore,
@@ -86,6 +64,52 @@ struct HealthBarView: View {
                 if !isShowing { buffsVersion &+= 1 }
             }
         }
+    }
+
+    private var hpHeaderWithWave: some View {
+        ZStack {
+            LottieView(
+                animationName: "WaveLoop",
+                loopMode: .loop,
+                animationSpeed: 0.5,
+                contentMode: .scaleAspectFill,
+                animationTrigger: hpWaveTrigger,
+                freezeOnLastFrame: false,
+                tintColor: UIColor.systemTeal
+            )
+            .frame(height: 80)
+            .opacity(0.22)
+            .allowsHitTesting(false)
+            
+            HStack {
+                Text("HP")
+                    .font(.title2.bold())
+                Spacer()
+                Button {
+                    showPlayerCard = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "atom")
+                            .font(.headline)
+                        Text("Player Card")
+                            .font(.subheadline.weight(.semibold))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color.white.opacity(0.08))
+                    )
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.primary)
+            }
+            .padding(.horizontal, 20)
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .fill(Color(uiColor: .secondarySystemBackground))
+        )
     }
 
     @ViewBuilder
