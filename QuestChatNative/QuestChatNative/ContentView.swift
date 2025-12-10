@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 private struct SipFeedbackOverlay: View {
     let text: String
@@ -110,8 +111,13 @@ struct ContentView: View {
                     .transition(.move(edge: .top).combined(with: .opacity))
                     .zIndex(99)
             }
+            
+            // Global session-complete toast (appears on any tab)
+            // REMOVED PER INSTRUCTIONS
+            
         }
         .animation(.spring(response: 0.5, dampingFraction: 0.7), value: questsViewModel.comboCelebration != nil)
+        .animation(.easeInOut(duration: 0.25), value: focusViewModel.lastCompletedSession?.timestamp)
         .onReceive(NotificationCenter.default.publisher(for: .openTalentsTabRequested)) { _ in
             withAnimation(.easeInOut(duration: 0.25)) {
                 selectedTab = .talents
@@ -172,11 +178,62 @@ struct ContentView: View {
                 .zIndex(10)
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            Group {
+                if let session = focusViewModel.lastCompletedSession {
+                    SessionCompleteToast(
+                        xpGained: session.xpGained,
+                        minutes: session.duration / 60,
+                        label: sessionLabel(forMinutes: session.duration / 60),
+                        onOpenFocus: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                selectedTab = .focus
+                                focusViewModel.lastCompletedSession = nil
+                            }
+                        }
+                    )
+                    .padding(.horizontal, 16)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(50)
+                    .highPriorityGesture(
+                        DragGesture(minimumDistance: 20)
+                            .onEnded { value in
+                                let dx = abs(value.translation.width)
+                                let dy = abs(value.translation.height)
+                                if dx > 60 || dy > 40 {
+                                    withAnimation {
+                                        focusViewModel.lastCompletedSession = nil
+                                    }
+                                }
+                            }
+                    )
+                    .onAppear {
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 10.0) {
+                            withAnimation {
+                                focusViewModel.lastCompletedSession = nil
+                            }
+                        }
+                    }
+                }
+            }
+        }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             focusViewModel.updateScenePhase(newPhase)
         }
         .onAppear {
             focusViewModel.updateScenePhase(scenePhase)
+        }
+    }
+    
+    private func sessionLabel(forMinutes minutes: Int) -> String {
+        switch minutes {
+        case 0..<10:
+            return "Quick focus run"
+        case 10..<25:
+            return "Focus session"
+        default:
+            return "Deep Focus"
         }
     }
     
@@ -255,4 +312,3 @@ struct ContentView: View {
     ContentView()
         .environmentObject(AppCoordinator())
 }
-
