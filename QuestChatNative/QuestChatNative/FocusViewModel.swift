@@ -3194,19 +3194,7 @@ extension FocusViewModel {
         // Minimal, 1 oz increment for banner taps.
         recordHydration(ounces: 1)
         
-        // Post quest event to track hydration progress
-        updateWaterIntakeTotals()
-        let mlPerOunce = 29.57
-        let amountMl = Int((1.0 * mlPerOunce).rounded())  // 1 oz in ml
-        let totalMl = Int((Double(totalWaterOuncesToday) * mlPerOunce).rounded())
-        let percentOfGoal = waterGoalToday > 0 ? Double(totalWaterOuncesToday) / Double(waterGoalToday) : 0
-        statsStore.questEventHandler?(
-            .hydrationLogged(
-                amountMl: amountMl,
-                totalMlToday: totalMl,
-                percentOfGoal: percentOfGoal
-            )
-        )
+        // Force update totals and sync to get accurate ounces from HealthStatsStore
         healthStatsStore.update(from: healthBarViewModel?.inputs ?? DailyHealthInputs(
             hydrationCount: 0,
             selfCareSessions: 0,
@@ -3214,6 +3202,23 @@ extension FocusViewModel {
             gutStatus: .none,
             moodStatus: .none
         ))
+        
+        // Post quest event to track hydration progress - get actual ounces from HealthStatsStore
+        let today = Calendar.current.startOfDay(for: Date())
+        let todayOunces = healthStatsStore.days.first(where: { Calendar.current.isDate($0.date, inSameDayAs: today) })?.hydrationOunces ?? 0
+        
+        let mlPerOunce = 29.57
+        let amountMl = Int((1.0 * mlPerOunce).rounded())  // 1 oz in ml
+        let totalMl = Int((Double(todayOunces) * mlPerOunce).rounded())
+        let percentOfGoal = waterGoalToday > 0 ? Double(todayOunces) / Double(waterGoalToday) : 0
+        statsStore.questEventHandler?(
+            .hydrationLogged(
+                amountMl: amountMl,
+                totalMlToday: totalMl,
+                percentOfGoal: percentOfGoal
+            )
+        )
+        
         syncPlayerHP()
         evaluateHealthXPBonuses()
     }
