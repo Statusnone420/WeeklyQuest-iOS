@@ -543,11 +543,6 @@ struct FocusView: View {
                 DurationWheelPickerView(totalSeconds: $viewModel.pendingDurationSeconds)
                     .frame(height: 200)
 
-                // Tip under the picker
-                Text("Tip: Scroll minutes and seconds to set your timer")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-
                 // Preview of selected duration (animated pop-in)
                 if showDurationPreviewPill {
                     Text(viewModel.formattedDuration(viewModel.pendingDurationSeconds))
