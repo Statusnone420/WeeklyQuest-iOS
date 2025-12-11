@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct OnboardingView: View {
     @StateObject var viewModel: OnboardingViewModel
@@ -9,6 +10,24 @@ struct OnboardingView: View {
     @State private var cardOpacity: Double = 0
 
     private let hydrationPresets = [4, 6, 8, 10, 12]
+    
+    private func playStartHaptic() {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.prepare()
+
+        // bup
+        generator.impactOccurred(intensity: 0.4)
+
+        // bup
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
+            generator.impactOccurred(intensity: 0.7)
+        }
+
+        // BUMP (finish)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            generator.impactOccurred(intensity: 1.0)
+        }
+    }
 
     init(viewModel: OnboardingViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -81,18 +100,16 @@ struct OnboardingView: View {
             // App icon or hero element
             HStack {
                 Spacer()
-                Image(systemName: "trophy.fill")
-                    .font(.system(size: 60))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [.mint, .cyan, .blue],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .shadow(color: .cyan.opacity(0.5), radius: 20)
+                Image("AppLogo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .shadow(color: .cyan.opacity(0.4), radius: 15)
+                
                 Spacer()
             }
+
             .padding(.bottom, 8)
             
             VStack(alignment: .leading, spacing: 12) {
@@ -110,22 +127,23 @@ struct OnboardingView: View {
                         )
                     )
 
-                Text("Turn your day into clear quests with XP, levels, and a real-life HP bar.")
+                Text("Turn your week into clear quests with XP, levels, and an HP bar that updates you.")
                     .font(.body)
                     .foregroundColor(Color.white.opacity(0.75))
                     .lineSpacing(4)
             }
 
             VStack(alignment: .leading, spacing: 16) {
-                featureBullet(icon: "timer", color: .mint, text: "Start focus sessions for work, chores, and self-care.")
-                featureBullet(icon: "heart.fill", color: .red, text: "Track your HP with sleep, mood, hydration, and gut.")
-                featureBullet(icon: "trophy.fill", color: .yellow, text: "Complete quests to earn XP, badges, and titles.")
+                featureBullet(icon: "timer", color: .mint, text: "Start focus sessions for work, gaming, chores, and self-care.")
+                featureBullet(icon: "heart.fill", color: .red, text: "Your HP updates automatically based off changes you make.")
+                featureBullet(icon: "trophy.fill", color: .yellow, text: "Complete daily (resets at midnight automatically) to earn XP and level up. Weekly quests too!")
             }
             .padding(.vertical, 8)
 
             VStack(spacing: 12) {
                 primaryButton(title: "Get started", icon: "arrow.right") {
-                    viewModel.currentStep = .name
+                    playStartHaptic()              // 🔔 bump-bump-BUMP
+                    viewModel.currentStep = .name  // existing behavior
                 }
 
                 Button("Skip for now") {
@@ -154,11 +172,11 @@ struct OnboardingView: View {
             .padding(.bottom, 8)
             
             VStack(alignment: .leading, spacing: 8) {
-                Text("Pick your player name")
+                Text("Pick your game name")
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
 
-                Text("This name will show on your Player Card next to your badges and title.")
+                Text("You can change this in the Player Card on the Player tab.")
                     .font(.body)
                     .foregroundColor(Color.white.opacity(0.7))
                     .lineSpacing(3)
@@ -166,7 +184,7 @@ struct OnboardingView: View {
 
             VStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("YOUR NAME")
+                    Text("THINK OF SOME BADASS CHARACTER NAME")
                         .font(.caption.weight(.semibold))
                         .foregroundColor(Color.white.opacity(0.5))
                     
@@ -225,7 +243,7 @@ struct OnboardingView: View {
                         .foregroundColor(.white)
                 }
 
-                Text("Pick a goal you can stick to. You can always change this later.")
+                Text("Pick a goal and hit it to complete quests and keep your HP up!")
                     .font(.body)
                     .foregroundColor(Color.white.opacity(0.7))
                     .lineSpacing(3)
@@ -283,54 +301,6 @@ struct OnboardingView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    /// Onboarding daily setup reuses the shared DailyVitalsSlidersView so changes stay in sync with the main app.
-    private var dailyVitalsStep: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("HealthBar setup")
-                    .font(.largeTitle.bold())
-                    .foregroundColor(.white)
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Set today’s mood, gut, sleep, and activity.")
-                        .font(.body.weight(.semibold))
-                        .foregroundColor(.white)
-
-                    Text("These sliders match what you’ll see in the app. They help you track how you feel day to day and power some quests — no judgement, just a guide.")
-                        .font(.subheadline)
-                        .foregroundColor(.white.opacity(0.85))
-                        .lineSpacing(3)
-                }
-                .multilineTextAlignment(.leading)
-
-                    .font(.body)
-                    .foregroundColor(.white.opacity(0.9))
-                    .multilineTextAlignment(.leading)
-            }
-
-            DailyVitalsSlidersView(
-                dailyRatingsStore: dailyRatingsStore,
-                healthBarViewModel: healthBarViewModel,
-                focusViewModel: focusViewModel
-            )
-            .padding(16)
-            .background(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color(uiColor: .secondarySystemBackground).opacity(0.8))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Color.white.opacity(0.10), lineWidth: 1)
-            )
-
-            primaryButton(title: "Continue") {
-                viewModel.completeDailyVitalsStep()
-            }
-            .padding(.top, 6)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .onAppear { viewModel.seedDailyVitalsIfNeeded() }
     }
 
     private var howItWorksStep: some View {
@@ -429,12 +399,12 @@ struct OnboardingView: View {
                         .foregroundStyle(
                             LinearGradient(colors: [.red, .pink], startPoint: .top, endPoint: .bottom)
                         )
-                    Text("HealthBar setup")
+                    Text("Daily Setup")
                         .font(.system(size: 32, weight: .bold, design: .rounded))
                         .foregroundColor(.white)
                 }
                 
-                Text("Track how you feel each day. No judgement, just data to help you understand your energy.")
+                Text("Update these in the Player Card on the daily and your HP will be updated automatically.")
                     .font(.body)
                     .foregroundColor(Color.white.opacity(0.7))
                     .lineSpacing(3)
@@ -442,7 +412,7 @@ struct OnboardingView: View {
 
             // Modern vitals sliders container
             VStack(spacing: 16) {
-                Text("SET TODAY'S VITALS")
+                Text("EVERYTHING IS KEPT LOCALLY ON YOUR DEVICE")
                     .font(.caption.weight(.semibold))
                     .foregroundColor(Color.white.opacity(0.5))
                     .frame(maxWidth: .infinity, alignment: .leading)
