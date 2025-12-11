@@ -223,7 +223,7 @@ struct StatsView: View {
                 if let unlocked = viewModel.unlockedAchievementToShow {
                     AchievementUnlockOverlayView(
                         achievement: unlocked,
-                        xpReward: 500,
+                        xpReward: unlocked.xpReward,
                         onEquipTitle: {
                             viewModel.equipTitle(for: unlocked)
                             viewModel.unlockedAchievementToShow = nil

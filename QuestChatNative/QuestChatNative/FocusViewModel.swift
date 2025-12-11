@@ -306,6 +306,7 @@ final class SessionStatsStore: ObservableObject {
         case streakBonus
         case waterGoal
         case healthCombo
+        case seasonAchievement(id: String, xp: Int)
     }
 
     struct LevelUpResult: Equatable {

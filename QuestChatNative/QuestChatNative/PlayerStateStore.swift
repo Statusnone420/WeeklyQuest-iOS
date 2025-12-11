@@ -22,6 +22,7 @@ final class PlayerStateStore: ObservableObject {
 
     private let userDefaults: UserDefaults
     private let calendar = Calendar.current
+    private var cancellables = Set<AnyCancellable>()
 
     /// Gradient used for the player's level chip and equipped badge visuals.
     /// If a badge is equipped, we currently use a consistent purple/blue gradient to match the badge row styling.
@@ -52,7 +53,8 @@ final class PlayerStateStore: ObservableObject {
         sleepQuality: Int = 3,
         activeDebuffs: [String] = [],
         activeBuffs: [String] = [],
-        userDefaults: UserDefaults = .standard
+        userDefaults: UserDefaults = .standard,
+        seasonAchievementsStore: SeasonAchievementsStore? = nil
     ) {
         self.userDefaults = userDefaults
         self.currentHP = currentHP
@@ -80,6 +82,37 @@ final class PlayerStateStore: ObservableObject {
         self.lastBuffResetDate = userDefaults.object(forKey: Keys.lastBuffResetDate) as? Date
 
         refreshDailyStateIfNeeded()
+        
+        // Subscribe to season achievement unlocks for XP rewards
+        // Use the provided store or fetch from DependencyContainer
+        if let store = seasonAchievementsStore {
+            subscribeToSeasonAchievements(store: store)
+        }
+    }
+    
+    /// Call this after initialization if seasonAchievementsStore wasn't available in init
+    func subscribeToSeasonAchievements(store: SeasonAchievementsStore) {
+        print("[PlayerStateStore] 🎯 Subscribing to season achievement unlocks...")
+        NotificationCenter.default.publisher(for: .seasonAchievementUnlocked, object: store)
+            .compactMap { notification -> SeasonAchievement? in
+                print("[PlayerStateStore] 📢 Received seasonAchievementUnlocked notification: \(notification.userInfo ?? [:])")
+                guard
+                    let achievementId = notification.userInfo?["achievementId"] as? String,
+                    let achievement = store.achievements.first(where: { $0.id == achievementId })
+                else {
+                    print("[PlayerStateStore] ⚠️ Could not find achievement in notification")
+                    return nil
+                }
+                print("[PlayerStateStore] ✅ Found achievement: \(achievement.title) (\(achievement.xpReward) XP)")
+                return achievement
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] achievement in
+                print("[PlayerStateStore] 🎁 About to award XP for achievement: \(achievement.title)")
+                self?.awardXPForSeasonAchievement(achievement)
+            }
+            .store(in: &cancellables)
+        print("[PlayerStateStore] 🎯 Subscription established!")
     }
 
     var hpPercentage: Double {
@@ -159,6 +192,34 @@ extension PlayerStateStore {
         applyDailyStateRefresh()
         guard amount > 0 else { return }
         addXPWithMultiplier(amount)
+    }
+    
+    /// Award XP for a season achievement unlock.
+    /// This reuses the existing XP pipeline with multipliers from active buffs.
+    func awardXPForSeasonAchievement(_ achievement: SeasonAchievement) {
+        let xpBefore = xp
+        let levelBefore = level
+        print("[PlayerStateStore] 💰 awardXPForSeasonAchievement called for '\(achievement.title)'")
+        print("[PlayerStateStore]    Base XP reward: \(achievement.xpReward)")
+        print("[PlayerStateStore]    Current XP: \(xpBefore), Level: \(levelBefore)")
+        print("[PlayerStateStore]    Active buffs: \(activeBuffs)")
+        
+        applyDailyStateRefresh()
+        guard achievement.xpReward > 0 else {
+            print("[PlayerStateStore] ⚠️ Achievement has 0 XP reward, skipping")
+            return
+        }
+        
+        addXPWithMultiplier(achievement.xpReward)
+        
+        let xpAfter = xp
+        let levelAfter = level
+        let xpGained = xpAfter - xpBefore
+        print("[PlayerStateStore] ✅ Awarded \(xpGained) XP (base: \(achievement.xpReward), with multipliers)")
+        print("[PlayerStateStore]    New XP: \(xpAfter), New Level: \(levelAfter)")
+        if levelAfter > levelBefore {
+            print("[PlayerStateStore] 🎉 LEVEL UP! \(levelBefore) → \(levelAfter)")
+        }
     }
 
     func resetXP() {

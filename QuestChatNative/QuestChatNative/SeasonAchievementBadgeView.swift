@@ -9,19 +9,19 @@ struct SeasonAchievementBadgeView: View {
     let size: BadgeSize
     
     enum BadgeSize {
-        case grid      // 64pt - for stats grid
+        case grid      // 80pt - for stats grid
         case hero      // 120pt - for unlock overlay
         
         var diameter: CGFloat {
             switch self {
-            case .grid: return 64
+            case .grid: return 80
             case .hero: return 120
             }
         }
         
         var iconSize: CGFloat {
             switch self {
-            case .grid: return 28
+            case .grid: return 36
             case .hero: return 52
             }
         }
@@ -51,15 +51,15 @@ struct SeasonAchievementBadgeView: View {
     }
 
     private var badgeDiameter: CGFloat {
-        isCompact ? 32 : size.diameter
+        size.diameter
     }
 
     private var iconFontSize: CGFloat {
-        isCompact ? 16 : size.iconSize
+        size.iconSize
     }
 
     private var shadowRadius: CGFloat {
-        isCompact ? 4 : size.shadowRadius
+        size.shadowRadius
     }
 
     var body: some View {

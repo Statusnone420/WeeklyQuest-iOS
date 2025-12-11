@@ -99,6 +99,7 @@ final class DependencyContainer {
 
         // Bind after all properties are initialized
         bindTalentTreeAchievements()
+        bindSeasonAchievementXPRewards()
     }
 
     func makeOnboardingViewModel(onCompletion: (() -> Void)? = nil) -> OnboardingViewModel {
@@ -146,5 +147,45 @@ final class DependencyContainer {
                 }
             }
             .store(in: &cancellables)
+    }
+    
+    private func bindSeasonAchievementXPRewards() {
+        print("[DependencyContainer] 🔌 Subscribing to season achievement unlocks via SessionStatsStore...")
+        NotificationCenter.default.publisher(for: .seasonAchievementUnlocked, object: seasonAchievementsStore)
+            .compactMap { [weak self] notification -> SeasonAchievement? in
+                guard let self else { return nil }
+                print("[DependencyContainer] 📢 Received season achievement unlock notification")
+                guard
+                    let achievementId = notification.userInfo?["achievementId"] as? String,
+                    let achievement = self.seasonAchievementsStore.achievements.first(where: { $0.id == achievementId })
+                else {
+                    print("[DependencyContainer] ⚠️ Could not find achievement in notification")
+                    return nil
+                }
+                print("[DependencyContainer] ✅ Found achievement: \(achievement.title) (\(achievement.xpReward) XP)")
+                return achievement
+            }
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] achievement in
+                guard let self else { return }
+                let xpBefore = self.sessionStatsStore.xp
+                let levelBefore = self.sessionStatsStore.level
+                print("[DependencyContainer] 🎁 Granting \(achievement.xpReward) XP via SessionStatsStore")
+                print("[DependencyContainer]    Before: XP=\(xpBefore), Level=\(levelBefore)")
+                
+                self.sessionStatsStore.grantXP(
+                    achievement.xpReward,
+                    reason: .seasonAchievement(id: achievement.id, xp: achievement.xpReward)
+                )
+                
+                let xpAfter = self.sessionStatsStore.xp
+                let levelAfter = self.sessionStatsStore.level
+                print("[DependencyContainer]    After: XP=\(xpAfter), Level=\(levelAfter)")
+                if levelAfter > levelBefore {
+                    print("[DependencyContainer]    🎉 LEVEL UP! \(levelBefore) → \(levelAfter)")
+                }
+            }
+            .store(in: &cancellables)
+        print("[DependencyContainer] ✅ Season achievement XP subscription established!")
     }
 }

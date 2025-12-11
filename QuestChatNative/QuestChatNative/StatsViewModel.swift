@@ -10,6 +10,7 @@ final class StatsViewModel: ObservableObject {
         let progressValue: Int
         let progressTarget: Int
         let isUnlocked: Bool
+        let xpReward: Int
 
         var progressFraction: Double {
             guard progressTarget > 0 else { return 0 }
@@ -300,7 +301,8 @@ final class StatsViewModel: ObservableObject {
                 iconName: achievement.iconName,
                 progressValue: progress.currentValue,
                 progressTarget: achievement.threshold,
-                isUnlocked: progress.isUnlocked
+                isUnlocked: progress.isUnlocked,
+                xpReward: achievement.xpReward
             )
 
             if progress.isUnlocked {

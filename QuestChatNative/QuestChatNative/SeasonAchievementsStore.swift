@@ -234,29 +234,43 @@ final class SeasonAchievementsStore: ObservableObject {
     }
 
     func unlockAllSeasonAchievementsForDebug(postNotifications: Bool = false) {
+        print("[SeasonAchievementsStore] 🐛 DEBUG: Unlock all called with postNotifications=\(postNotifications)")
         var didChange = false
+        var unlockedCount = 0
 
         for achievement in achievements {
             guard var progress = progressById[achievement.id] else { continue }
-            guard !progress.isUnlocked else { continue }
+            guard !progress.isUnlocked else {
+                print("[SeasonAchievementsStore]    ⏭️  '\(achievement.title)' already unlocked, skipping")
+                continue
+            }
 
             progress.currentValue = achievement.threshold
             progress.unlockedAt = Date()
             progress.lastUpdatedAt = Date()
             progressById[achievement.id] = progress
             didChange = true
+            unlockedCount += 1
 
+            print("[SeasonAchievementsStore]    🔓 Unlocking '\(achievement.title)' (\(achievement.xpReward) XP)")
+            
             if postNotifications {
+                print("[SeasonAchievementsStore]       📤 Posting notification for '\(achievement.title)'")
                 NotificationCenter.default.post(
                     name: .seasonAchievementUnlocked,
                     object: self,
                     userInfo: ["achievementId": achievement.id]
                 )
+            } else {
+                print("[SeasonAchievementsStore]       🔇 NOT posting notification (postNotifications=false)")
             }
         }
 
         if didChange {
             persistProgress()
+            print("[SeasonAchievementsStore] ✅ Unlocked \(unlockedCount) achievements, progress saved")
+        } else {
+            print("[SeasonAchievementsStore] ℹ️  No changes made (all already unlocked)")
         }
     }
 #endif
