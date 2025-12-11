@@ -251,7 +251,7 @@ struct StatsView: View {
                 store.completeDailyConfig(focusArea: focusArea, energyLevel: energyLevel)
                 questsViewModel.markCoreQuests(for: focusArea)
             }
-            .presentationDetents([.medium])
+            .presentationDetents([.medium, .large])
             .interactiveDismissDisabled(store.todayPlan == nil) // Allow swipe only if already set up
         }
         .sheet(item: $selectedAchievement) { achievement in

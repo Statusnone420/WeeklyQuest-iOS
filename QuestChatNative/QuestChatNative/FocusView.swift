@@ -176,7 +176,7 @@ struct FocusView: View {
                 statsStore.completeDailyConfig(focusArea: focusArea, energyLevel: energyLevel)
                 questsViewModel.markCoreQuests(for: focusArea)
             }
-            .presentationDetents([.medium])
+            .presentationDetents([.medium, .large])
             .interactiveDismissDisabled(statsStore.todayPlan == nil) // Allow swipe only if already set up
         }
         .onAppear {
@@ -889,74 +889,76 @@ struct DailySetupSheet: View {
                 .background(Color.white.opacity(0.1))
             
             // Content
-            VStack(alignment: .leading, spacing: 20) {
-                // Energy level section (now first)
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("How much capacity do you have today?")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
-
-                    HStack(spacing: 8) {
-                        ForEach(EnergyLevel.allCases) { level in
-                            let details = energyDetails(for: level)
-                            CompactEnergyButton(
-                                icon: details.icon,
-                                label: details.shortLabel,
-                                minutes: details.minutes,
-                                isSelected: selectedEnergy == level
-                            ) {
-                                selectedEnergy = level
-                            }
-                        }
-                    }
-                }
-                
-                // Focus mode section (simplified, now second)
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("What's today's energy?")
-                        .font(.subheadline.weight(.medium))
-                        .foregroundStyle(.secondary)
-
-                    HStack(spacing: 8) {
-                        ForEach(FocusArea.allCases) { area in
-                            let details = focusDetails(for: area)
-                            CompactFocusModeButton(
-                                systemImage: details.symbol,
-                                label: area.displayName,
-                                isSelected: selectedFocusArea == area
-                            ) {
-                                selectedFocusArea = area
-                            }
-                        }
-                    }
-                }
-                
-                // Info card
-                HStack(spacing: 10) {
-                    Image(systemName: "lightbulb.fill")
-                        .font(.title3)
-                        .foregroundStyle(.yellow)
-                    
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Your goal: \(goalMinutes) minutes today")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.primary)
-                        Text("Hit this to keep your weekly streak alive.")
-                            .font(.caption)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    // Energy level section
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("How much capacity do you have today?")
+                            .font(.subheadline.weight(.medium))
                             .foregroundStyle(.secondary)
+
+                        HStack(spacing: 8) {
+                            ForEach(EnergyLevel.allCases) { level in
+                                let details = energyDetails(for: level)
+                                CompactEnergyButton(
+                                    icon: details.icon,
+                                    label: details.shortLabel,
+                                    minutes: details.minutes,
+                                    isSelected: selectedEnergy == level
+                                ) {
+                                    selectedEnergy = level
+                                }
+                            }
+                        }
                     }
+                    
+                    // Focus mode section
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("What's today's energy?")
+                            .font(.subheadline.weight(.medium))
+                            .foregroundStyle(.secondary)
+
+                        HStack(spacing: 8) {
+                            ForEach(FocusArea.allCases) { area in
+                                let details = focusDetails(for: area)
+                                CompactFocusModeButton(
+                                    systemImage: details.symbol,
+                                    label: area.displayName,
+                                    isSelected: selectedFocusArea == area
+                                ) {
+                                    selectedFocusArea = area
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Info card
+                    HStack(spacing: 10) {
+                        Image(systemName: "lightbulb.fill")
+                            .font(.title3)
+                            .foregroundStyle(.yellow)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Your goal: \(goalMinutes) minutes today")
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(.primary)
+                            Text("Hit this to keep your weekly streak alive.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.ultraThinMaterial)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                    )
                 }
-                .padding(12)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.ultraThinMaterial)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.white.opacity(0.05), lineWidth: 1)
-                )
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
             
             Divider()
                 .background(Color.white.opacity(0.1))
