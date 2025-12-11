@@ -356,6 +356,7 @@ struct FocusView: View {
         .padding(16)
         .frame(height: 86)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(minHeight: 90) // Keep collapsed card height stable
         .background(Color(uiColor: .secondarySystemBackground).opacity(0.18))
         .cornerRadius(18)
         .overlay(
@@ -363,6 +364,7 @@ struct FocusView: View {
                 .stroke(Color.white.opacity(0.08), lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(0.25), radius: 12, x: 0, y: 6)
+        .animation(nil, value: viewModel.selectedCategory) // Disable layout animation on category change
     }
 
     private func heroCard(for category: TimerCategory) -> some View {
@@ -453,6 +455,7 @@ struct FocusView: View {
                 }
             }
         }
+        .animation(nil, value: viewModel.selectedCategory) // Prevent layout animation on selection
     }
 
     private func quickTimerTile(for category: TimerCategory) -> some View {
