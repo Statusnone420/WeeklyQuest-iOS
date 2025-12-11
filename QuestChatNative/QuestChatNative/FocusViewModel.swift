@@ -3139,6 +3139,12 @@ import SwiftUI
 extension FocusViewModel {
     func acknowledgeReminder(_ event: ReminderEvent) {
         reminderEventsStore.markResponded(eventId: event.id)
+        
+        // Trigger quest completion when user actually acknowledges the reminder
+        if event.type == .posture {
+            statsStore.questEventHandler?(.postureReminderAcknowledged)
+        }
+        
         withAnimation(.easeInOut(duration: 0.2)) {
             activeReminderEvent = nil
             activeReminderMessage = nil

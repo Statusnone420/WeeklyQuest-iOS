@@ -149,42 +149,101 @@ struct ContentView: View {
         .safeAreaInset(edge: .top) {
             if let event = focusViewModel.activeReminderEvent,
                let message = focusViewModel.activeReminderMessage {
-                HStack(alignment: .top, spacing: 12) {
-                    Image(systemName: focusViewModel.reminderIconName(for: event.type))
-                        .imageScale(.large)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(focusViewModel.reminderTitle(for: event.type))
-                            .font(.headline)
-                        Text(message)
-                            .font(.subheadline)
-                    }
-
-                    Spacer()
-
-                    if event.type == .hydration {
-                        Button("Took a sip") {
-                            focusViewModel.logHydrationSip()
-                            focusViewModel.showSipFeedback("+1 oz")
-                            focusViewModel.acknowledgeReminder(event)
+                VStack(spacing: 0) {
+                    HStack(alignment: .top, spacing: 14) {
+                        // Icon with colored background
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    event.type == .hydration
+                                        ? Color.cyan.opacity(0.2)
+                                        : Color.purple.opacity(0.2)
+                                )
+                                .frame(width: 44, height: 44)
+                            
+                            Image(systemName: focusViewModel.reminderIconName(for: event.type))
+                                .font(.system(size: 22))
+                                .foregroundStyle(
+                                    event.type == .hydration
+                                        ? Color.cyan
+                                        : Color.purple
+                                )
                         }
-                    } else {
-                        Button("Fixed it") {
+
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(focusViewModel.reminderTitle(for: event.type))
+                                .font(.headline.weight(.bold))
+                                .foregroundStyle(.primary)
+                            Text(message)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(2)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                        // Action button
+                        Button {
+                            if event.type == .hydration {
+                                focusViewModel.logHydrationSip()
+                                focusViewModel.showSipFeedback("+1 oz")
+                            }
                             focusViewModel.acknowledgeReminder(event)
+                        } label: {
+                            Text(event.type == .hydration ? "Took a sip" : "Fixed it")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.black)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 10)
+                                .background(
+                                    event.type == .hydration
+                                        ? Color.cyan
+                                        : Color.purple
+                                )
+                                .clipShape(Capsule())
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 18, style: .continuous)
+                            .fill(Color(uiColor: .secondarySystemBackground))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                    .stroke(
+                                        LinearGradient(
+                                            colors: event.type == .hydration
+                                                ? [Color.cyan.opacity(0.5), Color.cyan.opacity(0.2)]
+                                                : [Color.purple.opacity(0.5), Color.purple.opacity(0.2)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ),
+                                        lineWidth: 1.5
+                                    )
+                            )
+                    )
+                    .shadow(color: Color.black.opacity(0.3), radius: 12, x: 0, y: 6)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .overlay(alignment: .topTrailing) {
+                        if let feedback = focusViewModel.sipFeedback {
+                            SipFeedbackOverlay(text: feedback)
+                                .transition(.move(edge: .top).combined(with: .opacity))
+                                .padding(.top, -8)
+                                .padding(.trailing, 20)
                         }
                     }
-                }
-                .padding(12)
-                .background(Color(uiColor: .secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .shadow(radius: 8)
-                .padding(.horizontal, 16)
-                .overlay(alignment: .topTrailing) {
-                    if let feedback = focusViewModel.sipFeedback {
-                        SipFeedbackOverlay(text: feedback)
-                            .transition(.move(edge: .top).combined(with: .opacity))
-                            .padding(.top, -8)
+                    
+                    // Swipe indicator
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.up")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                        Text("Swipe up to dismiss")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
                     }
+                    .padding(.top, 4)
+                    .padding(.bottom, 8)
                 }
                 .gesture(
                     DragGesture(minimumDistance: 20)

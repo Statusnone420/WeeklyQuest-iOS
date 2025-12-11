@@ -21,5 +21,6 @@ enum QuestEvent {
     case statsViewed(scope: StatsScope)
     case hydrationReminderFired
     case postureReminderFired
+    case postureReminderAcknowledged
     case playerCardViewed
 }

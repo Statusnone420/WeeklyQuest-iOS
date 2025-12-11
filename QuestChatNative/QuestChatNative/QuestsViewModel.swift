@@ -485,6 +485,9 @@ final class QuestsViewModel: ObservableObject {
         case .hydrationReminderFired:
             completeQuestIfNeeded(id: "DAILY_EASY_HYDRATION_SIP")
         case .postureReminderFired:
+            // Don't complete the quest when reminder fires, only when acknowledged
+            break
+        case .postureReminderAcknowledged:
             completeQuestIfNeeded(id: "DAILY_HB_POSTURE_CHECK")
         case .playerCardViewed:
             completeQuestIfNeeded(id: "DAILY_META_PLAYER_CARD")
@@ -568,7 +571,7 @@ final class QuestsViewModel: ObservableObject {
             case "DAILY_HB_FIRST_POTION":
                 hints[def.id] = "Log your first drink to complete this."
             case "DAILY_HB_POSTURE_CHECK":
-                hints[def.id] = "Acknowledge one posture reminder."
+                hints[def.id] = "Click 'Fixed it' on a posture reminder."
             case "DAILY_HB_MORNING_CHECKIN":
                 hints[def.id] = "Open Player Card and log mood."
             case "DAILY_EASY_ONE_NICE_THING":
