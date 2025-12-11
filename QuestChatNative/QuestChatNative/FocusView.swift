@@ -441,8 +441,16 @@ struct FocusView: View {
     private func quickTimerTile(for category: TimerCategory) -> some View {
         Button {
             guard !viewModel.isRunning else { return }
+            let wasCollapsed = !viewModel.isActiveTimerExpanded
             withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
                 viewModel.selectCategory(category)
+            }
+            // Preserve collapsed state after switching categories
+            if wasCollapsed {
+                // Keep it collapsed without animating expansion
+                withAnimation(.none) {
+                    viewModel.isActiveTimerExpanded = false
+                }
             }
         } label: {
             HStack(spacing: 12) {
