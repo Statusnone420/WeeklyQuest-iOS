@@ -101,6 +101,7 @@ struct StatsView: View {
                     freezeOnLastFrame: false,
                     tintColor: UIColor(red: 0.3, green: 0.7, blue: 1.0, alpha: 1.0)
                 )
+                .equatable()
                 .frame(height: 70)
                 .opacity(0.22)
                 .allowsHitTesting(false)
@@ -152,6 +153,7 @@ struct StatsView: View {
                     animationSpeed: 0.5,
                     contentMode: .scaleAspectFit
                 )
+                .equatable()
                 .frame(maxWidth: CGFloat.infinity)
                 .frame(height: 220)
                 .scaleEffect(1.2)
@@ -641,6 +643,7 @@ struct StatsView: View {
                     animationTrigger: sakuraTrigger,
                     freezeOnLastFrame: false
                 )
+                .equatable()
                 .frame(height: 120)
                 .opacity(0.25)
                 .offset(x: -16, y: -12)

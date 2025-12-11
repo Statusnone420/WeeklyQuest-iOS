@@ -112,6 +112,7 @@ struct MiniFocusTimerFAB: View {
                 animationTrigger: focusRingsTrigger,
                 freezeOnLastFrame: false
             )
+            .equatable()
             .frame(width: 100, height: 100)
             .opacity(0.6)
             .allowsHitTesting(false)

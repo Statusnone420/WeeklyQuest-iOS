@@ -13,7 +13,7 @@ private extension UIColor {
     }
 }
 
-struct LottieView: UIViewRepresentable {
+struct LottieView: UIViewRepresentable, Equatable {
     let animationName: String
     let loopMode: LottieLoopMode
     let animationSpeed: CGFloat
@@ -23,10 +23,22 @@ struct LottieView: UIViewRepresentable {
     let renderingEngine: RenderingEngineOption
     let tintColor: UIColor?
     
-    enum RenderingEngineOption {
+    enum RenderingEngineOption: Equatable {
         case automatic
         case mainThread
         case coreAnimation
+    }
+    
+    // Implement Equatable to prevent unnecessary updates
+    static func == (lhs: LottieView, rhs: LottieView) -> Bool {
+        lhs.animationName == rhs.animationName &&
+        lhs.loopMode == rhs.loopMode &&
+        lhs.animationSpeed == rhs.animationSpeed &&
+        lhs.contentMode == rhs.contentMode &&
+        lhs.animationTrigger == rhs.animationTrigger &&
+        lhs.freezeOnLastFrame == rhs.freezeOnLastFrame &&
+        lhs.renderingEngine == rhs.renderingEngine &&
+        lhs.tintColor == rhs.tintColor
     }
     
     init(
@@ -106,18 +118,25 @@ struct LottieView: UIViewRepresentable {
     }
     
     func updateUIView(_ uiView: UIView, context: Context) {
+        guard let animationView = uiView.subviews.first as? LottieAnimationView else { return }
+        
+        // Always ensure animation speed and loop mode are correct (prevents timer interference)
+        if animationView.animationSpeed != animationSpeed {
+            animationView.animationSpeed = animationSpeed
+        }
+        
+        if animationView.loopMode != loopMode {
+            animationView.loopMode = loopMode
+        }
+        
         // Check if trigger changed (replay requested)
         if uiView.tag != animationTrigger.hashValue {
             uiView.tag = animationTrigger.hashValue
             
-            // Find and replay the animation
-            if let animationView = uiView.subviews.first as? LottieAnimationView {
-                animationView.loopMode = loopMode
-                animationView.animationSpeed = animationSpeed
-                animationView.play { finished in
-                    if finished && freezeOnLastFrame && loopMode == .playOnce {
-                        animationView.currentProgress = 1.0
-                    }
+            // Replay the animation
+            animationView.play { finished in
+                if finished && freezeOnLastFrame && loopMode == .playOnce {
+                    animationView.currentProgress = 1.0
                 }
             }
         }
