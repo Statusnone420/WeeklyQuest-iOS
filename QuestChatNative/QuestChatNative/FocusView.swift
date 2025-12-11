@@ -798,150 +798,206 @@ struct DailySetupSheet: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 16) {
-                header
+        VStack(spacing: 0) {
+            // Header
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Set today's vibe")
+                            .font(.title2.bold())
+                            .foregroundColor(.primary)
+                        Text("This sets your daily minute goal and helps track your weekly streak.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                .padding(.bottom, 12)
+            }
+            
+            Divider()
+                .background(Color.white.opacity(0.1))
+            
+            // Content
+            VStack(alignment: .leading, spacing: 20) {
+                // Energy level section (now first)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("How much capacity do you have today?")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.secondary)
 
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 16) {
-                        focusAreaSection
-                        energySection
+                    HStack(spacing: 8) {
+                        ForEach(EnergyLevel.allCases) { level in
+                            let details = energyDetails(for: level)
+                            CompactEnergyButton(
+                                icon: details.icon,
+                                label: details.shortLabel,
+                                minutes: details.minutes,
+                                isSelected: selectedEnergy == level
+                            ) {
+                                selectedEnergy = level
+                            }
+                        }
                     }
                 }
+                
+                // Focus mode section (simplified, now second)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("What's today's energy?")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.secondary)
 
-                Button {
-                    onComplete(selectedFocusArea, selectedEnergy)
-                    dismiss()
-                } label: {
-                    Text(QuestChatStrings.FocusView.saveTodayButtonTitle)
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 52)
-                        .background(Color.accentColor)
-                        .foregroundColor(.black)
-                        .cornerRadius(20)
+                    HStack(spacing: 8) {
+                        ForEach(FocusArea.allCases) { area in
+                            let details = focusDetails(for: area)
+                            CompactFocusModeButton(
+                                emoji: details.emoji,
+                                label: area.displayName,
+                                isSelected: selectedFocusArea == area
+                            ) {
+                                selectedFocusArea = area
+                            }
+                        }
+                    }
                 }
-                .padding(.top, 8)
-                .padding(.bottom, 4)
+                
+                // Info card
+                HStack(spacing: 10) {
+                    Image(systemName: "lightbulb.fill")
+                        .font(.title3)
+                        .foregroundStyle(.yellow)
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Your goal: \(goalMinutes) minutes today")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.primary)
+                        Text("Hit this to keep your weekly streak alive.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.yellow.opacity(0.15))
+                .cornerRadius(12)
             }
             .padding(.horizontal, 20)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(Color.white.opacity(0.06))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 24)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
-            )
-            .padding(.horizontal, 8)
-            .padding(.top, 8)
-            .padding(.bottom, 16)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color.black.opacity(0.6).ignoresSafeArea())
-    }
-
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(QuestChatStrings.FocusView.dailySetupTitle)
-                .font(.title2.bold())
-                .foregroundColor(.white)
-            Text("Pick today's focus and energy. We'll set a realistic goal for today.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private var focusAreaSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(QuestChatStrings.FocusView.focusAreaLabel)
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.secondary)
-
-            VStack(spacing: 10) {
-                ForEach(FocusArea.allCases) { area in
-                    let details = focusDetails(for: area)
-                    FocusModeRow(
-                        title: area.displayName,
-                        subtitle: details.subtitle,
-                        systemImageName: details.icon,
-                        isSelected: selectedFocusArea == area
-                    ) {
-                        selectedFocusArea = area
-                    }
-                }
+            .padding(.vertical, 16)
+            
+            Divider()
+                .background(Color.white.opacity(0.1))
+            
+            // Save button
+            Button {
+                onComplete(selectedFocusArea, selectedEnergy)
+                dismiss()
+            } label: {
+                Text("Let's go")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(Color.mint)
+                    .foregroundColor(.black)
+                    .cornerRadius(14)
             }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
         }
+        .background(Color(uiColor: .systemBackground))
+    }
+    
+    private var goalMinutes: Int {
+        selectedEnergy.focusGoalMinutes
     }
 
-    private var energySection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Energy level")
-                .font(.subheadline.weight(.semibold))
-                .padding(.top, 12)
-
-            HStack(spacing: 8) {
-                ForEach(EnergyLevel.allCases) { level in
-                    let details = energyDetails(for: level)
-                    EnergyLevelChip(
-                        systemImageName: details.icon,
-                        title: details.label,
-                        isSelected: selectedEnergy == level
-                    ) {
-                        selectedEnergy = level
-                    }
-                }
-            }
-        }
-    }
-
-    private func energyDetails(for level: EnergyLevel) -> (icon: String, label: String) {
+    private func energyDetails(for level: EnergyLevel) -> (icon: String, shortLabel: String, minutes: Int) {
         switch level {
         case .low:
-            return ("moon.zzz.fill", "Low – 20 min")
+            return ("moon.zzz.fill", "Low", 20)
         case .medium:
-            return ("cloud.sun.fill", "Medium – 40 min")
+            return ("cloud.sun.fill", "Medium", 40)
         case .high:
-            return ("sun.max.fill", "High – 60 min")
+            return ("sun.max.fill", "High", 60)
         }
     }
 
-    private func focusDetails(for area: FocusArea) -> (icon: String, subtitle: String) {
+    private func focusDetails(for area: FocusArea) -> (emoji: String, hint: String) {
         switch area {
         case .work:
-            return ("briefcase.fill", "Deep work, study, big tasks")
+            return ("💼", "Productive tasks")
         case .selfCare:
-            return ("figure.mind.and.body", "Recovery, appointments, chores")
+            return ("🧘", "Recovery mode")
         case .chill:
-            return ("moon.zzz.fill", "Light tasks, rest, errands")
+            return ("😌", "Light activities")
         case .grind:
-            return ("flame.fill", "All-out push day. Use with caution")
+            return ("🔥", "Maximum output")
         }
     }
 
-    private struct EnergyLevelChip: View {
-        let systemImageName: String
-        let title: String
+    private struct CompactEnergyButton: View {
+        let icon: String
+        let label: String
+        let minutes: Int
         let isSelected: Bool
         let action: () -> Void
 
         var body: some View {
             Button(action: action) {
-                HStack(spacing: 6) {
-                    Image(systemName: systemImageName)
-                    Text(title)
+                VStack(spacing: 6) {
+                    Image(systemName: icon)
+                        .font(.title2)
+                        .foregroundStyle(isSelected ? Color.mint : .secondary)
+                    
+                    VStack(spacing: 2) {
+                        Text(label)
+                            .font(.caption.weight(.semibold))
+                        Text("\(minutes) min")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                .font(.footnote.weight(.medium))
-                .foregroundStyle(.primary)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 10)
-                .padding(.horizontal, 12)
+                .padding(.vertical, 12)
                 .background(
-                    Capsule()
-                        .fill(isSelected ? Color.accentColor.opacity(0.25) : Color(.secondarySystemBackground))
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(isSelected ? Color.mint.opacity(0.2) : Color(uiColor: .secondarySystemBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isSelected ? Color.mint : Color.clear, lineWidth: 2)
+                )
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    
+    private struct CompactFocusModeButton: View {
+        let emoji: String
+        let label: String
+        let isSelected: Bool
+        let action: () -> Void
+
+        var body: some View {
+            Button(action: action) {
+                VStack(spacing: 6) {
+                    Text(emoji)
+                        .font(.title2)
+                    
+                    Text(label)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.primary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(isSelected ? Color.cyan.opacity(0.2) : Color(uiColor: .secondarySystemBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(isSelected ? Color.cyan : Color.clear, lineWidth: 2)
                 )
             }
             .buttonStyle(.plain)
