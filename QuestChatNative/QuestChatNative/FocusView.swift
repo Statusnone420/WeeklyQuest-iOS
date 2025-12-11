@@ -298,15 +298,14 @@ struct FocusView: View {
 
     @ViewBuilder
     private func activeTimerSection(for category: TimerCategory) -> some View {
-        let isSessionActive = viewModel.timerState != .idle
-
-        if isSessionActive && !viewModel.isActiveTimerExpanded {
-            collapsedActiveTimer(for: category)
-                .onTapGesture { toggleActiveTimerExpansion() }
-        } else {
+        if viewModel.isActiveTimerExpanded {
             heroCard(for: category)
                 .onTapGesture {
-                    guard isSessionActive else { return }
+                    toggleActiveTimerExpansion()
+                }
+        } else {
+            collapsedActiveTimer(for: category)
+                .onTapGesture {
                     toggleActiveTimerExpansion()
                 }
         }
