@@ -305,6 +305,7 @@ struct FocusView: View {
                 }
         } else {
             collapsedActiveTimer(for: category)
+                .id("active-timer-card")
                 .onTapGesture {
                     toggleActiveTimerExpansion()
                 }
@@ -319,31 +320,38 @@ struct FocusView: View {
 
     private func collapsedActiveTimer(for category: TimerCategory) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
+            HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(category.id.title)
                         .font(.headline)
                         .foregroundStyle(.primary)
                         .lineLimit(1)
+                        .frame(height: 18)
 
                     Text(category.id.subtitle)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
+                        .frame(height: 14)
                 }
+                .frame(height: 36)
 
-                Spacer()
+                Spacer(minLength: 0)
 
                 Text(formattedTime)
                     .font(.title3.monospacedDigit().weight(.bold))
                     .foregroundStyle(.primary)
+                    .frame(width: 70, alignment: .trailing)
             }
+            .frame(height: 44)
 
             ProgressView(value: viewModel.progress, total: 1)
                 .progressViewStyle(.linear)
                 .tint(.mint)
+                .frame(height: 4)
         }
-        .padding()
+        .padding(16)
+        .frame(height: 86)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(uiColor: .secondarySystemBackground).opacity(0.18))
         .cornerRadius(18)
@@ -369,17 +377,23 @@ struct FocusView: View {
 
                     Spacer(minLength: 0)
 
-                    Text(viewModel.formattedDuration(viewModel.durationForSelectedCategory()))
-                        .font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .background(Color.mint.opacity(0.16))
-                        .clipShape(Capsule())
-                        .matchedGeometryEffect(id: "duration-\(category.id)", in: categoryAnimation)
-                        .onTapGesture {
-                            viewModel.pendingDurationSeconds = viewModel.durationForSelectedCategory()
-                            viewModel.isShowingDurationPicker = true
-                        }
+                    HStack(spacing: 6) {
+                        Text(viewModel.formattedDuration(viewModel.durationForSelectedCategory()))
+                            .font(.subheadline.weight(.semibold))
+                        
+                        Image(systemName: "pencil.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundStyle(.mint)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.mint.opacity(0.16))
+                    .clipShape(Capsule())
+                    .matchedGeometryEffect(id: "duration-\(category.id)", in: categoryAnimation)
+                    .onTapGesture {
+                        viewModel.pendingDurationSeconds = viewModel.durationForSelectedCategory()
+                        viewModel.isShowingDurationPicker = true
+                    }
                 }
 
                 if !category.id.subtitle.isEmpty {
@@ -390,6 +404,12 @@ struct FocusView: View {
                 }
 
                 comboPill(for: category)
+                
+                // Hint for tapping duration
+                Text("Tap duration above to adjust")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary.opacity(0.7))
+                    .padding(.top, 2)
             }
 
             timerRing

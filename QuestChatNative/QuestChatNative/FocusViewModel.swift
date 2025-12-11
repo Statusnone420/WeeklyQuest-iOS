@@ -3116,12 +3116,12 @@ final class FocusViewModel: ObservableObject {
 extension FocusViewModel {
     static func seededCategories() -> [TimerCategory] {
         [
-            TimerCategory(id: .create, durationSeconds: 25 * 60),
-            TimerCategory(id: .move, durationSeconds: 20 * 60), // TEMP: Move uses .quickBreak category until a dedicated movement category exists.
-            TimerCategory(id: .chores, durationSeconds: 15 * 60),
-            TimerCategory(id: .focusMode, durationSeconds: 45 * 60),
-            TimerCategory(id: .gamingReset, durationSeconds: 45 * 60),
-            TimerCategory(id: .selfCare, durationSeconds: 20 * 60),
+            TimerCategory(id: .create, durationSeconds: 30 * 60),       // Create: 30 min (focus work)
+            TimerCategory(id: .move, durationSeconds: 15 * 60),          // Move: 15 min (quick movement break)
+            TimerCategory(id: .chores, durationSeconds: 20 * 60),        // Chores: 20 min (household tasks)
+            TimerCategory(id: .focusMode, durationSeconds: 50 * 60),     // Focus: 50 min (deep work session)
+            TimerCategory(id: .gamingReset, durationSeconds: 30 * 60),   // Gaming: 30 min (intentional break)
+            TimerCategory(id: .selfCare, durationSeconds: 15 * 60),      // Self Care: 15 min (mindfulness/stretch)
         ]
     }
 }
